@@ -136,6 +136,9 @@ func ExportBundle(corpus fs.FS, home, name string) (string, error) {
 func memberBody(corpus fs.FS, home, slug string) (string, error) {
 	if home != "" {
 		if b, err := os.ReadFile(filepath.Join(home, slug+".md")); err == nil {
+			if IsDraft(b) {
+				return "", fmt.Errorf("bundle member %q is still a draft — a composition ships everything it names, and one unfinished member makes the whole document a guess; finish it or drop it from the manifest", slug)
+			}
 			return strip(string(b)), nil
 		}
 	}

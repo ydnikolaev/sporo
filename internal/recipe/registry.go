@@ -130,6 +130,9 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	if err != nil {
 		return RegistryEntry{}, fmt.Errorf("no recipe %q in this project's home (%s) — seal guards what exists: %w", slug, cfg.Home, err)
 	}
+	if IsDraft(src) {
+		return RegistryEntry{}, fmt.Errorf("recipe %q is still a draft — a draft has no version to promise; finish it, remove `draft: true`, then seal", slug)
+	}
 	version := fmValue(src, "version")
 	if version == "" {
 		return RegistryEntry{}, fmt.Errorf("recipe %q has no `version:` in its frontmatter — the seal records a version the document itself declares, so declare one (and `sporo lint` requires it)", slug)

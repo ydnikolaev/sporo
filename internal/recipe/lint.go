@@ -70,6 +70,16 @@ var requiredKeys = []string{"name", "version", "title", "problem", "prerequisite
 var (
 	reFilename = regexp.MustCompile("`[^`]*\\.(json|yaml|yml|md|go|sh|py|ts|tsx|js|css|html|toml|rs|rb|java|sql)`")
 	rePathSeg  = regexp.MustCompile("`[^`]*/[^`]*`")
+	// A path does not need backticks to be a coordinate. The bare pattern is deliberately
+	// conservative — two or more directory segments AND a file extension, with a dot-free
+	// first segment — so that prose fractions ("24/7"), alternations ("and/or"), initialisms
+	// ("TCP/IP") and bare domains ("docs.example.com/…", dotted first segment) stay green.
+	// URLs are erased from the line before any scanning (a link is a reference, not a
+	// coordinate in the reader's tree). The cost of the conservatism is a known gap — a
+	// one-segment bare path ("src/main.c") passes — and the semantic review's neutrality
+	// axis is the declared counterweight, not a wider regex that reds on prose.
+	reBarePath = regexp.MustCompile(`(?:^|[^\w./])((?:[\w-]+/){2,}[\w-]+\.[A-Za-z]{1,5})\b`)
+	reURL      = regexp.MustCompile(`https?://\S+`)
 	reHeading  = regexp.MustCompile(`^### `)
 	reFence    = regexp.MustCompile("^\\s*```")
 	reDone     = regexp.MustCompile(`\*\*Done when:\*\*`)
@@ -249,17 +259,30 @@ func neutrality(name string, lines []string, fmEnd int, products []string) []Fin
 		if strings.Contains(line, reAllow) {
 			continue
 		}
+		scanned := reURL.ReplaceAllString(line, "")
 		n := i + 1
 		switch {
-		case reProducts != nil && reProducts.MatchString(line):
+		case reProducts != nil && reProducts.MatchString(scanned):
 			out = append(out, Finding{name, n, "names a product — a reader in another repository cannot follow it: " + clip(line)})
-		case reFilename.MatchString(line):
+		case reFilename.MatchString(scanned):
 			out = append(out, Finding{name, n, "names a FILE — recipes name roles (\"the facts file\"), not instances: " + clip(line)})
-		case rePathSeg.MatchString(line):
+		case rePathSeg.MatchString(scanned):
 			out = append(out, Finding{name, n, "names a PATH — it means nothing outside the repository it was written in: " + clip(line)})
+		case reBarePath.MatchString(scanned):
+			out = append(out, Finding{name, n, "names a PATH (backticks or not) — it means nothing outside the repository it was written in: " + clip(line)})
 		}
 	}
 	return out
+}
+
+// IsDraft reports a recipe that declares `draft: true` in its frontmatter — the state
+// `sporo new` scaffolds in. A draft is exempt from the genre gate (a red gate on the state
+// the tool itself writes trains red-blindness — the cry-wolf failure) and, for exactly the
+// same reason, a draft can neither be sealed nor exported: the exemption and the export ban
+// are one rule seen from two sides. What never leaves the house does not have to be finished;
+// what leaves the house must be.
+func IsDraft(src []byte) bool {
+	return fmValue(src, "draft") == "true"
 }
 
 func hasKey(fm []string, key string) bool { return keyLine(fm, key) != "" }

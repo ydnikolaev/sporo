@@ -65,6 +65,9 @@ func Export(corpus fs.FS, home, slug string) (string, error) {
 	}
 	if home != "" {
 		if b, err := os.ReadFile(filepath.Join(home, slug+".md")); err == nil {
+			if IsDraft(b) {
+				return "", fmt.Errorf("%q is still a draft — exporting it would hand a stranger TODOs as if they were earned; finish it, remove `draft: true`, get `sporo lint` green, then export", slug)
+			}
 			return strip(string(b)) + protocol, nil
 		}
 	}

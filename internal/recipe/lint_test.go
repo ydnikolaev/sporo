@@ -175,6 +175,24 @@ func TestAPathInTheBodyReds(t *testing.T) {
 	assertRed(t, lintFixture(t, body), "PATH")
 }
 
+// The bare-path teeth: a coordinate does not need backticks to execute in exactly one
+// repository. And the greens are asserted as hard as the red — the conservative pattern
+// exists precisely so prose arithmetic, initialisms and links never pay for it.
+
+func TestABarePathWithoutBackticksReds(t *testing.T) {
+	body := strings.Replace(conformant, "Derive, never restate.", "The collector lives in internal/report/facts.go beside the parser.", 1)
+	assertRed(t, lintFixture(t, body), "PATH")
+}
+
+func TestProseSlashesAndLinksStayGreen(t *testing.T) {
+	body := strings.Replace(conformant, "Derive, never restate.",
+		"Available 24/7, and/or over TCP/IP; the schema is published at "+
+			"https://example.com/static/v2/schema.json and mirrored on docs.example.com/latest/spec.json.", 1)
+	if f := lintFixture(t, body); len(f) != 0 {
+		t.Fatalf("fractions, alternations, initialisms and links are prose, not coordinates; got: %v", f)
+	}
+}
+
 // The contracts teeth. A shape described in prose is a shape every reader re-invents,
 // incompatibly — so the section must SHOW one.
 
