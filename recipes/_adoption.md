@@ -30,7 +30,10 @@ will read them. Do not assume every output transfers — a capability that emits
 artifacts at home may owe this project only one. And treat the bindings as law: a shape
 marked `**Binding: adapt**` is yours to rename into this project's language; a shape marked
 `**Binding: exact**` is not yours at all — something on the other side parses it, so confirm
-with your operator that the consumer applies here, then copy it byte-for-byte.
+with your operator that the consumer applies here, then copy it byte-for-byte — and check
+your output against it mechanically, in this project's own CI, from this document alone (the
+recipe tool's conform check does exactly that; if you cannot run it, validate against the
+shape by hand and say so in your report).
 
 **Map the roles onto this repository's homes.** The recipe names roles — *the facts file*,
 *the collector*, *the optional target the project implements* — because a path is the one

@@ -234,6 +234,18 @@ both have teeth: the gate requires a marker per fence, and the seal refuses a ch
 exact-bound shape under anything less than a **major** version bump — an exact contract is
 somebody else's parser, and a break wearing a compatible version number is the worst kind.
 
+**An exact shape earns fixtures — the conform check is the reader's half of the promise.**
+Because `exact` means a machine on the other side, the shape itself must parse as data
+(JSON or YAML — the gate holds it to that), and it may carry **fixtures** beneath it: a
+fence marked `**Fixture: valid**` (a real instance from the verifying build) and fences
+marked `**Fixture: invalid** — <why>` (the mutations a consumer must reject — the renamed
+field that broke someone once). The gate runs every fixture against its shape — a "valid"
+one that fails, or an "invalid" one that passes, is a contract that cannot mean what its
+author thinks. On the other side, the reader's project checks its own output against the
+exact shapes mechanically, from the exported file alone — that check, in every consumer's
+CI, is what turns "the schema is the same everywhere" from an agreement into a gate. All of
+this exists only behind the `exact` declaration: an adapt-only recipe pays nothing for it.
+
 Two things it is not:
 
 - **Not the appendix.** A contract is the shape; the appendix is one filled instance of it,
@@ -338,7 +350,9 @@ early that I forgot it was a decision?*
       smallest → degrade with a label.
 - [ ] `## The contracts` **shows** every shape the capability consumes or emits, in fenced
       blocks, with a note on any field whose meaning is a trap — and a `**Binding:**` marker
-      above every fence; anything an outside consumer parses is `exact`.
+      above every fence; anything an outside consumer parses is `exact`. Every exact shape
+      parses as data, and ideally carries its fixtures — one valid instance, and the
+      invalid ones a consumer must reject.
 - [ ] The build sequence is written against those contracts — an **interface**, not an
       implementation. A reader on another stack must be able to follow it.
 - [ ] Every build-sequence step ends with a `**Done when:**` line.
