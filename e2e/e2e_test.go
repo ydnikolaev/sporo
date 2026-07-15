@@ -254,6 +254,23 @@ func TestEndToEnd(t *testing.T) {
 		w.mustRun(t, "seal", "crm-feed")
 	})
 
+	t.Run("conform holds every project's output to the exact shape — from the export alone", func(t *testing.T) {
+		handoff := w.mustRun(t, "export", "crm-feed")
+		w.write(t, "handoff.md", handoff)
+		w.write(t, "feed.json", `{ "schema": 3, "tallied": 40 }`)
+		if out := w.mustRun(t, "conform", "handoff.md", "feed.json"); !strings.Contains(out, "✓") {
+			t.Fatalf("a conforming feed must pass against the exported file — the only document a reader has: %s", out)
+		}
+		w.write(t, "bad-feed.json", `{ "schema": 3, "counted": 40 }`)
+		if _, stderr, code := w.run(t, "conform", "handoff.md", "bad-feed.json"); code == 0 || !strings.Contains(stderr, "tallied") {
+			t.Fatalf("the renamed field must fail with a path naming what the consumer will miss (code %d): %s", code, stderr)
+		}
+		// The ADR-005 posture, end to end: an adapt-only recipe has nothing to conform to.
+		if out := w.mustRun(t, "conform", "nightly-digest", "feed.json"); !strings.Contains(out, "declares no exact-bound contracts") {
+			t.Fatalf("an adapt-only recipe is a clean no-op, not a failure: %s", out)
+		}
+	})
+
 	t.Run("export composes the deliverable", func(t *testing.T) {
 		out := w.mustRun(t, "export", "nightly-digest")
 		if !strings.Contains(out, "## Adopt it here") || !strings.Contains(out, "## Report back") {
