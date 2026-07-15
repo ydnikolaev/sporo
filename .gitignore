@@ -1,0 +1,12 @@
+# build output
+/bin/
+/dist/
+
+# go workspace files are never committed (the module builds without one — GOWORK=off is a gate)
+go.work
+go.work.sum
+
+# local env / editor
+.DS_Store
+.env
+.env.*
