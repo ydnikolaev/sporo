@@ -9,18 +9,22 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	sporo "sporo.dev/sporo"
 	"sporo.dev/sporo/internal/install"
 	"sporo.dev/sporo/internal/recipe"
+	"sporo.dev/sporo/internal/upgrade"
 )
 
 // version is stamped by the release pipeline (goreleaser ldflags); "dev" means a local build.
@@ -44,8 +48,84 @@ func root() *cobra.Command {
 	}
 	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd(), sealCmd(),
 		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd(), newCmd(),
-		conformCmd())
+		conformCmd(), upgradeCmd())
+
+	// The passive freshness hint: one line on stderr when a newer release is known, refreshed
+	// through the network at most once a day (the cache answers in between), silent on any
+	// failure, and off entirely for dev builds, for CI (nobody is there to read it), for the
+	// user who said no (SPORO_NO_UPDATE_CHECK), and after `upgrade` itself.
+	cmd.PersistentPostRun = func(c *cobra.Command, args []string) {
+		if c.Name() == "upgrade" || os.Getenv("SPORO_NO_UPDATE_CHECK") != "" || os.Getenv("CI") != "" {
+			return
+		}
+		hint := upgrade.Hint(install.GlobalHome(), version, time.Now(), func() (string, error) {
+			ctx, cancel := context.WithTimeout(context.Background(), 1500*time.Millisecond)
+			defer cancel()
+			latest, err := upgrade.Latest(ctx, releaseToken())
+			if err != nil {
+				return "", err
+			}
+			return latest.Version(), nil
+		})
+		if hint != "" {
+			fmt.Fprintln(c.ErrOrStderr(), hint)
+		}
+	}
 	return cmd
+}
+
+// upgrade replaces THIS binary with the latest release (checksum-validated) — the first half
+// of the post-release chain; `sporo update`, per repo, is the second. A dev build refuses:
+// its upstream is a checkout, and replacing it with a release would eat the developer's own
+// build.
+func upgradeCmd() *cobra.Command {
+	var check bool
+	cmd := &cobra.Command{
+		Use:   "upgrade",
+		Short: "Update this binary to the latest release — then run `sporo update` in each repo",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
+			if ctx == nil {
+				ctx = context.Background()
+			}
+			if check || version == "dev" {
+				latest, err := upgrade.Latest(ctx, releaseToken())
+				if err != nil {
+					return err
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "sporo upgrade: latest is %s, you run %s\n", latest.Version(), version)
+				if version == "dev" {
+					fmt.Fprintln(cmd.OutOrStdout(), "this is a dev build — it was built from a checkout and does not self-update; `go build` your update, or install a release")
+				}
+				if notes := strings.TrimSpace(latest.ReleaseNotes); notes != "" && check {
+					fmt.Fprintf(cmd.OutOrStdout(), "\n%s\n", notes)
+				}
+				return nil
+			}
+			latest, err := upgrade.Self(ctx, version, releaseToken())
+			if err != nil {
+				return err
+			}
+			if latest.LessOrEqual(version) {
+				fmt.Fprintf(cmd.OutOrStdout(), "sporo upgrade: %s is already the latest\n", version)
+				return nil
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo upgrade: %s → %s\n", version, latest.Version())
+			fmt.Fprintln(cmd.OutOrStdout(), "now push its new skills into your repositories: `sporo update` in each (`sporo projects` lists them)")
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&check, "check", false, "report the latest release and its notes; change nothing")
+	return cmd
+}
+
+// releaseToken is the optional auth for the private-repository phase. Read here, once, so
+// the upgrade package never reaches into the environment behind the command's back.
+func releaseToken() string {
+	if t := os.Getenv("GITHUB_TOKEN"); t != "" {
+		return t
+	}
+	return os.Getenv("GH_TOKEN")
 }
 
 // conform is the reader's half of `Binding: exact`: it checks an output file against a

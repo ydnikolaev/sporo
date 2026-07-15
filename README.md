@@ -28,10 +28,15 @@ sporo conform   # check an output file against a recipe's exact-bound contracts 
 sporo feedback  # file and list report-backs — the channel a recipe's next version comes from
 sporo review    # build a self-contained review pack for ANY agent; verify the verdicts it returns
 sporo projects  # the repositories on this machine sporo was installed into
+sporo upgrade   # update this binary to the latest release (then `sporo update` per repo)
 ```
 
-Coming in later releases: `upgrade` (self-update the binary; then `sporo update` per repo
-pushes its newer skills) and the site verbs (`push` / `pull`).
+After a release the chain is `sporo upgrade` (the binary) → `sporo update` in each repo (its
+newer skills; `sporo projects` lists them). The binary also hints — one stderr line, at most
+one check a day, silent offline — when a newer release exists; `SPORO_NO_UPDATE_CHECK=1`
+turns that off, and CI never hints.
+
+Coming in later releases: the site verbs (`push` / `pull`).
 
 ## Build
 

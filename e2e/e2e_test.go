@@ -47,7 +47,9 @@ func (w world) run(t *testing.T, args ...string) (stdout, stderr string, code in
 	t.Helper()
 	cmd := exec.Command(bin, args...)
 	cmd.Dir = w.repo
-	cmd.Env = append(os.Environ(), "SPORO_HOME="+w.home)
+	// SPORO_NO_UPDATE_CHECK: the passive version hint must never let a test suite reach the
+	// network — a hermetic run is the point of this package.
+	cmd.Env = append(os.Environ(), "SPORO_HOME="+w.home, "SPORO_NO_UPDATE_CHECK=1")
 	var out, errb strings.Builder
 	cmd.Stdout, cmd.Stderr = &out, &errb
 	err := cmd.Run()
