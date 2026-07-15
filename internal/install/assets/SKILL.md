@@ -114,6 +114,13 @@ Four of these carry the weight, and they are the four an author under time press
   the fence: name that consumer as a role, the reader copies the shape byte-for-byte, and
   changing it later is a MAJOR version (the seal enforces this). No → `**Binding: adapt**`,
   the default: shown so the reader does not re-invent it, local conventions win.
+
+  An exact shape must parse as data, and should ship its **fixtures** — a `**Fixture:
+  valid**` fence (a real instance from the verifying build) and `**Fixture: invalid** —
+  <why>` fences (the mutations a consumer must reject). `sporo lint` runs them against the
+  shape; every reader's CI checks its own output with `sporo conform <recipe> <output>` from
+  the exported file alone. That pair is what makes "the schema is the same across the whole
+  team" a check instead of an agreement.
 - **The ground it needs** is what must be standing *before* step one — the machine-readable
   source of truth this capability derives from, the structure it writes into, the gates and
   always-on rules that keep it honest after you leave — and **why each is load-bearing**, in
