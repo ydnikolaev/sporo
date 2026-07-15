@@ -104,7 +104,11 @@ func Scaffold(root string, cfg Config, slug, title string, h *Harvest) (string, 
 		"     OUTSIDE the repository read it (a fleet's collector, another team's tool)? Then it\n" +
 		"     is Binding: exact — name that consumer as a ROLE, copy the shape byte-for-byte, and\n" +
 		"     changing it later is a MAJOR version of this recipe (the seal enforces this). No\n" +
-		"     outside consumer → Binding: adapt. The gate requires a fence AND a marker. -->\n\n" +
+		"     outside consumer → Binding: adapt. The gate requires a fence AND a marker. An exact\n" +
+		"     shape must parse as data and should ship fixtures (a fence marked Fixture: valid\n" +
+		"     with a real instance, and Fixture: invalid fences with the mutations a consumer\n" +
+		"     must reject) — the lint gate runs them, and every reader checks their own output\n" +
+		"     with the conform verb from the exported file alone. -->\n\n" +
 		"The record this capability persists — **Binding: adapt** (no consumer outside this\nrepository reads it yet):\n\n" +
 		"```json\n" +
 		"{ \"schema\": 1, \"TODO\": \"the record this capability persists\" }\n" +

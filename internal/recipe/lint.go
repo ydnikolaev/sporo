@@ -228,6 +228,11 @@ func Lint(name string, src []byte, products []string) []Finding {
 			} else {
 				pending++
 			}
+		case !inFence && reFixture.MatchString(l):
+			// A fixture fence is labelled too — by its own marker. It belongs to the exact
+			// shape above it, so demanding a second Binding on it would be the gate
+			// misreading the layer it guards.
+			pending++
 		}
 	}
 
@@ -243,6 +248,11 @@ func Lint(name string, src []byte, products []string) []Finding {
 			fail(0, "%d scar(s) but %d `**%s:**` marker(s) — a scar missing that half teaches nothing", scars, n, marker)
 		}
 	}
+
+	// The conform layer's lint half — fires ONLY on recipes that declared an exact
+	// contract (ADR-005): the shape must parse, valid fixtures must conform, invalid
+	// fixtures must not. An adapt-only recipe never reaches any of it.
+	out = append(out, fixtureFindings(name, src)...)
 
 	out = append(out, neutrality(name, lines, fmEnd, products)...)
 	return out
