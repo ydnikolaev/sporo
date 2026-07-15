@@ -108,6 +108,20 @@ func adoption(corpus fs.FS) (string, error) {
 	return "", fmt.Errorf("the adoption protocol carries no section (%s)", AdoptionDoc)
 }
 
+// Genre prints the authoring spec from the compiled-in corpus, banner stripped. It exists
+// because the spec is the one document a CONSUMER repository needs and does not have: the
+// skill says "read the genre before you write a line", and in a repo that never checked out
+// this source, the binary is the only place the genre lives. Export refuses `_`-prefixed
+// documents for a good reason (a stranger asked for a capability, not a style guide), so the
+// spec gets its own door instead of a hole in that rule.
+func Genre(corpus fs.FS) (string, error) {
+	b, err := fs.ReadFile(corpus, path.Join("recipes", "_authoring.md"))
+	if err != nil {
+		return "", fmt.Errorf("the genre spec is missing from the corpus — the binary is broken, not your repository: %w", err)
+	}
+	return strip(string(b)), nil
+}
+
 // List enumerates BOTH corpora — the fleet's and this project's. `_`-prefixed files are the
 // genre's own meta-documents and are not recipes.
 func List(corpus fs.FS, home string) ([]Entry, error) {
