@@ -1,0 +1,42 @@
+# sporo
+
+> sporo is a CLI that turns a build you already did into a recipe: one self-contained
+> markdown document that teaches an AI agent in a repository that has never seen yours how
+> to build the same capability — on its own stack, in its own harness, without repeating
+> your scars. A skill runs in your harness; a recipe rebuilds the capability in any harness.
+
+Key facts an agent should know:
+
+- A recipe is a fixed, machine-gated genre: eleven sections in order, a neutrality rule
+  (the body names roles — "the facts file", "the collector" — never paths, filenames or
+  product names), a literal `**Done when:**` acceptance on every build step, and scars
+  recorded as symptom → root cause → fix.
+- Every shown contract declares a binding: `adapt` (rename into local conventions) or
+  `exact` (a consumer outside the repository parses it; adopters verify their output with
+  `sporo conform` against the handed-over file alone, and changing the shape is a MAJOR
+  version of the recipe — the seal enforces this).
+- Recipes are sealed (version + content hash in a registry) and improve through
+  report-backs: a reader's new scar produces the recipe's next version.
+- What a reader receives is always the EXPORTED file — the adoption protocol (probe, map
+  roles, agree the outcome with your operator, never silently substitute) is appended to it.
+- Install: `curl -fsSL sporo.dev/install.sh | sh` — one static binary for macOS, Linux and
+  Windows. `sporo genre` prints the full authoring spec; `sporo init` installs the
+  authoring skill into a repository.
+
+## Docs
+
+- [What is a recipe](https://sporo.dev/what-is-a-recipe.md): the genre in full — the eleven
+  sections and why each exists, the neutrality rule and its careful edges, the ground
+  ladder, bindings, and the two sections appended at export
+- [Manifesto](https://sporo.dev/manifesto.md): why transferable intent is a third primitive
+  — not a prompt, not a skill package — and why the report-back loop, not the file format,
+  is what compounds
+- [Landing page](https://sporo.dev/index.md): product overview — skill vs recipe, how
+  authoring and adoption work, the team case for exact contracts, when NOT to use recipes
+
+## Source
+
+- [GitHub repository](https://github.com/ydnikolaev/sporo): Go source, issues, releases
+  with checksummed binaries for six platforms
+- [Latest release](https://github.com/ydnikolaev/sporo/releases/latest): downloadable
+  archives and the release-notes download table

@@ -6,7 +6,7 @@ name: Pages
 on:
   push:
     branches: [main]
-    paths: ["web/site/**", ".github/workflows/pages.yml"]
+    paths: ["web/site/**", "scripts/install.sh", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -27,6 +27,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
+      # install.sh's source of truth is scripts/ (the release tooling owns it); the site
+      # serves a copy composed at deploy time, so the two can never drift.
+      - run: cp scripts/install.sh web/site/install.sh
       - uses: actions/upload-pages-artifact@v5
         with:
           path: web/site
