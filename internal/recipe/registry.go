@@ -46,6 +46,11 @@ type RegistryEntry struct {
 	// from the public corpus), or `team:<name>` (a private workspace). It is the extension
 	// of the official/project split that Origin draws for the two corpora.
 	Provenance string `yaml:"provenance"`
+	// ExactContracts digests the exact-bound fence bodies at seal time (empty when the
+	// recipe has none). It is what lets seal enforce the fleet rule: an exact contract is
+	// somebody else's parser, and a change to it under a minor bump ships a break wearing a
+	// compatible version number.
+	ExactContracts string `yaml:"exact_contracts,omitempty"`
 }
 
 // Managed is one file `sporo init`/`update` wrote into this repository. Hash is the content
@@ -143,16 +148,23 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	if err != nil {
 		return RegistryEntry{}, err
 	}
+	digest := exactContractsDigest(src)
 	entry, sealed := reg.Recipes[slug]
 	switch {
 	case !sealed:
-		entry = RegistryEntry{Version: version, Hash: hash, Provenance: "local"}
+		entry = RegistryEntry{Version: version, Hash: hash, Provenance: "local", ExactContracts: digest}
 	case entry.Hash == hash && entry.Version == version:
 		return entry, nil // already sealed exactly so — idempotent by design
 	case entry.Version == version:
 		return RegistryEntry{}, fmt.Errorf("recipe %q changed since it was sealed at %s, but `version:` still says %s — a sealed recipe never silently mutates; bump the version, then seal", slug, entry.Version, version)
 	default:
-		entry.Version, entry.Hash = version, hash
+		// The fleet rule: an exact-bound contract is somebody else's parser. Changing one
+		// under anything less than a major bump ships a break wearing a compatible version
+		// number — the consumer upgrades "safely" and their feed dies.
+		if entry.ExactContracts != "" && digest != entry.ExactContracts && semverMajor(version) <= semverMajor(entry.Version) {
+			return RegistryEntry{}, fmt.Errorf("recipe %q changes an exact-bound contract — every consumer in the fleet parses that shape, so this is a MAJOR version (%s → at least %d.0.0), not %s", slug, entry.Version, semverMajor(entry.Version)+1, version)
+		}
+		entry.Version, entry.Hash, entry.ExactContracts = version, hash, digest
 	}
 	reg.Recipes[slug] = entry
 	if err := reg.Save(root); err != nil {
@@ -187,6 +199,51 @@ func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
 		}
 	}
 	return out, nil
+}
+
+// exactContractsDigest hashes the bodies of the exact-bound fences in the contracts
+// section, in order. Only the fence CONTENTS count: prose around a shape can be reworded
+// freely, field names and structure cannot. An empty digest means the recipe promises
+// nothing exact, and the seal imposes nothing.
+func exactContractsDigest(src []byte) string {
+	con := sectionBody(strings.Split(string(src), "\n"), "## The contracts")
+	var buf strings.Builder
+	exact, inFence, capture := false, false, false
+	for _, l := range con {
+		switch {
+		case reFence.MatchString(l):
+			if !inFence {
+				inFence, capture = true, exact
+			} else {
+				inFence, capture = false, false
+			}
+			exact = false
+		case !inFence && reBinding.MatchString(l):
+			exact = strings.Contains(l, "**Binding: exact**")
+		default:
+			if capture {
+				buf.WriteString(l)
+				buf.WriteByte('\n')
+			}
+		}
+	}
+	if buf.Len() == 0 {
+		return ""
+	}
+	return ContentHash([]byte(buf.String()))
+}
+
+// semverMajor reads the MAJOR of a semver triple; a malformed version reads as 0, and the
+// lint gate (which requires a real triple) is where malformedness is reported.
+func semverMajor(v string) int {
+	n := 0
+	for _, r := range v {
+		if r < '0' || r > '9' {
+			break
+		}
+		n = n*10 + int(r-'0')
+	}
+	return n
 }
 
 // fmValue extracts one scalar from a recipe's frontmatter, tolerant of quotes. It reads the

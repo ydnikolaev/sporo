@@ -45,7 +45,7 @@ A machine-readable source of truth, because prose cannot be gated.
 
 ## The contracts
 
-The shape the collector emits:
+The shape the collector emits — **Binding: adapt** (rename the fields into your own language):
 
 ` + "```json" + `
 { "schema": 1, "counted": 12, "absent": { "reachable": false, "reason": "no such source here" } }
@@ -203,6 +203,30 @@ func TestAContractsSectionWithNoShapeReds(t *testing.T) {
 	body := strings.Replace(conformant, "```json", "", 1)
 	body = strings.Replace(body, "```", "", 1)
 	assertRed(t, lintFixture(t, body), "fenced block")
+}
+
+// The binding teeth: a shown shape must say which kind it is. `exact` is somebody else's
+// parser; `adapt` is anti-re-invention. A shape that says neither is how one team's
+// "example" becomes another team's broken feed.
+
+func TestAContractFenceWithoutABindingReds(t *testing.T) {
+	body := strings.Replace(conformant,
+		"The shape the collector emits — **Binding: adapt** (rename the fields into your own language):",
+		"The shape the collector emits:", 1)
+	assertRed(t, lintFixture(t, body), "Binding")
+}
+
+func TestABindingWithAThirdWordReds(t *testing.T) {
+	body := strings.Replace(conformant, "**Binding: adapt**", "**Binding: strict-ish**", 1)
+	assertRed(t, lintFixture(t, body), "exact")
+}
+
+func TestAnExactBindingIsGreen(t *testing.T) {
+	body := strings.Replace(conformant, "**Binding: adapt** (rename the fields into your own language)",
+		"**Binding: exact** (the fleet's collector parses this shape)", 1)
+	if f := lintFixture(t, body); len(f) != 0 {
+		t.Fatalf("an exact binding is the marker working, not a violation; got: %v", f)
+	}
 }
 
 // The regression guard for a hole this gate never had — and nearly acquired. The first

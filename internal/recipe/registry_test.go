@@ -120,6 +120,61 @@ func TestResealPreservesProvenance(t *testing.T) {
 	}
 }
 
+// The fleet rule: an exact-bound contract is somebody else's parser, and changing it under
+// a minor bump ships a break wearing a compatible version number.
+
+func exactFixture() string {
+	return strings.Replace(conformant, "**Binding: adapt** (rename the fields into your own language)",
+		"**Binding: exact** (the fleet's collector parses this shape)", 1)
+}
+
+func TestChangingAnExactContractUnderAMinorBumpIsRefused(t *testing.T) {
+	root, cfg := sealFixture(t)
+	if err := os.WriteFile(filepath.Join(root, cfg.Home, "baseline.md"), []byte(exactFixture()), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Seal(root, cfg, "baseline"); err != nil {
+		t.Fatal(err)
+	}
+	changed := strings.Replace(exactFixture(), `"counted": 12`, `"tallied": 12`, 1)
+	changed = strings.Replace(changed, "version: 1.0.0", "version: 1.1.0", 1)
+	if err := os.WriteFile(filepath.Join(root, cfg.Home, "baseline.md"), []byte(changed), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Seal(root, cfg, "baseline"); err == nil || !strings.Contains(err.Error(), "MAJOR") {
+		t.Fatalf("a renamed field in an exact shape under a minor bump must be refused as a fleet break; got: %v", err)
+	}
+	major := strings.Replace(changed, "version: 1.1.0", "version: 2.0.0", 1)
+	if err := os.WriteFile(filepath.Join(root, cfg.Home, "baseline.md"), []byte(major), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	entry, err := Seal(root, cfg, "baseline")
+	if err != nil {
+		t.Fatalf("the same change under a major bump is the rule being followed: %v", err)
+	}
+	if entry.Version != "2.0.0" {
+		t.Fatalf("expected the major seal, got %+v", entry)
+	}
+}
+
+func TestAProseEditAroundAnExactContractStaysMinor(t *testing.T) {
+	root, cfg := sealFixture(t)
+	if err := os.WriteFile(filepath.Join(root, cfg.Home, "baseline.md"), []byte(exactFixture()), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Seal(root, cfg, "baseline"); err != nil {
+		t.Fatal(err)
+	}
+	reworded := strings.Replace(exactFixture(), "Derive, never restate.", "Derive, never restate — a reader's scar landed here.", 1)
+	reworded = strings.Replace(reworded, "version: 1.0.0", "version: 1.1.0", 1)
+	if err := os.WriteFile(filepath.Join(root, cfg.Home, "baseline.md"), []byte(reworded), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Seal(root, cfg, "baseline"); err != nil {
+		t.Fatalf("only the fence CONTENTS are the promise — prose rewording is a minor change: %v", err)
+	}
+}
+
 func TestVerifyIsGreenAfterASeal(t *testing.T) {
 	root, cfg := sealFixture(t)
 	if _, err := Seal(root, cfg, "baseline"); err != nil {

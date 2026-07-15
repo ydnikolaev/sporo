@@ -80,6 +80,14 @@ var (
 	// axis is the declared counterweight, not a wider regex that reds on prose.
 	reBarePath = regexp.MustCompile(`(?:^|[^\w./])((?:[\w-]+/){2,}[\w-]+\.[A-Za-z]{1,5})\b`)
 	reURL      = regexp.MustCompile(`https?://\S+`)
+	// Binding is the strictness of one shown shape, and it is two-valued on purpose:
+	// `exact` — a consumer OUTSIDE the emitting repository reads this shape (a fleet's
+	// collector, another team's tool); it is copied byte-for-byte, and changing it later is
+	// a MAJOR version. `adapt` — shown so the reader does not re-invent it; local
+	// conventions win. A shape with no binding leaves the reader guessing which kind they
+	// are holding, which is how one team's "example" becomes another team's broken feed.
+	reBinding    = regexp.MustCompile(`\*\*Binding: (exact|adapt)\*\*`)
+	reBindingAny = regexp.MustCompile(`\*\*Binding:`)
 	reHeading  = regexp.MustCompile(`^### `)
 	reFence    = regexp.MustCompile("^\\s*```")
 	reDone     = regexp.MustCompile(`\*\*Done when:\*\*`)
@@ -198,6 +206,29 @@ func Lint(name string, src []byte, products []string) []Finding {
 	if count(con, reFence) == 0 {
 		fail(0, "the contracts section shows no shape (no fenced block) — a schema described in prose "+
 			"is one every reader has to re-invent, incompatibly; show the shape, and the reader copies it")
+	}
+	// Every shown shape declares its binding BEFORE the fence opens. The check is
+	// positional, not a count: two markers stacked on one shape and none on the next would
+	// pass a count while the unlabelled shape ships.
+	pending, inFence := 0, false
+	for _, l := range con {
+		switch {
+		case reFence.MatchString(l):
+			if !inFence {
+				if pending == 0 {
+					fail(0, "a contract fence carries no `**Binding:**` marker — the reader cannot tell an interoperability boundary from a sketch; write `**Binding: exact**` (a consumer outside the repository reads this shape — changing it is a MAJOR version) or `**Binding: adapt**` (shown so the reader does not re-invent it) above the fence")
+				}
+				pending, inFence = 0, true
+			} else {
+				inFence = false
+			}
+		case !inFence && reBindingAny.MatchString(l):
+			if !reBinding.MatchString(l) {
+				fail(0, "`**Binding:**` must say `exact` or `adapt` — nothing in between: a shape either has an outside consumer or it does not, and a third word would let an author avoid deciding")
+			} else {
+				pending++
+			}
+		}
 	}
 
 	// Every scar is symptom → root cause → fix.

@@ -77,10 +77,15 @@ func Scaffold(root string, cfg Config, slug, title string, h *Harvest) (string, 
 	b.WriteString("TODO\n\n")
 
 	b.WriteString("## The ground it needs\n\n" +
-		"<!-- coach: what must be STANDING before step one, and why each is load-bearing. Write\n" +
-		"     every precondition as a LADDER: probe for it → build the smallest one → degrade,\n" +
-		"     and label the degradation where the capability's own output shows it. There is no\n" +
-		"     fourth rung. -->\n\n")
+		"<!-- coach: what must be STANDING before step one, and why each is load-bearing. Four\n" +
+		"     kinds, and authors reliably forget the last two: the machine-readable RECORD it\n" +
+		"     derives from; the STRUCTURE AND GATES that keep it honest; EXTERNAL ACCESS AND\n" +
+		"     CAPABILITIES (a scheduler, credentials, the consumer the output feeds); and\n" +
+		"     SUPPORTING ASSETS (a styling layer, a template pack, a shared component) — probe\n" +
+		"     for the project's own and point at it, or hand the reader the smallest one (its\n" +
+		"     shape in the contracts, a full instance in the appendix). Write EVERY precondition\n" +
+		"     as a LADDER: probe for it → build the smallest one → degrade, and label the\n" +
+		"     degradation where the capability's own output shows it. No fourth rung. -->\n\n")
 	if h != nil && len(h.Absent) > 0 {
 		b.WriteString("<!-- coach: this project's own record LACKS the following — the matching sections below\n" +
 			"     cannot be harvested and must be sourced by hand:\n")
@@ -95,7 +100,12 @@ func Scaffold(root string, cfg Config, slug, title string, h *Harvest) (string, 
 		"<!-- coach: SHOW every shape the capability consumes or emits — the reader copies it\n" +
 		"     instead of re-inventing it, incompatibly. Field names in the reader's language,\n" +
 		"     placeholders where a value would be a coordinate, a note on any field whose meaning\n" +
-		"     is a trap. The gate requires at least one fenced block here. -->\n\n" +
+		"     is a trap. For EACH shape, answer one question and mark the answer: does anything\n" +
+		"     OUTSIDE the repository read it (a fleet's collector, another team's tool)? Then it\n" +
+		"     is Binding: exact — name that consumer as a ROLE, copy the shape byte-for-byte, and\n" +
+		"     changing it later is a MAJOR version of this recipe (the seal enforces this). No\n" +
+		"     outside consumer → Binding: adapt. The gate requires a fence AND a marker. -->\n\n" +
+		"The record this capability persists — **Binding: adapt** (no consumer outside this\nrepository reads it yet):\n\n" +
 		"```json\n" +
 		"{ \"schema\": 1, \"TODO\": \"the record this capability persists\" }\n" +
 		"```\n\n")
