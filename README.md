@@ -9,7 +9,7 @@ A recipe names roles, not coordinates; it *shows* the shapes it consumes rather 
 them; it states its preconditions as a ladder (probe → build the smallest → degrade with a
 label); and it carries an adoption protocol so a reader with no tooling at all can follow it.
 
-> Private, pre-release. The name, domain (`sporo.dev`), and per-repo home (`.sporo/`) are fixed;
+> Pre-release. The name, domain (`sporo.dev`), and per-repo home (`.sporo/`) are fixed;
 > the marketplace (a site for open-sourcing and team-sharing recipes) is a later spec.
 
 ## The verbs today
