@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What is a recipe — sporo</title>
+<meta name="description" content="The recipe genre, for a skeptical senior engineer: the eleven gated sections, the neutrality rule (roles, never coordinates), why the ground is a ladder, and why scars are the highest-value section.">
+<link rel="canonical" href="https://sporo.dev/what-is-a-recipe.html">
+<link rel="alternate" hreflang="en" href="https://sporo.dev/what-is-a-recipe.html">
+<link rel="alternate" hreflang="x-default" href="https://sporo.dev/what-is-a-recipe.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0d0c" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://sporo.dev/what-is-a-recipe.html">
+<meta property="og:site_name" content="sporo">
+<meta property="og:title" content="What is a recipe">
+<meta property="og:description" content="The fixed genre every recipe takes, and why each part exists — for the engineer deciding whether to let an agent act on one.">
+<meta name="twitter:card" content="summary">
+<style>
+:root{
+  --bg:#f7f6f2; --ink:#151815; --muted:#5d655d; --accent:#25714a; --accent-soft:#25714a22;
+  --line:#15181521; --card:#fffefa; --code-bg:#101410; --code-ink:#d9e4da;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0b0d0c; --ink:#e8ebe6; --muted:#98a298; --accent:#6cc98d; --accent-soft:#6cc98d1f;
+  --line:#e8ebe61f; --card:#111412; --code-bg:#0e120f; --code-ink:#d9e4da;
+}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);
+  font:400 1.0625rem/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:66rem;margin:0 auto;padding:0 1.25rem}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+code,.mono{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;font-size:.9em;
+  background:var(--accent-soft);padding:.1em .4em;border-radius:.35em}
+::selection{background:var(--accent);color:var(--bg)}
+header{padding:1.4rem 0}
+nav{display:flex;align-items:center;gap:1.5rem}
+.mark{display:flex;align-items:center;gap:.55rem;font-weight:650;font-size:1.1rem;color:var(--ink)}
+nav .links{margin-left:auto;display:flex;gap:1.4rem;font-size:.95rem}
+nav .links a{color:var(--muted)}
+article{max-width:44rem;margin:0 auto;padding:3rem 1.25rem 5.5rem}
+.kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1rem}
+h1{font-size:clamp(2rem,5.5vw,3rem);line-height:1.1;letter-spacing:-.025em;font-weight:700}
+article>p{margin-top:1.15em}
+article p.lead{font-size:1.15rem;color:var(--muted);margin-top:1.4em}
+h2{font-size:1.45rem;letter-spacing:-.015em;margin-top:2.8em;line-height:1.25}
+h2+p{margin-top:.9em}
+article ol,article ul{margin-top:1.1em;padding-left:1.3rem;display:grid;gap:.75em}
+article li::marker{color:var(--accent);font-weight:600}
+article strong{font-weight:650}
+article em{font-style:italic}
+.rung{background:var(--card);border:1px solid var(--line);border-radius:1rem;padding:1.4rem 1.5rem;margin-top:1.3em}
+.rung ol{margin-top:0}
+footer{border-top:1px solid var(--line);padding:2.5rem 0 3.5rem;color:var(--muted);font-size:.9rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:1.4rem}
+footer .links{margin-left:auto;display:flex;gap:1.4rem}
+footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <nav>
+    <a class="mark" href="./" aria-label="sporo home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="4.2" fill="var(--accent)"/>
+        <circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"/>
+        <circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"/>
+        <circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"/>
+        <circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"/>
+        <circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"/>
+      </svg>
+      sporo
+    </a>
+    <div class="links">
+      <a href="what-is-a-recipe.html" style="color:var(--ink)">the genre</a>
+      <a href="manifesto.html">manifesto</a>
+      <a href="./#get">download</a>
+    </div>
+  </nav>
+</header>
+
+<article>
+  <div class="kicker">The genre</div>
+  <h1>What is a recipe</h1>
+  <p class="lead">You've read the pitch. Here's the actual genre — the fixed shape every recipe
+  has to take, and why each part of it exists. If you're the senior engineer who's going to
+  decide whether to let an agent act on one of these, this is the page that earns that.</p>
+
+  <h2>The one-sentence definition</h2>
+  <p>A recipe teaches an agent in a repository it has never seen how to arrive at a capability
+  you already built — the principles it rests on, the ground it needs underneath, the road that
+  looks obvious and dead-ends, the scars, and the price. It is written for the machine that
+  will implement it. Exactly one section, at the end, is written for you.</p>
+
+  <h2>Why it has to be neutral, and what that actually bans</h2>
+  <p>The hardest constraint in the genre isn't length or tone. It's this: the moment a recipe
+  names your files, your commands, or your product, it stops being reproducible anywhere else
+  and quietly turns into a manual for the one project that already has the thing.</p>
+  <p>So the rule is: <strong>name roles, never instances.</strong> "The facts file," "the
+  collector," "the optional target the project implements" — never a path, a filename, or a
+  product name. The test is mechanical: could an agent follow this sentence in a repository
+  that has never heard of yours?</p>
+  <p>This is easy to over-apply, and the genre draws the line carefully:</p>
+  <ul>
+    <li><strong>A technology named as a choice with a rationale is fine.</strong> "A single
+    statically-linked binary, because the reader can run it with no checkout of the source" is
+    portable — another agent can weigh that reasoning on its own stack.</li>
+    <li><strong>A coordinate is never fine.</strong> A path, a filename, a command that only
+    exists in your tree executes in exactly one repository. There's no section where it becomes
+    acceptable.</li>
+    <li><strong>A contract is not a coordinate.</strong> A schema or a declared shape is
+    something the reader copies and adapts; it travels as well as the principle it serves. And
+    every shown shape says how strictly it binds: <code>adapt</code> — rename into your own
+    language — or <code>exact</code> — a consumer outside your repository parses it, so it's
+    checked mechanically and changing it is a major version.</li>
+    <li><strong>Scars stay concrete, on purpose.</strong> "Be careful with concurrency" teaches
+    nothing. "Summing every parallel session produced 25.3 hours inside a 24-hour day" teaches
+    in one sentence — and it doesn't name a single file. A recipe with no specific failure in it
+    isn't neutral. It's empty.</li>
+  </ul>
+
+  <h2>The eleven sections, and what each one is actually for</h2>
+  <p>A recipe isn't free-form prose. It's a fixed shape, checked by a gate, in this order:</p>
+  <ol>
+    <li><strong>Frontmatter</strong> — name, version, the problem in one sentence, prerequisites
+    (capabilities, never tool names), the stack it was verified on, and when. The one place a
+    product may be named — provenance, not instruction.</li>
+    <li><strong>The problem</strong> — what you don't have, what the output is, and how you'll
+    know you have it. Acceptance lives at the top, in the reader's terms.</li>
+    <li><strong>Why the obvious approach fails</strong> — the fork in the road, named honestly.
+    Without it, the reader follows their first instinct into the dead end you already found.</li>
+    <li><strong>The principles</strong> — the payload. Load-bearing, portable claims that
+    survive on a stack nobody's tested them on yet.</li>
+    <li><strong>The ground it needs</strong> — the preconditions: the record it derives from,
+    the structure and gates that keep it honest, the external access it leans on, the supporting
+    assets it renders with. Each one written as a ladder (below).</li>
+    <li><strong>The contracts</strong> — the shapes it consumes and emits, shown in fenced
+    blocks with their binding, never described in prose.</li>
+    <li><strong>The build sequence</strong> — one heading per step, and every step ends with a
+    literal <code>Done when:</code> line. A sequence without per-step acceptance is a wish
+    list.</li>
+    <li><strong>The seams</strong> — what must stay configurable, and why: the paths, the
+    thresholds, the vocabulary that belong to the reader's project, not yours.</li>
+    <li><strong>The scars</strong> — the highest-value section, and the one a clean-room rebuild
+    cannot produce. Symptom, root cause, fix — each one earned.</li>
+    <li><strong>Verification</strong> — the gates that ship with the capability, plus the one
+    live check that says it actually works. Not a promise. A test.</li>
+    <li><strong>The trade-offs</strong> — what the design costs, what it refuses, and when not
+    to build it at all. A recipe that only advocates is marketing wearing a build sequence.</li>
+  </ol>
+  <p>Around them: a closing section written for the human, and an optional appendix — the only
+  place concrete names are allowed, explicitly marked as illustration.</p>
+
+  <h2>Why the ground is a ladder, not a statement</h2>
+  <p>Most readers will not have what a precondition asks for. That's not an edge case — it's
+  the entire premise of the genre. State a precondition as a bare fact and you've left the
+  reader exactly one honest option: stop. They won't stop. They'll point the capability at
+  whatever weaker thing is lying around, and it will produce confident output over rot.</p>
+  <div class="rung">
+    <ol>
+      <li><strong>Probe</strong> — check whether this repository already has it, described by
+      what it would <em>do</em>, not what it would be called.</li>
+      <li><strong>Build the smallest one</strong> — if absent, the minimum version that works,
+      whose shape is already in the contracts.</li>
+      <li><strong>Degrade, and label it</strong> — the honest fallback, with a label that
+      follows the output all the way to whoever reads it. There is no fourth rung.</li>
+    </ol>
+  </div>
+
+  <h2>The two sections you never write</h2>
+  <p>Every recipe ends with the same two sections, appended at export time: <strong>Adopt it
+  here</strong> (probe your repo, map roles onto your own conventions, agree the outcome with
+  your operator, never silently substitute) and <strong>Report back</strong> (what you built on,
+  what you degraded, the new scars, anything the recipe got wrong). Identical across the corpus
+  on purpose — one improvement reaches every recipe at once.</p>
+  <p>This is the mechanism that makes recipes get better instead of going stale. A report-back
+  is a new scar. A new scar bumps the version. The recipe a stranger reads next month has
+  already absorbed a failure you hit this month.</p>
+
+  <h2>What you're actually being handed</h2>
+  <p>The exported file — never the source. The export strips the authoring banner and appends
+  the adoption protocol, so what a stranger receives is complete: the machine payload first,
+  the human closing last, and instructions for how to get it into a repository that has never
+  heard of yours.</p>
+</article>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 sporo · sporo.dev</span>
+    <div class="links">
+      <a href="./">Home</a>
+      <a href="manifesto.html">Manifesto</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
