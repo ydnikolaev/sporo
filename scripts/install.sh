@@ -44,7 +44,7 @@ ext="tar.gz"
 [ "$os" = "windows" ] && ext="zip"
 
 asset_name="${BINARY}_LATEST_${os}_${arch}.${ext}"
-checksums_name="${BINARY}_LATEST_checksums.txt"
+checksums_name="checksums.txt"
 
 # --- 2. auth headers (private-repo phase) -----------------------------------
 
@@ -77,7 +77,7 @@ tag="$(printf '%s' "$release_json" | grep -m1 '"tag_name"' | sed -E 's/.*"tag_na
 version="${tag#v}"
 
 asset_name="${BINARY}_${version}_${os}_${arch}.${ext}"
-checksums_name="${BINARY}_${version}_checksums.txt"
+checksums_name="checksums.txt"
 
 # Pull "id" + "name" pairs out of the assets array and grep for the ones we want.
 # (Not using jq: it isn't guaranteed present, and this script has exactly two

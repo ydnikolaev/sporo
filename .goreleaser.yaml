@@ -54,7 +54,10 @@ archives:
       {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
 
 checksum:
-  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+  # Stable-named on purpose: `sporo upgrade` validates the downloaded asset against this
+  # file, and its validator addresses it by ONE fixed name across releases. A versioned
+  # name here would silently disable checksum validation for every future self-update.
+  name_template: "checksums.txt"
 
 changelog:
   # `use: git` (the default) — not `use: github` — so this doesn't need GitHub API
