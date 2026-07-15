@@ -185,6 +185,28 @@ func TestEndToEnd(t *testing.T) {
 		}
 	})
 
+	t.Run("a scaffold is a draft: coached, gate-exempt, and unable to ship", func(t *testing.T) {
+		out := w.mustRun(t, "new", "half-baked", "--title", "A capability still cooking")
+		if !strings.Contains(out, "draft") {
+			t.Fatalf("new must say it wrote a draft: %s", out)
+		}
+		if lint := w.mustRun(t, "lint"); !strings.Contains(lint, "draft(s) not checked") {
+			t.Fatalf("lint must report the draft it skipped, or a half-written file reads as done: %s", lint)
+		}
+		if _, stderr, code := w.run(t, "seal", "half-baked"); code == 0 || !strings.Contains(stderr, "draft") {
+			t.Fatalf("seal must refuse a draft (code %d): %s", code, stderr)
+		}
+		if _, stderr, code := w.run(t, "export", "half-baked"); code == 0 || !strings.Contains(stderr, "draft") {
+			t.Fatalf("export must refuse a draft (code %d): %s", code, stderr)
+		}
+		// Finishing = the scaffold's own instruction: remove the draft mark. The scaffold is
+		// genre-green by construction, so that one removal is all it takes here.
+		src := w.read(t, ".sporo/recipes/half-baked.md")
+		w.write(t, ".sporo/recipes/half-baked.md", strings.Replace(src, "draft: true\n", "", 1))
+		w.mustRun(t, "lint")
+		w.mustRun(t, "seal", "half-baked")
+	})
+
 	t.Run("author, lint, seal", func(t *testing.T) {
 		w.write(t, ".sporo/recipes/nightly-digest.md", recipeV1)
 		out := w.mustRun(t, "lint")
