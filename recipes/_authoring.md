@@ -86,9 +86,13 @@ only by taste drifts into whatever the last author felt like writing.
    here; everything above is why you need it. Where a claim already lives in a doctrine,
    name the principle in one line and cite it rather than re-deriving it.
 5. **`## The ground it needs`** — what must be **standing underneath** before the sequence
-   can start, and **why each one is load-bearing**: the single source of truth this
-   capability derives from, the structure it expects to write into, the gates and always-on
-   rules that keep it from rotting the day after it ships. Say the *why* in the reader's
+   can start, and **why each one is load-bearing**. Four kinds, and the last two are the ones
+   authors reliably forget: the single **source of truth** this capability derives from; the
+   **structure and gates** that keep it from rotting the day after it ships; the **external
+   access and capabilities** it leans on (a scheduler, credentials, the consumer its output
+   feeds); and the **supporting assets** it renders or builds with (a styling layer, a
+   template pack, a shared component) — probe for the project's own and point at it, or hand
+   the reader the smallest one: its shape in the contracts, a full instance in the appendix. Say the *why* in the reader's
    language, not as an appeal to your own conventions — an agent that does not understand
    why it needs an SSOT will build the capability on top of prose and lose it in a month.
    This is a **precondition** section, not a variable one (the seams section below is the
@@ -96,8 +100,11 @@ only by taste drifts into whatever the last author felt like writing.
    a statement (§5): most readers will not have what it asks for, and a precondition with no
    rung under it is one they will quietly substitute rather than build.
 6. **`## The contracts`** — the shapes this capability consumes and emits, **shown**, in fenced
-   blocks (§4). Not described: *shown*. This is the section a recipe cannot fake, and the gate
-   requires at least one fence in it.
+   blocks (§4). Not described: *shown*. Every shape carries a **binding** above its fence —
+   `**Binding: exact**` (a consumer outside the repository parses it; copy byte-for-byte,
+   changing it later is a MAJOR version) or `**Binding: adapt**` (shown so the reader does not
+   re-invent it; local conventions win). This is the section a recipe cannot fake, and the
+   gate requires the fence AND the marker.
 7. **`## The build sequence`** — the steps, one `###` heading each, and **every step ends
    with a `**Done when:**` line**. A sequence without per-step acceptance is a wish list: the
    reader cannot tell whether they are on track until the end, which is exactly when it is
@@ -214,6 +221,19 @@ exists because a real implementer scored the corpus's first recipe **3/10 on cop
 artifacts** while every other axis scored high: the document taught him what to build and
 handed him not one shape to build it against.
 
+**Every shape says how strictly it binds — because two readers hold it for two different
+reasons.** One reader copies a shape so they do not re-invent it; another emits it into a
+fleet where something on the other side *parses* it — a shared aggregator, another team's
+tool. The first shape is a courtesy; the second is a compatibility boundary, and confusing
+them is how one team's "example" becomes another team's broken feed. So every fence carries a
+marker above it: `**Binding: adapt**` (the default posture — rename fields into your own
+language, keep what they mean) or `**Binding: exact**` (the consumer owns the field names;
+name that consumer **as a role**, never as a product). The author's test is one question:
+*does anything outside the emitting repository read this shape?* Two consequences follow and
+both have teeth: the gate requires a marker per fence, and the seal refuses a change to an
+exact-bound shape under anything less than a **major** version bump — an exact contract is
+somebody else's parser, and a break wearing a compatible version number is the worst kind.
+
 Two things it is not:
 
 - **Not the appendix.** A contract is the shape; the appendix is one filled instance of it,
@@ -317,7 +337,8 @@ early that I forgot it was a decision?*
       rests on — **why** each is load-bearing, and a **ladder** under each: probe → build the
       smallest → degrade with a label.
 - [ ] `## The contracts` **shows** every shape the capability consumes or emits, in fenced
-      blocks, with a note on any field whose meaning is a trap.
+      blocks, with a note on any field whose meaning is a trap — and a `**Binding:**` marker
+      above every fence; anything an outside consumer parses is `exact`.
 - [ ] The build sequence is written against those contracts — an **interface**, not an
       implementation. A reader on another stack must be able to follow it.
 - [ ] Every build-sequence step ends with a `**Done when:**` line.

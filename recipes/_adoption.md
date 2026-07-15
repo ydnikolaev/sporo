@@ -23,6 +23,15 @@ the first build step.*
 look for it here. Do not reason about what a project like this "usually has" — read the
 repository. Then say, in one line each, what you found and what you did not.
 
+**Agree the outcome before you build.** The recipe says what the capability *can* produce;
+only your operator knows what it *must* produce here. Ask them, before the first build step:
+which of the outputs are needed in this project, in what form, and which outside consumers
+will read them. Do not assume every output transfers — a capability that emits three
+artifacts at home may owe this project only one. And treat the bindings as law: a shape
+marked `**Binding: adapt**` is yours to rename into this project's language; a shape marked
+`**Binding: exact**` is not yours at all — something on the other side parses it, so confirm
+with your operator that the consumer applies here, then copy it byte-for-byte.
+
 **Map the roles onto this repository's homes.** The recipe names roles — *the facts file*,
 *the collector*, *the optional target the project implements* — because a path is the one
 thing that cannot travel. You own the other half: decide where each role lives here, in

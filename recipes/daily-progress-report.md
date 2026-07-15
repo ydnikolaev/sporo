@@ -2,7 +2,7 @@
 
 ---
 name: daily-progress-report
-version: 1.1.0
+version: 1.2.0
 title: The daily progress report — a document nobody can check, that checks itself
 problem: The people funding the work cannot see it happening, and the only thing you can show them is a repository they cannot read.
 prerequisites: [read-files, edit-files, run-shell, version-control]
@@ -146,10 +146,14 @@ reader cannot check.
 ## The contracts
 
 Three shapes. They are the interfaces this capability is built against, and they are the part
-that transfers: an implementation is a stack's business, a contract is not. Copy them, rename
-the fields into your own language, keep what each one *means*.
+that transfers: an implementation is a stack's business, a contract is not. Copy them; where a
+shape is **Binding: adapt**, rename the fields into your own language and keep what each one
+*means* — where it is **Binding: exact**, the consumer on the other side owns the field names,
+and changing them is a new MAJOR version of this recipe, not a preference.
 
-**The facts record — the period's whole durable output.** Everything the report says is in
+**The facts record — the period's whole durable output.** **Binding: adapt** — unless your
+fleet shares one aggregator that ingests these records across projects; then agree the shape
+once and treat it as exact from that day. Everything the report says is in
 here: the numbers, the method that produced them, and — after the author writes it — the
 judgment itself. The cumulative view then reads this file and nothing else. Note three things
 the shape is doing on purpose: **the method is disclosed inside the facts**, so a document
@@ -200,7 +204,8 @@ is missing**, never a zero.
 ```
 
 **The work-item contract — the one thing the project implements, and the shared side never
-learns.** Every team's tracker has its own schema and no shared tool should ever parse it.
+learns.** **Binding: exact** — one shared collector parses what every project emits, and two
+dialects of this shape make the collector lie about one of them. Every team's tracker has its own schema and no shared tool should ever parse it.
 Declare the normalized shape you consume; let the project print it from one fixed-name target
 in whatever it already uses as a build interface. A project with no such target gets a report
 with no completion numbers and one honest line saying why — never an invented percentage.
@@ -216,7 +221,8 @@ with no completion numbers and one honest line saying why — never an invented 
 ]
 ```
 
-**The runtime surface declaration — a fact you verify, write down, and branch on.** If your
+**The runtime surface declaration — a fact you verify, write down, and branch on.**
+**Binding: adapt** — it is read only by the collector you build beside it. If your
 agent runtimes keep session logs, they hold the truth the commit timestamps only approximate.
 Do not encode a runtime's log format in code and do not branch on the runtime's *name*: declare
 the surface in data, stamp it with the build you verified it against, and let the code ask the
