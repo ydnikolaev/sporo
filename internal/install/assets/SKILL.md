@@ -107,6 +107,13 @@ Four of these carry the weight, and they are the four an author under time press
   and handed him nothing to build it against. **The gate requires a fence here** — and note
   that it never forbade one: a fenced schema was always green, because the coordinate patterns
   match instances and a shape is not one. Products stay banned inside a fence, like everywhere.
+
+  **Then ask the one question the shape cannot answer for itself, and mark the answer:** does
+  anything OUTSIDE the emitting repository parse this shape — a fleet's shared aggregator,
+  another team's tool? Ask your human if you do not know. Yes → `**Binding: exact**` above
+  the fence: name that consumer as a role, the reader copies the shape byte-for-byte, and
+  changing it later is a MAJOR version (the seal enforces this). No → `**Binding: adapt**`,
+  the default: shown so the reader does not re-invent it, local conventions win.
 - **The ground it needs** is what must be standing *before* step one — the machine-readable
   source of truth this capability derives from, the structure it writes into, the gates and
   always-on rules that keep it honest after you leave — and **why each is load-bearing**, in
@@ -192,7 +199,9 @@ sporo export <slug>
 
 The seal records (version, content hash, provenance) in the project's registry: from this
 moment the recipe never silently mutates — every later edit must bump `version:` and re-seal,
-and the gate enforces it. Then the export composes the deliverable: the provenance banner is
+and the gate enforces it. One class of edit is stricter: changing an **exact-bound contract**
+demands a MAJOR bump — that shape is somebody else's parser, and the seal refuses to let a
+break ship under a compatible-looking version. Then the export composes the deliverable: the provenance banner is
 stripped, and the adoption protocol — how to map the recipe's roles onto a repository the
 author has never seen, and what to send back afterwards — is appended. Hand over *that* file.
 A raw source file handed to a reader arrives without the only section addressed to them, and
