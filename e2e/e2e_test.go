@@ -122,6 +122,8 @@ A machine-readable source of truth, because prose cannot be gated.
 
 ## The contracts
 
+The record it persists — **Binding: adapt** (rename fields into your language):
+
 ` + "```json" + `
 { "schema": 1, "counted": 12 }
 ` + "```" + `
@@ -232,6 +234,24 @@ func TestEndToEnd(t *testing.T) {
 		w.write(t, ".sporo/recipes/nightly-digest.md", bumped)
 		w.mustRun(t, "seal", "nightly-digest")
 		w.mustRun(t, "lint")
+	})
+
+	t.Run("an exact contract change demands a major version", func(t *testing.T) {
+		exact := strings.Replace(recipeV1, "name: nightly-digest", "name: crm-feed", 1)
+		exact = strings.Replace(exact, "**Binding: adapt** (rename fields into your language)",
+			"**Binding: exact** (the fleet's aggregator parses this shape)", 1)
+		w.write(t, ".sporo/recipes/crm-feed.md", exact)
+		w.mustRun(t, "seal", "crm-feed")
+
+		broken := strings.Replace(exact, `"counted": 12`, `"tallied": 12`, 1)
+		broken = strings.Replace(broken, "version: 1.0.0", "version: 1.1.0", 1)
+		w.write(t, ".sporo/recipes/crm-feed.md", broken)
+		if _, stderr, code := w.run(t, "seal", "crm-feed"); code == 0 || !strings.Contains(stderr, "MAJOR") {
+			t.Fatalf("a renamed field in an exact shape under a minor bump is a fleet break and must be refused (code %d): %s", code, stderr)
+		}
+		major := strings.Replace(broken, "version: 1.1.0", "version: 2.0.0", 1)
+		w.write(t, ".sporo/recipes/crm-feed.md", major)
+		w.mustRun(t, "seal", "crm-feed")
 	})
 
 	t.Run("export composes the deliverable", func(t *testing.T) {
