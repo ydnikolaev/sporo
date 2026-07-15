@@ -11,14 +11,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 
 	sporo "sporo.dev/sporo"
+	"sporo.dev/sporo/internal/install"
 	"sporo.dev/sporo/internal/recipe"
 )
+
+// version is stamped by the release pipeline (goreleaser ldflags); "dev" means a local build.
+// It is what the provenance stamp on every managed file cites, so a user can tell which
+// binary wrote what.
+var version = "dev"
 
 func main() {
 	if err := root().Execute(); err != nil {
@@ -30,11 +37,97 @@ func root() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "sporo",
 		Short:         "Author, check and export transferable build recipes — in any repository",
+		Version:       version,
 		SilenceUsage:  true,
 		SilenceErrors: false,
 	}
-	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd())
+	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd(), sealCmd(),
+		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd())
 	return cmd
+}
+
+// init installs the authoring surface into THIS repository: the skill into the provider
+// homes it detects, a managed block into AGENTS.md, and the one-time seeds (config, recipes
+// home). Everything written is recorded in the registry with a content hash — that record is
+// how `update` later tells its own files from yours.
+func initCmd() *cobra.Command {
+	var root string
+	cmd := &cobra.Command{
+		Use:   "init",
+		Short: "Install the recipe-authoring surface into this repository (skill, AGENTS.md block, seeds)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			actions, err := install.Init(root, version)
+			report(cmd, actions)
+			registerBestEffort(cmd, root)
+			return err
+		},
+	}
+	cmd.Flags().StringVar(&root, "root", ".", "repository to initialize")
+	return cmd
+}
+
+// update re-syncs the managed surface from this (possibly newer) binary. The chain after a
+// release is `sporo upgrade` (new binary — a later verb) then `sporo update` (its new skills
+// into this repo). A file the user edited is reported and preserved, never overwritten —
+// there is deliberately no --force.
+func updateCmd() *cobra.Command {
+	var root string
+	cmd := &cobra.Command{
+		Use:   "update",
+		Short: "Re-sync the managed authoring surface from this binary — never clobbering your edits",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			actions, err := install.Update(root, version)
+			report(cmd, actions)
+			if err == nil {
+				registerBestEffort(cmd, root)
+			}
+			return err
+		},
+	}
+	cmd.Flags().StringVar(&root, "root", ".", "repository to update")
+	return cmd
+}
+
+// registerBestEffort notes this repository in the machine-level projects list — the list
+// `sporo projects` walks after an upgrade to find stale skills. Best-effort by design: the
+// project-local install is the contract, the global list is a courtesy, and a machine with
+// an unwritable home still gets a working init.
+func registerBestEffort(cmd *cobra.Command, root string) {
+	abs, err := filepath.Abs(root)
+	if err != nil {
+		return
+	}
+	if err := install.RegisterProject(install.GlobalHome(), abs, version); err != nil {
+		fmt.Fprintf(cmd.ErrOrStderr(), "sporo: note — could not record this repo in the global projects list (%v); `sporo projects` will not know about it\n", err)
+	}
+}
+
+// genre prints the authoring spec from the binary's corpus. In a consumer repository the
+// binary is the only place the genre lives, and the skill's first instruction is to read it.
+func genreCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "genre",
+		Short: "Print the recipe genre spec — the authoring rules this binary enforces",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := recipe.Genre(sporo.Recipes)
+			if err != nil {
+				return err
+			}
+			fmt.Fprint(cmd.OutOrStdout(), s)
+			return nil
+		},
+	}
+	return cmd
+}
+
+func report(cmd *cobra.Command, actions []install.Action) {
+	for _, a := range actions {
+		if a.Note != "" {
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo: %-7s %s — %s\n", a.Status, a.Path, a.Note)
+			continue
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "sporo: %-7s %s\n", a.Status, a.Path)
+	}
 }
 
 // harvest mines the record a build already left behind — each release's rationale, the commits
@@ -125,6 +218,26 @@ func lintCmd() *cobra.Command {
 				n++
 				findings = append(findings, recipe.Lint(e.Name(), src, cfg.Products)...)
 			}
+			// Bundle manifests ride the same gate: a member that resolves to nothing is a
+			// build order with a hole in it, and the hole transfers.
+			for _, name := range recipe.Bundles(dir) {
+				b, err := recipe.LoadBundle(dir, name)
+				if err != nil {
+					return err
+				}
+				findings = append(findings, recipe.LintBundle(sporo.Recipes, dir, name, b)...)
+			}
+			// The registry's coherence rides the same gate — but only when the corpus being
+			// checked is the project's own home. An explicit directory argument may be anyone's
+			// corpus, and holding it to THIS project's seals would red on files the registry
+			// never sealed.
+			if len(args) == 0 {
+				regFindings, err := recipe.VerifyRegistry(root, cfg)
+				if err != nil {
+					return err
+				}
+				findings = append(findings, regFindings...)
+			}
 			for _, f := range findings {
 				fmt.Fprintf(cmd.ErrOrStderr(), "  ✗ %s\n", f)
 			}
@@ -146,16 +259,25 @@ func lintCmd() *cobra.Command {
 // first.
 func exportCmd() *cobra.Command {
 	var root string
+	var bundle bool
 	cmd := &cobra.Command{
 		Use:   "export <slug>",
 		Args:  cobra.ExactArgs(1),
-		Short: "Print one recipe as a single self-contained file",
+		Short: "Print one recipe (or, with --bundle, a composed set) as a single self-contained file",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home, err := homeOrNone(root)
 			if err != nil {
 				return err
 			}
-			body, err := recipe.Export(sporo.Recipes, home, args[0])
+			// A bundle composes several recipes into the same delivery contract: one
+			// document, one adoption protocol, members in build order (the genre stays
+			// one-capability; scale is the export's job).
+			var body string
+			if bundle {
+				body, err = recipe.ExportBundle(sporo.Recipes, home, args[0])
+			} else {
+				body, err = recipe.Export(sporo.Recipes, home, args[0])
+			}
 			if err != nil {
 				return err
 			}
@@ -163,6 +285,7 @@ func exportCmd() *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&bundle, "bundle", false, "treat <slug> as a bundle manifest and compose its members into one document")
 	cmd.Flags().StringVar(&root, "root", ".", "project root (searched for this repo's own recipes before the official corpus)")
 	return cmd
 }
@@ -189,6 +312,197 @@ func listCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVar(&root, "root", ".", "project root (its own recipes are listed alongside the official corpus)")
 	return cmd
+}
+
+// seal records a recipe's (version, content hash, provenance) in `.sporo/registry.yaml` —
+// the moment a draft becomes a promise. From then on the pair is guarded by `sporo lint`:
+// content that changes under a sealed version is a finding, and the fix is a version bump
+// plus a re-seal, never a quiet edit. Report-backs bind to the version the reader built;
+// the seal is what makes that citation mean something.
+func sealCmd() *cobra.Command {
+	var root string
+	cmd := &cobra.Command{
+		Use:   "seal <slug>",
+		Args:  cobra.ExactArgs(1),
+		Short: "Record a recipe's version and content hash in the registry — a sealed recipe never silently mutates",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := recipe.LoadConfig(root)
+			if err != nil {
+				return err
+			}
+			entry, err := recipe.Seal(root, cfg, args[0])
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo seal: %s %s (%s, %s)\n", args[0], entry.Version, entry.Provenance, entry.Hash[:14])
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&root, "root", ".", "project root (its registry records the seal)")
+	return cmd
+}
+
+// feedback is the return channel's author side. A recipe improves in exactly one way —
+// somebody builds it elsewhere and reports back — and this verb files what came back where
+// git and the next authoring session will find it. Merging the scars into the recipe's next
+// version stays judgment: the skill's job, deliberately not a flag here.
+func feedbackCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "feedback",
+		Short: "File and list report-backs — the channel a recipe's next version comes from",
+	}
+
+	var addRoot string
+	add := &cobra.Command{
+		Use:   "add <slug> <report.md>",
+		Args:  cobra.ExactArgs(2),
+		Short: "Validate a reader's report-back against the protocol and file it (`-` reads stdin)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			src, err := readArg(cmd, args[1])
+			if err != nil {
+				return err
+			}
+			cfg, err := recipe.LoadConfig(addRoot)
+			if err != nil {
+				return err
+			}
+			path, warning, err := recipe.AddFeedback(addRoot, cfg, args[0], src)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo feedback: filed %s\n", path)
+			if warning != "" {
+				fmt.Fprintf(cmd.ErrOrStderr(), "sporo feedback: warning — %s\n", warning)
+			}
+			return nil
+		},
+	}
+	add.Flags().StringVar(&addRoot, "root", ".", "project root (the recipe this report answers must be authored here)")
+
+	var listRoot string
+	list := &cobra.Command{
+		Use:   "list [slug]",
+		Args:  cobra.MaximumNArgs(1),
+		Short: "List the filed report-backs, per recipe",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := recipe.LoadConfig(listRoot)
+			if err != nil {
+				return err
+			}
+			all, err := recipe.ListFeedback(listRoot, cfg)
+			if err != nil {
+				return err
+			}
+			for slug, paths := range all {
+				if len(args) == 1 && args[0] != slug {
+					continue
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "%s (%d report(s))\n", slug, len(paths))
+				for _, p := range paths {
+					fmt.Fprintf(cmd.OutOrStdout(), "  %s\n", p)
+				}
+			}
+			return nil
+		},
+	}
+	list.Flags().StringVar(&listRoot, "root", ".", "project root")
+
+	cmd.AddCommand(add, list)
+	return cmd
+}
+
+// review is the semantic half of the gate, provider-agnostic by construction: it never calls
+// an agent. `review <slug>` composes one self-contained prompt (rubric + verdict schema +
+// the exported recipe); the user runs it through whatever agent they have — one or several —
+// and `review verify` validates the returned JSON and records the tally beside the seal.
+func reviewCmd() *cobra.Command {
+	var packRoot string
+	cmd := &cobra.Command{
+		Use:   "review <slug>",
+		Args:  cobra.ExactArgs(1),
+		Short: "Build a self-contained review pack for any agent, and verify the verdicts it returns",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := recipe.LoadConfig(packRoot)
+			if err != nil {
+				return err
+			}
+			path, err := recipe.BuildReviewPack(sporo.Recipes, packRoot, cfg, args[0])
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo review: pack at %s\n", path)
+			fmt.Fprintf(cmd.OutOrStdout(), "run it through any agent, e.g.  claude -p \"$(cat %s)\" > verdict.json\nthen:  sporo review verify %s verdict.json\n", path, args[0])
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&packRoot, "root", ".", "project root")
+
+	var verifyRoot string
+	verify := &cobra.Command{
+		Use:   "verify <slug> <verdict.json>...",
+		Args:  cobra.MinimumNArgs(2),
+		Short: "Validate returned verdicts and record the tally beside the recipe's seal",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := recipe.LoadConfig(verifyRoot)
+			if err != nil {
+				return err
+			}
+			sum, findings, err := recipe.VerifyVerdicts(verifyRoot, cfg, args[0], args[1:])
+			if err != nil {
+				return err
+			}
+			for _, f := range findings {
+				fmt.Fprintf(cmd.ErrOrStderr(), "  ✗ %s\n", f)
+			}
+			if len(findings) > 0 {
+				return fmt.Errorf("sporo review: %d verdict problem(s) — nothing was recorded", len(findings))
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo review: %s %s — %d verdict(s), mean %.1f/10, %s\n",
+				args[0], sum.Version, sum.Verdicts, sum.Mean, sum.Verdict)
+			return nil
+		},
+	}
+	verify.Flags().StringVar(&verifyRoot, "root", ".", "project root")
+
+	cmd.AddCommand(verify)
+	return cmd
+}
+
+// projects lists the repositories this machine installed sporo into — the walk list after an
+// upgrade: any repo whose recorded binary is older than this one has stale skills, and
+// `sporo update` there is the fix.
+func projectsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "projects",
+		Short: "List the repositories on this machine that sporo was installed into",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ps, err := install.Projects(install.GlobalHome())
+			if err != nil {
+				return err
+			}
+			if len(ps) == 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "sporo: no projects registered yet — `sporo init` in a repository records it here")
+				return nil
+			}
+			for _, p := range ps {
+				hint := ""
+				if p.Binary != version {
+					hint = fmt.Sprintf("  ← installed by %s, this binary is %s: run `sporo update` there", p.Binary, version)
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "%-10s %s  (%s)%s\n", p.Binary, p.Root, p.Updated, hint)
+			}
+			return nil
+		},
+	}
+}
+
+// readArg reads a file argument, honoring `-` as stdin — a report-back often arrives as a
+// paste, and forcing a temp file on the paster is friction the loop cannot afford.
+func readArg(cmd *cobra.Command, arg string) ([]byte, error) {
+	if arg == "-" {
+		return io.ReadAll(cmd.InOrStdin())
+	}
+	return os.ReadFile(arg)
 }
 
 // homeOrNone resolves this project's recipes home. A root that is not a project (no config, no
