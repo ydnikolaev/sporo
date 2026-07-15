@@ -19,6 +19,7 @@ const conformant = `<!-- SSOT SOURCE (mate repo). -->
 
 ---
 name: baseline
+version: 1.0.0
 title: A conformant recipe
 problem: The gate must have something it does NOT red on.
 prerequisites: [read-files]
@@ -134,6 +135,19 @@ func TestAStepWithoutItsAcceptanceReds(t *testing.T) {
 func TestAScarMissingItsRootCauseReds(t *testing.T) {
 	body := strings.Replace(conformant, "**Root cause:** it searched for a grammar nothing emits.", "it just broke.", 1)
 	assertRed(t, lintFixture(t, body), "Root cause")
+}
+
+// The loop's anchor. A report-back binds to the version its author actually built; a recipe
+// with no version — or one that cannot be ordered — makes every report ambiguous the day the
+// text changes.
+func TestAMissingVersionReds(t *testing.T) {
+	body := strings.Replace(conformant, "version: 1.0.0\n", "", 1)
+	assertRed(t, lintFixture(t, body), "version")
+}
+
+func TestAVersionThatIsNotSemverReds(t *testing.T) {
+	body := strings.Replace(conformant, "version: 1.0.0", "version: latest", 1)
+	assertRed(t, lintFixture(t, body), "semver")
 }
 
 func TestAMissingStackStampReds(t *testing.T) {

@@ -2,6 +2,7 @@
 
 ---
 name: daily-progress-report
+version: 1.1.0
 title: The daily progress report — a document nobody can check, that checks itself
 problem: The people funding the work cannot see it happening, and the only thing you can show them is a repository they cannot read.
 prerequisites: [read-files, edit-files, run-shell, version-control]

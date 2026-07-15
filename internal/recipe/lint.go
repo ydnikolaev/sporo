@@ -60,7 +60,10 @@ var requiredSections = []string{
 // requiredKeys is the frontmatter. `stack` and `verified` are honesty stamps, not metadata:
 // one says what the build ran on, the other says it is a snapshot of a build that actually
 // happened. Both are the reader's only defence against a recipe written from an intention.
-var requiredKeys = []string{"name", "title", "problem", "prerequisites", "derived_from", "stack", "verified", "effort"}
+// `version` is the loop's anchor: a report-back that cannot say WHICH text its author built
+// is unusable the day the recipe changes, and the exported file is the only thing the reader
+// has — so the version travels in the document, not in a registry the reader never sees.
+var requiredKeys = []string{"name", "version", "title", "problem", "prerequisites", "derived_from", "stack", "verified", "effort"}
 
 // The coordinate vocabulary — the shapes, never a snapshot of today's names, or the scan
 // goes blind the day someone adds a directory.
@@ -70,6 +73,7 @@ var (
 	reHeading  = regexp.MustCompile(`^### `)
 	reFence    = regexp.MustCompile("^\\s*```")
 	reDone     = regexp.MustCompile(`\*\*Done when:\*\*`)
+	reSemver   = regexp.MustCompile(`^version:\s*"?\d+\.\d+\.\d+"?\s*$`)
 	reAllow    = "<!-- recipe-lint: allow" // line-precise opt-out; must carry a reason
 )
 
@@ -119,6 +123,9 @@ func Lint(name string, src []byte, products []string) []Finding {
 			if !hasKey(fm, key) {
 				fail(0, "frontmatter is missing `%s:`", key)
 			}
+		}
+		if v := keyLine(fm, "version"); v != "" && !reSemver.MatchString(v) {
+			fail(0, "`version:` must be a semver triple (MAJOR.MINOR.PATCH) — the report-back channel binds to it, and a version that cannot be ordered cannot say which text superseded which")
 		}
 		if v := keyLine(fm, "verified"); v != "" && !strings.Contains(v, "project") {
 			fail(0, "`verified:` must name the build that proves this recipe (project, release, date) — a recipe written from an intention teaches untested guesses as if they were earned")
