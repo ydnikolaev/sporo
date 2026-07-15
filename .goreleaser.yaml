@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+#
+# Cross-compiles the `sporo` CLI and cuts a GitHub release. Verified against the
+# current goreleaser docs (goreleaser.com, v2.17.0) — see docs/distribution.md
+# for what was checked and why the config differs from the naive read of it.
+version: 2
+
+project_name: sporo
+
+# No `monorepo:` block on purpose. `monorepo.tag_prefix` — the thing that would let
+# a CLI-only tag like `cli/v1.2.3` coexist with a future web release tag in this
+# same repo — is GoReleaser Pro-only (confirmed: goreleaser.com/resources/limitations/semver
+# says monorepo tag support "is exclusively available in GoReleaser Pro"). We're on
+# OSS, so this release is driven by plain `v*` tags instead (see release.yml's tag
+# filter). web/ deploys on push to `main`, not by tag, so there's no real collision —
+# only a theoretical one if web ever needs its own tagged releases. Revisit then.
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: sporo
+    main: ./cmd/sporo
+    binary: sporo
+    env:
+      # Static binary, no cgo toolchain needed on any of the cross-compile targets.
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      # main.version doesn't exist in cmd/sporo yet — a `var version = "dev"` needs
+      # to land there (goreleaser's own convention: goreleaser.com/resources/cookbooks/using-main.version)
+      # before this actually stamps anything. Until then it's a silent no-op: `go build`
+      # ignores -X for an unknown symbol rather than failing.
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: default
+    ids: [sporo]
+    # Plural `formats:` — the singular `format:` key is deprecated as of the current
+    # schema (goreleaser.com/deprecations). tar.gz everywhere, zip only on Windows,
+    # because that's the archive format the tools already on each OS expect.
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+
+changelog:
+  # `use: git` (the default) — not `use: github` — so this doesn't need GitHub API
+  # reachability to build release notes, which matters while the repo is private
+  # and CI has nothing but the default GITHUB_TOKEN.
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"
+  groups:
+    - title: Features
+      regexp: '^[a-f0-9]+:?\s*feat(\([[:word:]]+\))?!?:.+$'
+      order: 0
+    - title: Fixes
+      regexp: '^[a-f0-9]+:?\s*fix(\([[:word:]]+\))?!?:.+$'
+      order: 1
+    - title: Other changes
+      order: 999
+
+release:
+  github:
+    owner: ydnikolaev
+    name: sporo
+  # The repo is private for now: this still works because GITHUB_TOKEN in the
+  # release workflow has repo-scoped write access regardless of visibility.
+
+# Inactive until the tap repo exists and this repo's release assets are reachable
+# by whatever fetches them (i.e. until `ydnikolaev/sporo` is public, or the tap
+# publish step is given its own token with private-repo read access). GoReleaser
+# will fail the whole release if a configured publisher can't reach its target,
+# so leave this commented out rather than pointing it at a repo that isn't there.
+#
+# `homebrew_casks`, not `brews` — confirmed against goreleaser.com/deprecations:
+# `brews` (Homebrew Formula) is marked deprecated in favor of `homebrew_casks`.
+# This is a case-in-point difference from the original ask, which named `brews`.
+# The cask block also gives us the post-install quarantine-removal hook for free,
+# which we'd otherwise have to tell every user to run by hand (see scripts/install.sh).
+#
+# homebrew_casks:
+#   - name: sporo
+#     repository:
+#       owner: ydnikolaev
+#       name: homebrew-tap
+#     directory: Casks
+#     homepage: "https://sporo.dev"
+#     description: "Author, check, and export transferable build recipes."
+#     hooks:
+#       post:
+#         install: |
+#           if OS.mac?
+#             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sporo"]
+#           end

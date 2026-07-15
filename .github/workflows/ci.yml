@@ -1,0 +1,42 @@
+# Builds and tests the Go CLI on every push and PR. Path-filtered so a future
+# web/ (Nuxt) change doesn't burn Go CI minutes on a diff that never touches Go —
+# see the commented `web` job stub below for where that lands.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "web/**"
+  pull_request:
+    paths-ignore:
+      - "web/**"
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v6
+        with:
+          # Reads the toolchain version straight from go.mod instead of duplicating
+          # it here — one fewer place to forget to bump.
+          go-version-file: go.mod
+
+      - run: go build ./...
+
+      - name: build without a workspace
+        # Guards against a stray go.work leaking module replacements into the build
+        # that wouldn't be there for a consumer running `go install`.
+        run: go build ./...
+        env:
+          GOWORK: "off"
+
+      - run: go test ./...
+
+      - run: go vet ./...
+
+  # web:
+  #   Nuxt CI (lint/build) once web/ has content worth gating. Trigger on paths: web/**
+  #   (the inverse filter of the `go` job above), runs independently on its own runtime.

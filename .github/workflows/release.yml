@@ -1,0 +1,34 @@
+# Cuts a GitHub release with GoReleaser whenever a `v*` tag lands. Plain `v*`,
+# not `cli/v*` — see .goreleaser.yaml's top comment for why (monorepo.tag_prefix
+# is GoReleaser Pro-only; web/ deploys on `main`, not by tag, so there's no real
+# collision today).
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # GoReleaser's changelog needs the full history, not the default shallow clone.
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
