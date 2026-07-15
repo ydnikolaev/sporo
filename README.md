@@ -19,9 +19,10 @@ sporo init      # install the authoring surface into this repo (skill, AGENTS.md
 sporo update    # re-sync the managed surface from this binary — never clobbering your edits
 sporo genre     # print the authoring spec this binary enforces
 sporo harvest   # mine the project's own record for a recipe's raw material
+sporo new       # scaffold a coached draft — optionally pre-seeded from a harvest; drafts can't ship
 sporo lint      # check a recipe corpus against the genre — shape, scars, neutrality, seals
 sporo seal      # record version + content hash in the registry: a sealed recipe never silently mutates
-sporo export    # print one recipe as a single self-contained file (protocol appended)
+sporo export    # print one recipe — or, with --bundle, a composed set — as one self-contained file
 sporo list      # the recipes available here — this project's own, and the official corpus
 sporo feedback  # file and list report-backs — the channel a recipe's next version comes from
 sporo review    # build a self-contained review pack for ANY agent; verify the verdicts it returns
@@ -29,8 +30,7 @@ sporo projects  # the repositories on this machine sporo was installed into
 ```
 
 Coming in later releases: `upgrade` (self-update the binary; then `sporo update` per repo
-pushes its newer skills), bundles (compose several recipes into one handed-over document),
-and the site verbs (`push` / `pull`).
+pushes its newer skills) and the site verbs (`push` / `pull`).
 
 ## Build
 

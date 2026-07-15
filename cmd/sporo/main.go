@@ -42,7 +42,49 @@ func root() *cobra.Command {
 		SilenceErrors: false,
 	}
 	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd(), sealCmd(),
-		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd())
+		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd(), newCmd())
+	return cmd
+}
+
+// new scaffolds a draft recipe — every section stubbed with a coach comment saying what
+// belongs in it, the frontmatter pre-stamped, and (with --from-harvest) the scars pre-seeded
+// as candidates the author judges instead of recalls. The draft cannot be sealed or exported
+// until `draft: true` is removed — the scaffold helps the author start, never lets a start
+// masquerade as a finish.
+func newCmd() *cobra.Command {
+	var root, title, harvestFile string
+	cmd := &cobra.Command{
+		Use:   "new <slug>",
+		Args:  cobra.ExactArgs(1),
+		Short: "Scaffold a draft recipe — coached section stubs, optionally pre-seeded from a harvest",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := recipe.LoadConfig(root)
+			if err != nil {
+				return err
+			}
+			var h *recipe.Harvest
+			if harvestFile != "" {
+				b, err := os.ReadFile(harvestFile)
+				if err != nil {
+					return err
+				}
+				h = &recipe.Harvest{}
+				if err := json.Unmarshal(b, h); err != nil {
+					return fmt.Errorf("%s is not a harvest file (`sporo harvest --out` writes one): %w", harvestFile, err)
+				}
+			}
+			path, err := recipe.Scaffold(root, cfg, args[0], title, h)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo new: draft at %s\n", path)
+			fmt.Fprintln(cmd.OutOrStdout(), "fill the TODOs, delete the coach comments, remove `draft: true` — then `sporo lint`, `sporo seal`, `sporo export`")
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&root, "root", ".", "project root (the draft lands in its recipes home)")
+	cmd.Flags().StringVar(&title, "title", "", "the recipe's title (defaults to a TODO)")
+	cmd.Flags().StringVar(&harvestFile, "from-harvest", "", "a `sporo harvest --out` file; its scar candidates pre-seed the scars section")
 	return cmd
 }
 
@@ -206,7 +248,7 @@ func lintCmd() *cobra.Command {
 					"linter at the corpus you mean (`sporo lint <dir>`)", dir)
 			}
 			var findings []recipe.Finding
-			n := 0
+			n, drafts := 0, 0
 			for _, e := range ents {
 				if !recipe.IsRecipe(e.Name(), e.IsDir()) && !isMeta(e.Name()) {
 					continue
@@ -214,6 +256,12 @@ func lintCmd() *cobra.Command {
 				src, err := os.ReadFile(filepath.Join(dir, e.Name()))
 				if err != nil {
 					return err
+				}
+				// A draft is exempt, and says so: reds on the state `sporo new` itself writes
+				// would train red-blindness, but a draft silently passing would read as done.
+				if recipe.IsDraft(src) {
+					drafts++
+					continue
 				}
 				n++
 				findings = append(findings, recipe.Lint(e.Name(), src, cfg.Products)...)
@@ -246,6 +294,9 @@ func lintCmd() *cobra.Command {
 					"names its origin is a manual (see the genre spec, `_authoring`)")
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "sporo lint: %d recipe(s) conformant and neutral ✓\n", n)
+			if drafts > 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "sporo lint: %d draft(s) not checked — a draft cannot be sealed or exported; finish it and remove `draft: true`\n", drafts)
+			}
 			return nil
 		},
 	}
