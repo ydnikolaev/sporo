@@ -60,7 +60,9 @@ you while it is still cheap.
 
 *A recipe improves in exactly one way: someone builds it somewhere else and says what
 happened. Every scar in the document above is a debt paid by an earlier reader. When you
-finish, send this back to whoever handed you the recipe.*
+finish, send this back to whoever handed you the recipe. Open with the recipe's name and the
+`version:` from its frontmatter — a report that cannot say which text it built floats free
+of every fix it triggers.*
 
 - **Stack** — what you actually built it on, and which of the author's essential choices you
   kept, replaced, or could not honour.

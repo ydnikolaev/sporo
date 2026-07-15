@@ -36,6 +36,14 @@ install command); or a thing you have not actually finished — a recipe written
 intention is a plan with the word "recipe" on it, and it will teach the next agent your
 untested guesses as if they were earned.
 
+**One capability, one recipe.** The genre's teeth — one acceptance at the top, a `**Done
+when:**` on every step, a ladder under every precondition — only hold at the scale of one
+capability. A whole harness or a whole repository is not one capability; it is several,
+standing on shared ground. Write each as its own recipe and let the **delivery step compose**
+a set into the single handed-over document (shared ground first, members in build order, one
+adoption protocol at the end). Inflating one recipe to repository scale produces a document
+whose steps cannot be individually accepted — which is a wish list with a table of contents.
+
 **A recipe is not a doctrine and not a manual.** The three genres do not overlap, and
 mistaking one for another is the failure this section exists to prevent:
 
@@ -56,13 +64,16 @@ not restate a corpus inside a recipe.
 Every recipe is these parts, in this order. The shape is **gated**, because a genre defined
 only by taste drifts into whatever the last author felt like writing.
 
-1. **Frontmatter** — `name`, `title`, `problem` (one sentence), `prerequisites`
-   (capabilities, never tool names), `derived_from`, `stack`, `verified: {project, release,
-   date}`, `effort`. Two of these are honesty stamps rather than metadata: `verified` says a
-   recipe is a **snapshot of one successful build** (whose, which release, when) and not
-   maintained doctrine; `stack` records what that build actually ran on, so the reader can
-   weigh how far their own ground is from it. The frontmatter is the **one place a product
-   may be named** — it is provenance, not instruction.
+1. **Frontmatter** — `name`, `version` (semver), `title`, `problem` (one sentence),
+   `prerequisites` (capabilities, never tool names), `derived_from`, `stack`, `verified:
+   {project, release, date}`, `effort`. Two of these are honesty stamps rather than metadata:
+   `verified` says a recipe is a **snapshot of one successful build** (whose, which release,
+   when) and not maintained doctrine; `stack` records what that build actually ran on, so the
+   reader can weigh how far their own ground is from it. `version` is the loop's anchor: the
+   exported file is the only thing the reader has, so the version travels **in** the document,
+   a report-back binds to it, and new scars from readers are what produce the next one. The
+   frontmatter is the **one place a product may be named** — it is provenance, not
+   instruction.
 2. **`## The problem`** — what you do not have, **what the output is**, and **how you will
    know you have it**. The acceptance goes here, at the top, in the reader's terms. A recipe
    whose success condition is vague produces a build nobody can call finished.
@@ -141,7 +152,8 @@ The line that is easy to get wrong: **the ban is on coordinates, not on concrete
 
 - A **technology named as a choice with a rationale** — "a single statically-linked binary,
   because the reader can run it with no checkout of the source" — is *portable*: an agent on
-  another stack can weigh it and accept or reject it. Naming it is the job of §5 and §11.
+  another stack can weigh it and accept or reject it. Naming it is the job of the ground
+  ladder and of the closing For-the-human section.
 - A **coordinate** — a path, a filename, a product, a command that only exists in your tree
   — executes in one repository and transfers to none. It is banned **everywhere in the
   body**, including in the sections that talk about the stack. There is no zone where a
@@ -158,10 +170,12 @@ The line that is easy to get wrong: **the ban is on coordinates, not on concrete
 
 ## 3. The closing section is for the human — and it is about the stack
 
-Everything above §11 is written for the agent that will implement. **§11 is written for the
-person who has to decide whether to let it.** It is deliberately last: the machine payload
-comes first, and a human preamble in front of it would only push the principles down the
-page. It carries, declaratively and without a build step in sight:
+Everything above the closing section is written for the agent that will implement. **The
+closing section is written for the person who has to decide whether to let it.** (Numbered
+cross-references rotted once already — the contracts section shifted every number after it —
+so this document points by name.) It is deliberately last: the machine payload comes first,
+and a human preamble in front of it would only push the principles down the page. It
+carries, declaratively and without a build step in sight:
 
 - **What this is** — in plain language: what gets built, on what principles, what you have
   at the end. Someone who reads only this section should be able to say what they would get.
@@ -291,9 +305,9 @@ early that I forgot it was a decision?*
 
 ## 9. Porting checklist
 
-- [ ] Frontmatter carries `name`, `title`, `problem`, `prerequisites`, `derived_from`,
-      `stack`, `verified`, `effort` — and `effort` is honest about which half of the build
-      eats the budget.
+- [ ] Frontmatter carries `name`, `version`, `title`, `problem`, `prerequisites`,
+      `derived_from`, `stack`, `verified`, `effort` — and `effort` is honest about which half
+      of the build eats the budget.
 - [ ] All eleven sections are present, in order (the appendix is optional). `## Adopt it here`
       and `## Report back` are **not** among them — delivery appends those.
 - [ ] The body contains **no** repository path, filename, or product name — in **any**
@@ -314,16 +328,24 @@ early that I forgot it was a decision?*
       splits **essential** from **incidental**, and states what that stack cost — without
       restating the trade-offs.
 - [ ] The verification section names the gates that ship with the capability.
-- [ ] The `recipe-lint` gate is green on the file.
+- [ ] The lint gate (`sporo lint`) is green on the corpus.
+- [ ] The recipe is **sealed** (`sporo seal`) — version and content hash recorded, so the
+      text a reader cites can never silently mutate under them.
 - [ ] You have **exported** it and read what the stranger actually receives.
 
 ## 10. Cross-links
 
-The documentation doctrine (`documentation.md`) places this genre beside the others
-(generated vs written; guide vs reference) and is the authority on why a transferable
-document may not name its origin. The reporting doctrine (`reporting.md`) is the source of
-the harvest-then-judge division this genre borrows. The structure standard is what the ground
-section asks the reader to stand up. The adoption protocol appended to every export lives in
-`_adoption.md` — edit it there, once, for the whole corpus. Authored through the recipe skill;
-checked by the `recipe-lint` gate, which the harness CLI carries so a consumer can run it on a
-recipe about its **own** repository.
+The genre grew out of a harness's doctrine corpus, and three of its debts are worth naming
+without sending the reader to documents they do not have. The rule that knowledge which must
+travel may not name its origin comes from that corpus's documentation principles — this spec
+is its executable form. The harvest-then-judge division (the machine gathers the record, the
+author does the abstraction) is borrowed from the same corpus's reporting principles, for
+the same reason: facts derived, judgment written and labelled. And the ground section asks
+the reader to stand up exactly the structure a well-kept project already has — a
+machine-readable source of truth, a decision log, gates.
+
+The adoption protocol appended to every export is authored ONCE for the whole corpus (in the
+corpus's own `_adoption` document) — edit it there, never in a recipe. Recipes are authored
+through the sporo-recipe skill and checked by `sporo lint`, which the binary carries so any
+consumer can run it on a recipe about its **own** repository; `sporo genre` prints this spec
+wherever the binary goes.
