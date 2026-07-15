@@ -203,7 +203,7 @@ func TestTheInstalledSkillNamesOnlyVerbsTheBinaryHas(t *testing.T) {
 	// carry sends every consumer's agent into a wall. The verb list here is maintained by
 	// hand on purpose: adding a verb to the skill forces this test to acknowledge it.
 	known := map[string]bool{
-		"harvest": true, "lint": true, "export": true, "list": true,
+		"harvest": true, "lint": true, "export": true, "list": true, "new": true,
 		"seal": true, "init": true, "update": true, "genre": true, "feedback": true, "review": true,
 	}
 	for _, m := range regexpVerbs.FindAllStringSubmatch(skillContent("test"), -1) {

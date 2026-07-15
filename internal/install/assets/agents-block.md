@@ -12,6 +12,9 @@ When asked to write, check, or hand over a recipe:
 - **Harvest before you recall**: `sporo harvest --since <the release before the work>` mines
   this repo's own record for raw material. Judgment (which failure was structural) is yours;
   memory is not a source.
+- **Scaffold, never a blank page**: `sporo new <slug> --from-harvest <file>` writes a coached
+  draft with the harvest's scars pre-seeded. A draft (`draft: true`) cannot be sealed or
+  exported; removing the mark is how you declare it done.
 - **Gate it**: `sporo lint` checks this project's recipes home (default `.sporo/recipes/`)
   for shape, neutrality, and registry coherence.
 - **Seal, then export**: `sporo seal <slug>` records version + content hash (a sealed recipe

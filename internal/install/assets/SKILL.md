@@ -71,12 +71,25 @@ for first, and how, concretely, does it break? A recipe whose reader would have 
 alone is a recipe that did not need writing. This section is usually the hardest and it is
 always the most valuable.
 
-### 3. Write the eleven sections, in the genre's shape
+### 3. Scaffold, then write the eleven sections in the genre's shape
 
-Frontmatter (with `version` and the `stack` and `verified` stamps) → the problem and its
-acceptance → why the obvious approach fails → **the principles** (the payload) → **the ground
-it needs** → **the contracts** → the build sequence, every step ending in `**Done when:**` →
-the seams → the scars → the verification → the trade-offs → **for the human**.
+Do not start from a blank page:
+
+```
+sporo new <slug> --from-harvest harvest.json
+```
+
+The scaffold arrives as a **draft** (`draft: true`): every section stubbed with a coach
+comment saying what belongs in it, the frontmatter pre-stamped, and the harvest's scar
+candidates pre-seeded for you to judge — keep the structural, delete the incidental. A draft
+is exempt from the gate and refused by seal and export, so nothing half-written can ship;
+removing `draft: true` is the act of saying "this document now stands on its own".
+
+The shape you are filling: frontmatter (with `version` and the `stack` and `verified`
+stamps) → the problem and its acceptance → why the obvious approach fails → **the
+principles** (the payload) → **the ground it needs** → **the contracts** → the build
+sequence, every step ending in `**Done when:**` → the seams → the scars → the verification
+→ the trade-offs → **for the human**.
 
 You do **not** write the adoption protocol or the return channel. `## Adopt it here` and
 `## Report back` are the same in every recipe, so they live once in the corpus and the export
