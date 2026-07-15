@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -42,8 +43,84 @@ func root() *cobra.Command {
 		SilenceErrors: false,
 	}
 	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd(), sealCmd(),
-		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd(), newCmd())
+		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd(), newCmd(),
+		conformCmd())
 	return cmd
+}
+
+// conform is the reader's half of `Binding: exact`: it checks an output file against a
+// recipe's exact-bound contracts, structurally, with a path per violation. It works from
+// the EXPORTED file alone (the only thing a reader has), so a whole fleet can run it in CI
+// against the one document they all received — which is what turns "the schema must be the
+// same everywhere" from an agreement into a check. A recipe with no exact contracts is a
+// clean no-op: that absence is the author's declaration (ADR-005), not a failure.
+func conformCmd() *cobra.Command {
+	var root string
+	var contractN int
+	cmd := &cobra.Command{
+		Use:   "conform <slug|recipe.md> <output-file>",
+		Args:  cobra.ExactArgs(2),
+		Short: "Check an output file against a recipe's exact-bound contracts",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			src, err := recipeSource(root, args[0])
+			if err != nil {
+				return err
+			}
+			contracts := recipe.ExactContracts(src)
+			if len(contracts) == 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "sporo conform: this recipe declares no exact-bound contracts — every shape is Binding: adapt, and there is nothing to hold an output to (that is the author's declaration, not a failure)")
+				return nil
+			}
+			candidate, err := os.ReadFile(args[1])
+			if err != nil {
+				return err
+			}
+			failures := 0
+			for _, c := range contracts {
+				if contractN > 0 && c.Index != contractN {
+					continue
+				}
+				violations, err := recipe.Conform(c, candidate)
+				if err != nil {
+					return err
+				}
+				if len(violations) == 0 {
+					fmt.Fprintf(cmd.OutOrStdout(), "sporo conform: contract #%d ✓\n", c.Index)
+					continue
+				}
+				failures++
+				for _, v := range violations {
+					fmt.Fprintf(cmd.ErrOrStderr(), "  ✗ contract #%d %s\n", c.Index, v)
+				}
+			}
+			if failures > 0 {
+				return fmt.Errorf("sporo conform: the output does not hold the promise its recipe makes — fix the output, or renegotiate the contract with the recipe's author (that is a report-back)")
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&root, "root", ".", "project root (searched for the recipe when a slug is given)")
+	cmd.Flags().IntVar(&contractN, "contract", 0, "check against one exact contract by its index (default: all)")
+	return cmd
+}
+
+// recipeSource resolves the document conform reads: a path to a file (the exported handoff
+// — the reader's normal case), this project's own home, or the official corpus.
+func recipeSource(root, ref string) ([]byte, error) {
+	if b, err := os.ReadFile(ref); err == nil {
+		return b, nil
+	}
+	cfg, err := recipe.LoadConfig(root)
+	if err != nil {
+		return nil, err
+	}
+	if b, err := os.ReadFile(filepath.Join(root, cfg.Home, ref+".md")); err == nil {
+		return b, nil
+	}
+	if b, err := fs.ReadFile(sporo.Recipes, "recipes/"+ref+".md"); err == nil {
+		return b, nil
+	}
+	return nil, fmt.Errorf("no recipe %q — give a slug from this project or the official corpus, or a path to an exported recipe file", ref)
 }
 
 // new scaffolds a draft recipe — every section stubbed with a coach comment saying what

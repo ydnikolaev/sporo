@@ -24,6 +24,7 @@ sporo lint      # check a recipe corpus against the genre — shape, scars, neut
 sporo seal      # record version + content hash in the registry: a sealed recipe never silently mutates
 sporo export    # print one recipe — or, with --bundle, a composed set — as one self-contained file
 sporo list      # the recipes available here — this project's own, and the official corpus
+sporo conform   # check an output file against a recipe's exact-bound contracts (works on the export alone)
 sporo feedback  # file and list report-backs — the channel a recipe's next version comes from
 sporo review    # build a self-contained review pack for ANY agent; verify the verdicts it returns
 sporo projects  # the repositories on this machine sporo was installed into
