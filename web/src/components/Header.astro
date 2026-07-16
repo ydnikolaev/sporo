@@ -8,7 +8,7 @@
 // 700px they collapse behind an accessible hamburger (a real <button> with aria-expanded /
 // aria-controls) that drops a full-width panel. Desktop is unchanged.
 interface Props {
-  active?: 'home' | 'genre' | 'manifesto' | 'docs';
+  active?: 'home' | 'genre' | 'compare' | 'manifesto' | 'docs' | 'changelog';
 }
 const { active = 'home' } = Astro.props;
 const cls = (k: string) => (active === k ? 'hov-nou' : 'hov-ink-nou');
@@ -16,8 +16,10 @@ const col = (k: string) => (active === k ? 'var(--ink)' : 'var(--muted)');
 const installHref = active === 'home' ? '#get' : '/#get';
 const links = [
   { k: 'genre', href: 'what-is-a-recipe.html', label: 'the genre' },
-  { k: 'manifesto', href: 'manifesto.html', label: 'manifesto' },
+  { k: 'compare', href: 'compare.html', label: 'compare' },
   { k: 'docs', href: 'docs.html', label: 'docs' },
+  { k: 'changelog', href: 'changelog.html', label: 'changelog' },
+  { k: 'manifesto', href: 'manifesto.html', label: 'manifesto' },
 ];
 ---
 <header class="hdr">

@@ -1,0 +1,96 @@
+---
+import Layout from '../components/Layout.astro';
+import { fetchReleases } from '../lib/releases.ts';
+
+// Build-time only: the release feed is fetched during `astro build` and baked into static
+// HTML. fetchReleases never throws — on any failure it returns an empty list and we render the
+// "notes live on GitHub" state, so a rate-limited or offline build still ships a valid page.
+const { releases, ok } = await fetchReleases();
+const empty = releases.length === 0;
+
+const head = {
+  title: 'sporo — changelog',
+  description:
+    'Every sporo release, from the GitHub Releases feed: what shipped in each version, newest first. One static binary, checksummed archives for six platforms.',
+  path: '/changelog.html',
+  ogImage: 'og.png',
+  og: {
+    type: 'website' as const,
+    title: 'sporo — changelog',
+    description: 'What shipped in each version, newest first, straight from GitHub Releases.',
+  },
+  twitter: {},
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'sporo changelog',
+    url: 'https://sporo.dev/changelog.html',
+    isPartOf: { '@type': 'WebSite', name: 'sporo', url: 'https://sporo.dev/' },
+  },
+};
+
+const footer = {
+  copyright: '© 2026 sporo · sporo.dev',
+  links: [
+    { href: '/', label: 'home' },
+    { href: 'docs.html', label: 'docs' },
+    { href: 'https://github.com/ydnikolaev/sporo/releases', label: 'releases on github' },
+    { href: 'llms.txt', label: 'llms.txt' },
+  ],
+  watermark: false,
+};
+---
+
+<Layout head={head} active="changelog" footer={footer}>
+  <main style="max-width:52rem;margin:0 auto;padding:5.5rem 1.5rem 6rem">
+    <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">changelog</div>
+    <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">What shipped, and when.</h1>
+    <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;max-width:52ch;text-wrap:pretty">Straight from the GitHub Releases feed — newest first. Each version is one static binary with checksummed archives for six platforms.</p>
+
+    {empty ? (
+      <section style="margin-top:3.5rem;background:var(--card);border:1px solid var(--line);border-radius:.9rem;padding:2rem 1.6rem">
+        <p style="color:var(--muted);text-wrap:pretty">The release feed could not be loaded at build time. The full, authoritative changelog always lives at <a href="https://github.com/ydnikolaev/sporo/releases" style="text-decoration:underline;text-underline-offset:3px">github.com/ydnikolaev/sporo/releases</a>.</p>
+      </section>
+    ) : (
+      <section style="margin-top:3rem;display:grid;gap:0">
+        {releases.map((r) => (
+          <article style="position:relative;padding:2.4rem 0;border-top:1px solid var(--line)">
+            <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:.9rem;margin-bottom:.9rem">
+              <h2 style="margin:0;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:1.05rem;font-weight:600;letter-spacing:0"><a href={r.url} style="color:var(--accent);text-decoration:none">{r.tag}</a></h2>
+              <time style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.8rem;color:var(--muted)">{r.date}</time>
+              {r.prerelease && (
+                <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:.15rem .55rem">prerelease</span>
+              )}
+            </div>
+            {r.name !== r.tag && <p style="font-size:1.1rem;font-weight:650;color:var(--ink);margin-bottom:.9rem">{r.name}</p>}
+            <div class="prose" set:html={r.bodyHtml} />
+          </article>
+        ))}
+      </section>
+    )}
+
+    <section style="margin-top:3rem;padding-top:2.5rem;border-top:1px solid var(--line)">
+      <p style="color:var(--muted);text-wrap:pretty">Older releases and the full download tables live on <a href="https://github.com/ydnikolaev/sporo/releases" style="text-decoration:underline;text-underline-offset:3px">GitHub</a>. Install the latest with <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">curl -fsSL sporo.dev/install.sh | sh</code>.</p>
+    </section>
+  </main>
+</Layout>
+
+<style is:global>
+  .prose { color: var(--muted); line-height: 1.62; }
+  .prose > :first-child { margin-top: 0; }
+  .prose h2, .prose h3, .prose h4 { color: var(--ink); letter-spacing: -0.01em; margin: 1.6rem 0 0.7rem; line-height: 1.25; }
+  .prose h2 { font-size: 1.2rem; }
+  .prose h3 { font-size: 1.05rem; }
+  .prose h4 { font-size: 0.95rem; }
+  .prose p { margin: 0.8rem 0; }
+  .prose ul, .prose ol { margin: 0.8rem 0; padding-left: 1.3rem; }
+  .prose li { margin: 0.3rem 0; }
+  .prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .prose code { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.88em; background: var(--accent-soft); color: var(--ink); padding: 0.1em 0.4em; border-radius: 0.35em; }
+  .prose pre { background: var(--card); border: 1px solid var(--line); border-radius: 0.6rem; padding: 1rem 1.1rem; overflow-x: auto; margin: 1rem 0; }
+  .prose pre code { background: none; padding: 0; font-size: 0.85rem; color: var(--ink); }
+  .prose table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.88rem; display: block; overflow-x: auto; }
+  .prose th, .prose td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; text-align: left; }
+  .prose img { max-width: 100%; }
+  .prose hr { border: none; border-top: 1px solid var(--line); margin: 1.6rem 0; }
+</style>

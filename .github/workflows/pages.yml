@@ -52,8 +52,12 @@ jobs:
       - run: npm ci
         working-directory: web
 
+      # GITHUB_TOKEN authenticates the changelog's build-time Releases fetch (raises the rate
+      # limit; the fetch degrades to an empty state if it fails, so this never breaks the build).
       - run: npm run build
         working-directory: web
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - uses: actions/configure-pages@v6
 
