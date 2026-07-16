@@ -232,6 +232,11 @@ contract they had to design, re-stamp `verified`, note in `derived_from` that th
 now derived from more than one build — then bump `version:` and `sporo seal` again. Three of
 the scars in this corpus's first recipe were paid for by its first outside reader.
 
+The loop has a reading side too: when THIS repository builds from somebody else's export,
+record the handover with `sporo adopt <file>` and check it later with `sporo pull` — which is
+loud when an exact-bound contract moved, because that is the one update a consumer-feeding
+build must not sleep through.
+
 ## The rules you cannot bend
 
 1. **Harvest before you recall.** An agent writing from memory writes the last week of the

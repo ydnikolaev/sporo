@@ -205,7 +205,7 @@ func TestTheInstalledSkillNamesOnlyVerbsTheBinaryHas(t *testing.T) {
 	known := map[string]bool{
 		"harvest": true, "lint": true, "export": true, "list": true, "new": true,
 		"seal": true, "init": true, "update": true, "genre": true, "feedback": true, "review": true,
-		"conform": true,
+		"conform": true, "adopt": true, "pull": true,
 	}
 	for _, m := range regexpVerbs.FindAllStringSubmatch(skillContent("test"), -1) {
 		if !known[m[1]] {

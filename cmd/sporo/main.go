@@ -3,9 +3,10 @@
 // never heard of this tool.
 //
 // The verbs are top-level (`sporo lint`, not `sporo recipe lint`) because sporo IS the recipe
-// tool — there is no other namespace to disambiguate against. `init`/`update`/`upgrade` and
-// the site verbs (`push`/`pull`) arrive in later releases; this entrypoint carries the four
-// that make the tool useful standalone today.
+// tool — there is no other namespace to disambiguate against. The surface spans both sides of
+// a handover: authoring (harvest/new/lint/seal/export, feedback, review), reading (adopt,
+// pull, conform), the install surface (init/update, genre, projects) and the binary's own
+// freshness (upgrade). Only `push` — publishing into a shared corpus — waits on the site.
 package main
 
 import (
@@ -16,6 +17,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -48,7 +50,7 @@ func root() *cobra.Command {
 	}
 	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd(), sealCmd(),
 		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd(), newCmd(),
-		conformCmd(), upgradeCmd())
+		conformCmd(), upgradeCmd(), adoptCmd(), pullCmd())
 
 	// The passive freshness hint: one line on stderr when a newer release is known, refreshed
 	// through the network at most once a day (the cache answers in between), silent on any
@@ -515,10 +517,106 @@ func listCmd() *cobra.Command {
 			for _, e := range entries {
 				fmt.Fprintf(cmd.OutOrStdout(), "%-8s %s\n", e.Origin, e.Slug)
 			}
+			// Adopted recipes are listed too — they are capabilities this repo BUILT, and a
+			// list that hides them reads as "nothing was ever handed to us".
+			adopted, err := recipe.AdoptedList(root)
+			if err != nil {
+				return err
+			}
+			slugs := make([]string, 0, len(adopted))
+			for s := range adopted {
+				slugs = append(slugs, s)
+			}
+			sort.Strings(slugs)
+			for _, s := range slugs {
+				fmt.Fprintf(cmd.OutOrStdout(), "%-8s %s (%s)\n", "adopted", s, adopted[s].Version)
+			}
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&root, "root", ".", "project root (its own recipes are listed alongside the official corpus)")
+	return cmd
+}
+
+// adopt records a handed-over recipe: the exported file, verbatim, plus (version, hash,
+// exact-contract digest, source) in the registry. It is the reader-side twin of the seal —
+// the moment "somebody gave me this text" becomes something the repository remembers,
+// instead of something one agent session knew.
+func adoptCmd() *cobra.Command {
+	var root, source string
+	cmd := &cobra.Command{
+		Use:   "adopt <exported-recipe.md>",
+		Args:  cobra.ExactArgs(1),
+		Short: "Record a handed-over recipe this repository builds from — the reader-side seal",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			src, err := os.ReadFile(args[0])
+			if err != nil {
+				return err
+			}
+			if source == "" {
+				source = args[0]
+			}
+			slug, entry, err := recipe.Adopt(root, src, source)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo adopt: %s %s (source: %s)\n", slug, entry.Version, entry.Source)
+			if n := len(recipe.ExactContracts(src)); n > 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "%d exact contract(s) — wire `sporo conform %s <your output>` into this repo's CI\n", n, args[0])
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&root, "root", ".", "repository that adopts the recipe")
+	cmd.Flags().StringVar(&source, "source", "", "where pull re-fetches this recipe from later — a path or an http(s) URL (default: the file argument)")
+	return cmd
+}
+
+// pull re-checks every adopted recipe against its source. READ-ONLY by default: discovering
+// that the source moved on is cheap; acting on it is a rebuild, and that is agent work
+// judged against this repository — `--apply` is the explicit second step that refreshes the
+// stored copy and the record.
+func pullCmd() *cobra.Command {
+	var root string
+	var apply bool
+	cmd := &cobra.Command{
+		Use:   "pull [slug]",
+		Args:  cobra.MaximumNArgs(1),
+		Short: "Check adopted recipes against their sources — loud when an exact contract moved",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			slug := ""
+			if len(args) == 1 {
+				slug = args[0]
+			}
+			reports, err := recipe.Pull(root, slug, apply)
+			if err != nil {
+				return err
+			}
+			for _, r := range reports {
+				switch r.Status {
+				case "up to date":
+					fmt.Fprintf(cmd.OutOrStdout(), "sporo pull: %s %s — up to date\n", r.Slug, r.Have)
+				case "skipped":
+					fmt.Fprintf(cmd.OutOrStdout(), "sporo pull: %s — skipped: %s\n", r.Slug, r.Note)
+				case "update":
+					fmt.Fprintf(cmd.OutOrStdout(), "sporo pull: %s %s → %s\n", r.Slug, r.Have, r.Latest)
+					if r.ExactChanged {
+						fmt.Fprintf(cmd.OutOrStdout(), "  an EXACT contract changed (that is a major) — your consumer-facing output must be re-verified; rebuild, then re-run `sporo conform`\n")
+					} else {
+						fmt.Fprintf(cmd.OutOrStdout(), "  safe update: scars and prose moved, the exact contracts did not\n")
+					}
+					if apply {
+						fmt.Fprintf(cmd.OutOrStdout(), "  applied — the stored copy and the record now say %s\n", r.Latest)
+					} else {
+						fmt.Fprintf(cmd.OutOrStdout(), "  (report only — `sporo pull --apply` refreshes the record once you rebuild)\n")
+					}
+				}
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&root, "root", ".", "repository whose adopted recipes are checked")
+	cmd.Flags().BoolVar(&apply, "apply", false, "refresh the stored copy and record for each update (default: report only)")
 	return cmd
 }
 

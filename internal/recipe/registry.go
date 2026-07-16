@@ -80,6 +80,10 @@ type Registry struct {
 	Recipes map[string]RegistryEntry   `yaml:"recipes,omitempty"`
 	Reviews map[string][]ReviewSummary `yaml:"reviews,omitempty"`
 	Managed []Managed                  `yaml:"managed,omitempty"`
+	// Adopted is the READER-side ledger: the handed-over recipes this repository built
+	// from, each with the version and source `sporo pull` re-checks. The author's ledger
+	// (Recipes) records what this repo promises out; this one records what it took in.
+	Adopted map[string]AdoptedEntry `yaml:"adopted,omitempty"`
 }
 
 func registryPath(root string) string {
@@ -247,12 +251,15 @@ func semverMajor(v string) int {
 }
 
 // fmValue extracts one scalar from a recipe's frontmatter, tolerant of quotes. It reads the
-// same window Lint reads (the first `---` pair after the banner), so the two never disagree
-// about where the frontmatter is.
+// first `---` pair — scanning from line 0, not line 1, because it serves TWO document
+// shapes: a source file (banner on line 0, frontmatter after) and an EXPORTED file (banner
+// stripped, frontmatter IS line 0). A scan that assumed the banner missed every export's
+// frontmatter entirely — `adopt` found that the hard way. Safe for sources too: a banner
+// line is an HTML comment and never trims to `---`.
 func fmValue(src []byte, key string) string {
 	lines := strings.Split(string(src), "\n")
 	start, end := -1, -1
-	for i := 1; i < len(lines); i++ {
+	for i := 0; i < len(lines); i++ {
 		if strings.TrimSpace(lines[i]) == "---" {
 			if start < 0 {
 				start = i

@@ -22,3 +22,6 @@ When asked to write, check, or hand over a recipe:
   adoption protocol appended. Hand over the export, never the source file.
 - **Merge what comes back**: `sporo feedback add <slug> <file>` files a reader's report-back;
   its new scars become the recipe's next version (bump `version:`, re-seal).
+- **Track what you built from**: `sporo adopt <exported file>` records a handover;
+  `sporo pull` checks adopted recipes against their sources — loud when an exact contract
+  moved (rebuild, then re-run `sporo conform`).

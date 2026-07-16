@@ -337,6 +337,27 @@ func TestEndToEnd(t *testing.T) {
 		w.mustRun(t, "lint") // the manifest rides the same gate, and a valid one stays green
 	})
 
+	t.Run("adopt records the handover, pull is loud when an exact contract moves", func(t *testing.T) {
+		// handoff.md (the crm-feed 2.0.0 export) exists from the conform subtest; adopt it.
+		out := w.mustRun(t, "adopt", "handoff.md")
+		if !strings.Contains(out, "crm-feed 2.0.0") || !strings.Contains(out, "conform") {
+			t.Fatalf("adopt must anchor slug+version and point an exact-carrying recipe at conform: %s", out)
+		}
+		// The source moves forward with a changed exact fence — the case a consumer-feeding
+		// build must not sleep through.
+		bumped := strings.Replace(w.read(t, "handoff.md"), "version: 2.0.0", "version: 3.0.0", 1)
+		bumped = strings.Replace(bumped, `"tallied": 12`, `"relabeled": 12`, 1)
+		w.write(t, "handoff.md", bumped)
+		out = w.mustRun(t, "pull")
+		if !strings.Contains(out, "2.0.0 → 3.0.0") || !strings.Contains(out, "EXACT contract changed") {
+			t.Fatalf("pull must report the delta and shout about the moved exact contract: %s", out)
+		}
+		w.mustRun(t, "pull", "--apply")
+		if list := w.mustRun(t, "list"); !strings.Contains(list, "adopted") || !strings.Contains(list, "crm-feed (3.0.0)") {
+			t.Fatalf("list must show the adopted recipe at its applied version: %s", list)
+		}
+	})
+
 	t.Run("update never clobbers and projects knows this repo", func(t *testing.T) {
 		skill := ".claude/skills/sporo-recipe/SKILL.md"
 		edited := w.read(t, skill) + "\nlocal amendment\n"

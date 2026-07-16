@@ -25,6 +25,8 @@ sporo seal      # record version + content hash in the registry: a sealed recipe
 sporo export    # print one recipe — or, with --bundle, a composed set — as one self-contained file
 sporo list      # the recipes available here — this project's own, and the official corpus
 sporo conform   # check an output file against a recipe's exact-bound contracts (works on the export alone)
+sporo adopt     # record a handed-over recipe this repo builds from — the reader-side seal
+sporo pull      # check adopted recipes against their sources; loud when an exact contract moved
 sporo feedback  # file and list report-backs — the channel a recipe's next version comes from
 sporo review    # build a self-contained review pack for ANY agent; verify the verdicts it returns
 sporo projects  # the repositories on this machine sporo was installed into
@@ -36,7 +38,7 @@ newer skills; `sporo projects` lists them). The binary also hints — one stderr
 one check a day, silent offline — when a newer release exists; `SPORO_NO_UPDATE_CHECK=1`
 turns that off, and CI never hints.
 
-Coming in later releases: the site verbs (`push` / `pull`).
+Coming in later releases: the site verb (`push` — publishing into a shared corpus).
 
 ## Build
 
