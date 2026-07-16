@@ -1,0 +1,21 @@
+# An adopted recipe — a capability this repo BUILT from someone else's handover — is listed
+# too, and at the version this repo actually took: hiding it would read as "nothing was ever
+# handed to us", and a version-less line would leave a reader unable to tell it from stale.
+exec sporo adopt handoff.md
+stdout 'sporo adopt: nightly-digest 1\.0\.0 \(source: handoff\.md\)'
+
+exec sporo list
+stdout 'official daily-progress-report'
+stdout 'adopted  nightly-digest \(1\.0\.0\)'
+
+-- handoff.md --
+---
+name: nightly-digest
+version: 1.0.0
+title: A nightly digest that checks itself
+---
+
+# Nightly digest
+
+## The problem
+You do not have the thing. You have it when the check passes.

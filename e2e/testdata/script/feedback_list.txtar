@@ -1,0 +1,96 @@
+# feedback list reads what is filed straight off disk, per recipe, in arrival order.
+mkdir .claude
+exec sporo init
+
+# No feedback yet is a state, not an error — the command stays quiet and green.
+exec sporo feedback list
+! stdout 'nightly-digest'
+
+exec sporo feedback add nightly-digest report.md
+exec sporo feedback list
+stdout 'nightly-digest \(1 report\(s\)\)'
+stdout '  \.sporo/feedback/nightly-digest/001-768e340c\.md'
+
+# A slug argument narrows the listing to just that recipe.
+exec sporo feedback list nightly-digest
+stdout 'nightly-digest \(1 report\(s\)\)'
+
+exec sporo feedback list some-other-slug
+! stdout 'nightly-digest'
+
+# Argument validation: list takes at most one slug.
+! exec sporo feedback list a b
+stderr 'accepts at most 1 arg\(s\), received 2'
+
+-- .sporo/recipes/nightly-digest.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: nightly-digest
+version: 1.0.0
+title: A nightly digest that checks itself
+problem: The record of a day's work is invisible to the people funding it.
+prerequisites: [read-files, run-shell]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# Nightly digest
+
+## The problem
+You do not have the thing. You have it when the check passes.
+
+## Why the obvious approach fails
+The obvious approach hardcodes the origin and stops working anywhere else.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth, because prose cannot be gated.
+
+## The contracts
+
+The record it persists — **Binding: adapt** (rename fields into your language):
+
+```json
+{ "schema": 1, "counted": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step. Do not build it for a one-off.
+
+## For the human
+Built on a compiled language with a single binary — essential: it runs with no checkout.
+Incidental: the test runner. It cost a longer build.
+-- report.md --
+Recipe: nightly-digest, version 1.0.0.
+
+**Stack:** rebuilt on a scripting runtime; kept the single-artifact property.
+**Degraded:** no decision log here — labelled the rationale section "reconstructed".
+**New scars:** none beyond the recipe's own.
+**Wrong:** nothing contradicted.
+**Arithmetic:** ran the live check; it matched.
+**Missing:** the shape of the summary record — had to design it.

@@ -1,0 +1,17 @@
+# new scaffolds a draft: coached section stubs, the frontmatter pre-stamped, and a TODO title
+# when none is given. It never runs the gate on itself — the draft is coach, not content.
+mkdir .claude
+exec sporo init
+
+exec sporo new my-capability
+stdout 'sporo new: draft at \.sporo/recipes/my-capability\.md'
+stdout 'fill the TODOs, delete the coach comments, remove `draft: true` — then `sporo lint`, `sporo seal`, `sporo export`'
+exists .sporo/recipes/my-capability.md
+
+# no --title was given, so the frontmatter and the heading both carry the TODO placeholder.
+grep 'draft: true' .sporo/recipes/my-capability.md
+grep 'title: TODO — one line naming the capability, not the technology' .sporo/recipes/my-capability.md
+
+# every gated section arrives with a coach comment explaining what belongs there.
+grep '<!-- coach:' .sporo/recipes/my-capability.md
+grep '## The scars' .sporo/recipes/my-capability.md

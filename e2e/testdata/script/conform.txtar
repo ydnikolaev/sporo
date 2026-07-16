@@ -1,0 +1,95 @@
+# conform is the reader's half of `Binding: exact`: it checks a candidate output against the
+# EXPORTED recipe alone — the only document a reader ever has, no checkout of the author's
+# repo required. An exact-bound feed passes; a renamed field fails with a path naming exactly
+# what the consumer will miss.
+mkdir .claude
+exec sporo init
+
+exec sporo seal crm-feed
+stdout 'sporo seal: crm-feed 1\.0\.0'
+
+exec sporo export crm-feed
+cp stdout handoff.md
+stdout '## Adopt it here'
+! stdout '<!-- SSOT SOURCE'
+
+# an exact-bound feed, bound to the exported document alone.
+cp good-feed.json feed.json
+exec sporo conform handoff.md feed.json
+stdout 'contract #1 ✓'
+
+# the field the contract promises (`tallied`) got renamed back to `counted` — the export is
+# the only ground truth a reader has, and it must catch the drift structurally.
+cp bad-feed.json feed.json
+! exec sporo conform handoff.md feed.json
+stderr '\$\.tallied: missing — the consumer parses this field and will starve without it'
+stderr '\$\.counted: not in the contract — an extra field is a dialect the consumer never agreed to'
+stderr 'the output does not hold the promise its recipe makes'
+
+-- .sporo/recipes/crm-feed.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: crm-feed
+version: 1.0.0
+title: A nightly digest that checks itself
+problem: The record of a day's work is invisible to the people funding it.
+prerequisites: [read-files, run-shell]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# Nightly digest
+
+## The problem
+You do not have the thing. You have it when the check passes.
+
+## Why the obvious approach fails
+The obvious approach hardcodes the origin and stops working anywhere else.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth, because prose cannot be gated.
+
+## The contracts
+
+The record it persists — **Binding: exact** (the fleet's aggregator parses this shape):
+
+```json
+{ "schema": 1, "tallied": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step. Do not build it for a one-off.
+
+## For the human
+Built on a compiled language with a single binary — essential: it runs with no checkout.
+Incidental: the test runner. It cost a longer build.
+-- good-feed.json --
+{ "schema": 1, "tallied": 40 }
+-- bad-feed.json --
+{ "schema": 1, "counted": 40 }

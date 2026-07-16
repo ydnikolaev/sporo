@@ -1,0 +1,16 @@
+# --root points update at a repository other than the working directory; the no-clobber
+# guarantee and the reporting hold there exactly as they do for the default '.'.
+mkdir sub
+mkdir sub/.claude
+exec sporo init --root sub
+
+exec sh -c 'printf "\nlocal amendment\n" >> sub/.claude/skills/sporo-recipe/SKILL.md'
+
+exec sporo update --root sub
+stdout 'skipped .*SKILL\.md'
+stdout 'edited since sporo wrote it'
+
+grep 'local amendment' sub/.claude/skills/sporo-recipe/SKILL.md
+
+# the cwd itself was never touched — no stray .sporo landed outside --root's target.
+! exists .sporo

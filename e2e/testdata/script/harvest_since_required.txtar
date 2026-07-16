@@ -1,0 +1,5 @@
+# --since is mandatory: a recipe is distilled from a bounded stretch of the record, and an
+# unbounded one is the whole project's history. No repository needed — the check fires before
+# git is ever invoked.
+! exec sporo harvest
+stderr 'harvest needs a starting revision \(--since\)'

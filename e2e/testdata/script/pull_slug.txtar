@@ -1,0 +1,44 @@
+# pull [slug] narrows the check to one adopted recipe — its report names only that recipe,
+# and an unknown slug is refused instead of silently checking everything.
+exec sporo adopt widget-a.md
+exec sporo adopt widget-b.md
+
+exec sporo pull widget-a
+stdout 'sporo pull: widget-a 1\.0\.0 — up to date'
+! stdout 'widget-b'
+
+! exec sporo pull no-such-slug
+stderr 'nothing adopted as "no-such-slug"'
+
+-- widget-a.md --
+---
+name: widget-a
+version: 1.0.0
+title: Widget A
+---
+
+# Widget A
+
+## The contracts
+
+Nothing exact here — **Binding: adapt**.
+
+```json
+{ "a": 1 }
+```
+-- widget-b.md --
+---
+name: widget-b
+version: 1.0.0
+title: Widget B
+---
+
+# Widget B
+
+## The contracts
+
+Nothing exact here — **Binding: adapt**.
+
+```json
+{ "b": 1 }
+```

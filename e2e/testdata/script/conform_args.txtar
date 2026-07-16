@@ -1,0 +1,13 @@
+# conform takes exactly two positional arguments — a recipe reference and an output file.
+# Too few or too many is an argument error, not a recipe or filesystem one.
+mkdir .claude
+exec sporo init
+
+! exec sporo conform
+stderr 'accepts 2 arg\(s\), received 0'
+
+! exec sporo conform handoff.md
+stderr 'accepts 2 arg\(s\), received 1'
+
+! exec sporo conform handoff.md feed.json extra
+stderr 'accepts 2 arg\(s\), received 3'

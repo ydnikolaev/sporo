@@ -1,0 +1,91 @@
+# review verify closes the loop: it validates the returned JSON against the fixed schema
+# and, only when every verdict is clean, records the tally beside the recipe's seal in the
+# registry. A review binds a version and a content hash, so it requires a SEALED recipe.
+mkdir .claude
+exec sporo init
+
+exec sporo seal nightly-digest
+stdout '1\.0\.0'
+
+exec sporo review nightly-digest
+
+exec sporo review verify nightly-digest verdict.json
+stdout 'mean 8\.0/10'
+stdout 'adopt'
+grep 'reviews:' .sporo/registry.yaml
+grep 'nightly-digest' .sporo/registry.yaml
+
+# arg validation: at least a slug and one verdict file.
+! exec sporo review verify
+stderr 'at least 2 arg\(s\)'
+! exec sporo review verify nightly-digest
+stderr 'at least 2 arg\(s\)'
+! exec sporo review verify nightly-digest missing.json
+stderr 'no such file or directory'
+
+-- .sporo/recipes/nightly-digest.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: nightly-digest
+version: 1.0.0
+title: A nightly digest that checks itself
+problem: The record of a day's work is invisible to the people funding it.
+prerequisites: [read-files, run-shell]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# Nightly digest
+
+## The problem
+You do not have the thing. You have it when the check passes.
+
+## Why the obvious approach fails
+The obvious approach hardcodes the origin and stops working anywhere else.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth, because prose cannot be gated.
+
+## The contracts
+
+The record it persists — **Binding: adapt** (rename fields into your language):
+
+```json
+{ "schema": 1, "counted": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step. Do not build it for a one-off.
+
+## For the human
+Built on a compiled language with a single binary — essential: it runs with no checkout.
+Incidental: the test runner. It cost a longer build.
+
+-- verdict.json --
+{"schema":1,"recipe":"nightly-digest","version":"1.0.0","axes":{"intent_clarity":{"score":8,"note":"credible"},"scars_value":{"score":8,"note":"credible"},"task_setting":{"score":8,"note":"credible"},"build_readiness":{"score":8,"note":"credible"},"copy_paste_artifacts":{"score":8,"note":"credible"},"stack_neutrality":{"score":8,"note":"credible"},"security_hazards":{"score":8,"note":"credible"}},"verdict":"adopt","top_gaps":["none"]}

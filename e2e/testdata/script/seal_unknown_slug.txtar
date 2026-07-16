@@ -1,0 +1,7 @@
+# seal guards what exists: a slug with no recipe file in this project's home is an error, not
+# a silent no-op.
+mkdir .claude
+exec sporo init
+
+! exec sporo seal nope-such-recipe
+stderr 'no recipe "nope-such-recipe" in this project'

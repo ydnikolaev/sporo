@@ -1,0 +1,153 @@
+# pull re-checks an adopted recipe against its recorded source. Read-only by default: when
+# the source moves forward with a changed exact-bound contract, pull reports the delta and
+# shouts about it; --apply is the explicit second step that refreshes the stored copy and the
+# registry, and list then shows the recipe at its applied version.
+mkdir .claude
+exec sporo init
+
+exec sporo export crm-feed
+cp stdout handoff.md
+
+exec sporo adopt handoff.md
+stdout 'sporo adopt: crm-feed 2\.0\.0 \(source: handoff\.md\)'
+stdout 'exact contract\(s\) — wire `sporo conform handoff\.md <your output>`'
+
+# The source moves forward — a MAJOR bump that renames the exact-bound field — the case a
+# consumer-feeding build must not sleep through.
+cp bumped/crm-feed.md handoff.md
+
+exec sporo pull
+stdout 'sporo pull: crm-feed 2\.0\.0 → 3\.0\.0'
+stdout 'an EXACT contract changed \(that is a major\)'
+stdout '\(report only'
+! stdout 'applied —'
+
+exec sporo pull --apply
+stdout 'sporo pull: crm-feed 2\.0\.0 → 3\.0\.0'
+stdout 'applied — the stored copy and the record now say 3\.0\.0'
+
+exec sporo list
+stdout 'adopted  crm-feed \(3\.0\.0\)'
+
+-- .sporo/recipes/crm-feed.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: crm-feed
+version: 2.0.0
+title: Feed the CRM aggregator
+problem: A downstream aggregator needs one exact shape.
+prerequisites: [read-files]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# CRM feed
+
+## The problem
+The aggregator cannot parse prose.
+
+## Why the obvious approach fails
+Restating the shape in each consumer drifts.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth.
+
+## The contracts
+
+The record it persists — **Binding: exact** (the fleet's aggregator parses this shape):
+
+```json
+{ "schema": 1, "tallied": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step.
+
+## For the human
+Built on a compiled language with a single binary.
+-- bumped/crm-feed.md --
+---
+name: crm-feed
+version: 3.0.0
+title: Feed the CRM aggregator
+problem: A downstream aggregator needs one exact shape.
+prerequisites: [read-files]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# CRM feed
+
+## The problem
+The aggregator cannot parse prose.
+
+## Why the obvious approach fails
+Restating the shape in each consumer drifts.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth.
+
+## The contracts
+
+The record it persists — **Binding: exact** (the fleet's aggregator parses this shape):
+
+```json
+{ "schema": 1, "relabeled": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step.
+
+## For the human
+Built on a compiled language with a single binary.

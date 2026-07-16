@@ -1,0 +1,10 @@
+# export refuses a draft outright: a draft has no version to promise, and handing a stranger
+# TODOs as if they were earned helps nobody.
+mkdir .claude
+exec sporo init
+
+exec sporo new half-baked --title 'Still cooking'
+stdout 'draft at \.sporo/recipes/half-baked\.md'
+
+! exec sporo export half-baked
+stderr 'is still a draft'

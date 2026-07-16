@@ -1,0 +1,12 @@
+# With no .claude provider home present, the claude adapter has nowhere to receive the skill
+# and stays out of the way — init still seeds .sporo and writes the universal AGENTS.md block,
+# but the skill is never installed and .claude is never created.
+exec sporo init
+stdout 'seeded  \.sporo/config\.yaml'
+stdout 'wrote   AGENTS\.md'
+! stdout '\.claude'
+exists .sporo/config.yaml
+exists .sporo/recipes/README.md
+exists .sporo/registry.yaml
+exists AGENTS.md
+! exists .claude

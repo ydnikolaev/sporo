@@ -1,0 +1,11 @@
+# --out writes the JSON snapshot straight to a file (making its directory if needed) — the path
+# `go generate` uses to refresh the committed surface.json without shelling out to redirection.
+exec sporo docs --out dist/surface.json
+exists dist/surface.json
+grep '"version": "\S+"' dist/surface.json
+grep '"name": "docs"' dist/surface.json
+grep '"name": "lint"' dist/surface.json
+
+# writing to a file means nothing is echoed to stdout, and the .sporo tree stays untouched.
+! stdout .
+! exists .sporo

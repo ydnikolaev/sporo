@@ -1,0 +1,7 @@
+# export on a slug that resolves nowhere — not this project's own home, not the official
+# corpus — errors loudly instead of printing nothing.
+mkdir .claude
+exec sporo init
+
+! exec sporo export nope-does-not-exist
+stderr 'no recipe "nope-does-not-exist"'

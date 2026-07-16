@@ -1,0 +1,11 @@
+# --from-harvest refuses a file that is not a `sporo harvest --out` JSON — pointing the author
+# at the command that actually produces one, instead of a bare parse error.
+mkdir .claude
+exec sporo init
+
+! exec sporo new bad-harvest-capability --from-harvest not-a-harvest.txt
+stderr 'not-a-harvest\.txt is not a harvest file \(`sporo harvest --out` writes one\)'
+! exists .sporo/recipes/bad-harvest-capability.md
+
+-- not-a-harvest.txt --
+this is plainly not json

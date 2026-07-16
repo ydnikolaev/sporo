@@ -1,0 +1,25 @@
+# --from-harvest pre-seeds the scars section from a `sporo harvest --out` file: the scar and
+# design candidates land as judgeable stubs, and a source the harvest could not find is called
+# out by name so the author knows to source it by hand.
+mkdir .claude
+exec sporo init
+
+exec sporo new harvested-capability --from-harvest harvest.json
+stdout 'sporo new: draft at \.sporo/recipes/harvested-capability\.md'
+exists .sporo/recipes/harvested-capability.md
+
+grep '### Candidate from the record: the check that could not fire' .sporo/recipes/harvested-capability.md
+grep 'proposed by abc123def456' .sporo/recipes/harvested-capability.md
+grep 'collector emits one normalized record' .sporo/recipes/harvested-capability.md
+grep 'decision log — rationale must be sourced by hand' .sporo/recipes/harvested-capability.md
+
+-- harvest.json --
+{
+  "scar_candidates": [
+    {"hash": "abc123def456", "subject": "the check that could not fire", "signals": ["fix"]}
+  ],
+  "design_candidates": [
+    {"hash": "aaa111bbb222", "subject": "collector emits one normalized record", "signals": ["design"]}
+  ],
+  "absent_sources": ["decision log — rationale must be sourced by hand"]
+}

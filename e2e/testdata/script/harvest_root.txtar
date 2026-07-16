@@ -1,0 +1,26 @@
+# --root points harvest at a repository other than the current directory — the working tree
+# itself carries no git repo at all, only proj/ does.
+exec git -C proj init
+exec git -C proj config user.email tester@example.com
+exec git -C proj config user.name Tester
+
+exec git -C proj add seed.txt
+exec git -C proj commit -F seed-msg.txt
+exec git -C proj tag v0.1.0
+
+exec git -C proj add a.txt
+exec git -C proj commit -F a-msg.txt
+
+! exists .git
+exec sporo harvest --since v0.1.0 --root proj
+stdout '"since": "v0\.1\.0"'
+stdout 'a thing from the other repo'
+
+-- proj/seed.txt --
+hello
+-- proj/seed-msg.txt --
+chore: initial commit
+-- proj/a.txt --
+a
+-- proj/a-msg.txt --
+feat(a): a thing from the other repo

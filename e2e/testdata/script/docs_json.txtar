@@ -1,0 +1,13 @@
+# docs --json emits the same surface as machine-readable JSON — the exact source the docs
+# page's build consumes. It carries the binary version, every verb by name, and each verb's
+# flags — enough to tell a real render from a stub.
+exec sporo docs --json
+stdout '"version": "\S+"'
+stdout '"name": "docs"'
+stdout '"name": "lint"'
+stdout '"name": "seal"'
+stdout '"name": "out"'
+stdout '"usage": "emit the surface as JSON \(what the docs page consumes\)"'
+
+# it is a pure read: it writes nothing into the working tree.
+! exists .sporo

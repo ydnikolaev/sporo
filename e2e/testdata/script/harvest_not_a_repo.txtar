@@ -1,0 +1,5 @@
+# Outside a git repository — or given a revision the repository does not know — git itself
+# refuses, and harvest surfaces the failure with a hint at what to check rather than a bare
+# git error.
+! exec sporo harvest --since v0.1.0
+stderr 'is the starting revision a tag this repository knows'

@@ -1,0 +1,11 @@
+# projects walks the machine-level registry init writes into (keyed on SPORO_HOME, which the
+# harness pins per-script) — before any repo has been touched it has nothing to say.
+exec sporo projects
+stdout 'no projects registered yet'
+
+# init records this very repo into that registry — a best-effort courtesy on top of the
+# project-local install. Once it has run, projects must know this repo by its absolute path.
+mkdir .claude
+exec sporo init
+exec sporo projects
+stdout ${WORK@R}

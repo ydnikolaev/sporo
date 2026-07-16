@@ -1,0 +1,11 @@
+# --title replaces the TODO placeholder in both the frontmatter and the heading.
+mkdir .claude
+exec sporo init
+
+exec sporo new titled-capability --title 'A capability worth having twice'
+stdout 'sporo new: draft at \.sporo/recipes/titled-capability\.md'
+exists .sporo/recipes/titled-capability.md
+
+grep 'title: A capability worth having twice' .sporo/recipes/titled-capability.md
+grep '^# A capability worth having twice$' .sporo/recipes/titled-capability.md
+! grep 'title: TODO' .sporo/recipes/titled-capability.md

@@ -1,0 +1,85 @@
+# adopt is the reader-side seal: it records a handed-over exported recipe verbatim, anchors
+# `slug version` from its frontmatter into the registry, and — because this recipe carries an
+# exact-bound contract — points the reader at the exact check to wire into this repo's own
+# CI. The export is produced in-script via seal+export, the same file a real handover hands
+# over.
+mkdir .claude
+exec sporo init
+
+exec sporo seal crm-feed
+stdout 'sporo seal: crm-feed 1\.0\.0 \(local, sha256:'
+
+exec sporo export crm-feed
+cp stdout handoff.md
+
+exec sporo adopt handoff.md
+stdout 'sporo adopt: crm-feed 1\.0\.0 \(source: handoff\.md\)'
+stdout 'exact contract\(s\) — wire `sporo conform handoff\.md <your output>` into this repo'
+
+exists .sporo/adopted/crm-feed.md
+grep 'adopted:' .sporo/registry.yaml
+grep 'version: 1.0.0' .sporo/adopted/crm-feed.md
+
+-- .sporo/recipes/crm-feed.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: crm-feed
+version: 1.0.0
+title: A nightly digest that checks itself
+problem: The record of a day's work is invisible to the people funding it.
+prerequisites: [read-files, run-shell]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# CRM feed
+
+## The problem
+You do not have the thing. You have it when the check passes.
+
+## Why the obvious approach fails
+The obvious approach hardcodes the origin and stops working anywhere else.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth, because prose cannot be gated.
+
+## The contracts
+
+The record it persists — **Binding: exact** (the fleet's aggregator parses this shape):
+
+```json
+{ "schema": 1, "counted": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step. Do not build it for a one-off.
+
+## For the human
+Built on a compiled language with a single binary — essential: it runs with no checkout.
+Incidental: the test runner. It cost a longer build.

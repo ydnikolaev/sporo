@@ -1,0 +1,6 @@
+# genre prints the authoring spec from the embedded corpus — no repo, no setup, anywhere.
+exec sporo genre
+stdout 'Recipe — authoring'
+
+# it is a pure read: it writes nothing into the working tree.
+! exists .sporo

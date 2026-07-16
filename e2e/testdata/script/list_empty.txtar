@@ -1,0 +1,7 @@
+# An empty project corpus is not an error for list: a directory that never authored a recipe
+# of its own still gets the official corpus, so `sporo list` works from any repo, initialized
+# or not.
+exec sporo list
+stdout 'official daily-progress-report'
+! stdout 'project'
+! stdout 'adopted'

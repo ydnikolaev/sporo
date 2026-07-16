@@ -1,0 +1,11 @@
+# the scaffold never overwrites: a second `new` at the same slug must refuse, loudly, so a
+# re-run can never eat an author's in-progress draft.
+mkdir .claude
+exec sporo init
+
+exec sporo new dup-capability
+exists .sporo/recipes/dup-capability.md
+
+! exec sporo new dup-capability
+stderr 'recipe "dup-capability" already exists at \.sporo/recipes/dup-capability\.md'
+stderr 'pick another slug or edit the existing file'

@@ -1,0 +1,18 @@
+# init seeds the corpus and installs the agent surface. The skill only lands when an agent
+# home is present to receive it, so stand up .claude first (init adapts to what it finds).
+mkdir .claude
+exec sporo init
+stdout 'seeded  \.sporo/config\.yaml'
+stdout 'wrote   \.claude/skills/sporo-recipe/SKILL\.md'
+exists .sporo/config.yaml
+exists .sporo/recipes/README.md
+exists AGENTS.md
+exists .claude/skills/sporo-recipe/SKILL.md
+exists .sporo/registry.yaml
+
+# A second init is idempotent: it keeps everything and claims no new writes. A seed that got
+# re-seeded, or a managed file silently rewritten, would read as changed here.
+exec sporo init
+stdout 'kept'
+! stdout 'seeded'
+! stdout 'wrote'

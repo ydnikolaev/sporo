@@ -1,0 +1,17 @@
+# A draft is coached and gate-exempt: lint counts it but never fails on it, and seal refuses
+# it outright — a draft has no version to promise.
+mkdir .claude
+exec sporo init
+
+exec sporo new half-baked --title 'Still cooking'
+stdout 'draft at \.sporo/recipes/half-baked\.md'
+exists .sporo/recipes/half-baked.md
+
+# lint stays green but reports the draft it skipped, so a half-written file never reads as done.
+exec sporo lint
+stdout 'conformant and neutral'
+stdout '1 draft\(s\) not checked'
+
+# seal refuses the draft, loudly, and exits non-zero.
+! exec sporo seal half-baked
+stderr 'is still a draft'

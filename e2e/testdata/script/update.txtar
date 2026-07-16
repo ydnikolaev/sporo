@@ -1,0 +1,13 @@
+# update re-syncs the managed surface, but the one thing it may never do is clobber an edit.
+# Init first, then edit a managed file the same way a user would, and confirm the edit survives.
+mkdir .claude
+exec sporo init
+
+exec sh -c 'printf "\nlocal amendment\n" >> .claude/skills/sporo-recipe/SKILL.md'
+
+exec sporo update
+stdout 'skipped .*SKILL\.md'
+stdout 'edited since sporo wrote it'
+
+# the edit is reported, never overwritten — the file still carries it verbatim.
+grep 'local amendment' .claude/skills/sporo-recipe/SKILL.md

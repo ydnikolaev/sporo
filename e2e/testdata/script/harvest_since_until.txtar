@@ -1,0 +1,35 @@
+# --since and --until together bound the range to what shipped between two revisions: a commit
+# made after --until is invisible to the harvest, exactly as if it had not happened yet.
+exec git init
+exec git config user.email tester@example.com
+exec git config user.name Tester
+
+exec git add seed.txt
+exec git commit -F seed-msg.txt
+exec git tag v0.1.0
+
+exec git add a.txt
+exec git commit -F a-msg.txt
+exec git tag v0.2.0
+
+exec git add b.txt
+exec git commit -F b-msg.txt
+
+exec sporo harvest --since v0.1.0 --until v0.2.0
+stdout '"since": "v0\.1\.0"'
+stdout '"until": "v0\.2\.0"'
+stdout 'the included commit'
+! stdout 'the excluded commit'
+
+-- seed.txt --
+hello
+-- seed-msg.txt --
+chore: initial commit
+-- a.txt --
+a
+-- a-msg.txt --
+feat(a): the included commit
+-- b.txt --
+b
+-- b-msg.txt --
+feat(b): the excluded commit

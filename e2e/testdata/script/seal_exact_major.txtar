@@ -1,0 +1,209 @@
+# The fleet rule: an exact-bound contract is somebody else's parser. Renaming a field inside
+# one under a MINOR bump ships a break wearing a compatible version number, so seal refuses it
+# and demands a MAJOR instead. Bumping to MAJOR lets the same rename through.
+mkdir .claude
+exec sporo init
+
+exec sporo seal crm-feed
+stdout 'sporo seal: crm-feed 1\.0\.0'
+
+# the exact-bound field is renamed, but the bump is only MINOR.
+cp crm-feed-minor.md .sporo/recipes/crm-feed.md
+! exec sporo seal crm-feed
+stderr 'changes an exact-bound contract'
+stderr 'MAJOR version \(1\.0\.0 → at least 2\.0\.0\), not 1\.1\.0'
+
+# the same rename, this time behind a MAJOR bump — the seal now succeeds.
+cp crm-feed-major.md .sporo/recipes/crm-feed.md
+exec sporo seal crm-feed
+stdout 'sporo seal: crm-feed 2\.0\.0'
+
+-- .sporo/recipes/crm-feed.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: crm-feed
+version: 1.0.0
+title: A nightly digest that checks itself
+problem: The record of a day's work is invisible to the people funding it.
+prerequisites: [read-files, run-shell]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# Nightly digest
+
+## The problem
+You do not have the thing. You have it when the check passes.
+
+## Why the obvious approach fails
+The obvious approach hardcodes the origin and stops working anywhere else.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth, because prose cannot be gated.
+
+## The contracts
+
+The record it persists — **Binding: exact** (the fleet's aggregator parses this shape):
+
+```json
+{ "schema": 1, "counted": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step. Do not build it for a one-off.
+
+## For the human
+Built on a compiled language with a single binary — essential: it runs with no checkout.
+Incidental: the test runner. It cost a longer build.
+-- crm-feed-minor.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: crm-feed
+version: 1.1.0
+title: A nightly digest that checks itself
+problem: The record of a day's work is invisible to the people funding it.
+prerequisites: [read-files, run-shell]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# Nightly digest
+
+## The problem
+You do not have the thing. You have it when the check passes.
+
+## Why the obvious approach fails
+The obvious approach hardcodes the origin and stops working anywhere else.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth, because prose cannot be gated.
+
+## The contracts
+
+The record it persists — **Binding: exact** (the fleet's aggregator parses this shape):
+
+```json
+{ "schema": 1, "tallied": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step. Do not build it for a one-off.
+
+## For the human
+Built on a compiled language with a single binary — essential: it runs with no checkout.
+Incidental: the test runner. It cost a longer build.
+-- crm-feed-major.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: crm-feed
+version: 2.0.0
+title: A nightly digest that checks itself
+problem: The record of a day's work is invisible to the people funding it.
+prerequisites: [read-files, run-shell]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# Nightly digest
+
+## The problem
+You do not have the thing. You have it when the check passes.
+
+## Why the obvious approach fails
+The obvious approach hardcodes the origin and stops working anywhere else.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth, because prose cannot be gated.
+
+## The contracts
+
+The record it persists — **Binding: exact** (the fleet's aggregator parses this shape):
+
+```json
+{ "schema": 1, "tallied": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.
+
+**Done when:** the record parses.
+
+## The seams
+The vocabulary the project owns.
+
+## The scars
+
+### The check that could not fire
+**Symptom:** always green.
+**Root cause:** it searched for a grammar nothing emits.
+**Fix:** hold the parser to a fixture of the real grammar.
+
+## Verification
+A gate, with teeth.
+
+## The trade-offs
+It costs a build step. Do not build it for a one-off.
+
+## For the human
+Built on a compiled language with a single binary — essential: it runs with no checkout.
+Incidental: the test runner. It cost a longer build.

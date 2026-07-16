@@ -1,0 +1,7 @@
+# With nothing adopted, pull refuses cleanly — for the whole repo and for a named slug alike
+# — rather than reporting an empty, silent success.
+! exec sporo pull
+stderr 'nothing adopted in this repository'
+
+! exec sporo pull some-slug
+stderr 'nothing adopted as "some-slug"'

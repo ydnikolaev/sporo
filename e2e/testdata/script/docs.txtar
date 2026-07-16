@@ -1,0 +1,14 @@
+# docs with no flags prints the binary's own command surface as a grouped human map — the
+# same source `--json` renders for the site, read straight off the live cobra tree. It needs
+# no repo and no init: it is a pure read of the binary itself, runnable anywhere.
+exec sporo docs
+stdout 'sporo \S+ — \d+ verbs'
+stdout 'Authoring'
+stdout 'Handover'
+stdout 'Install surface'
+stdout 'Binary'
+stdout 'docs\s+Print this binary'
+stdout 'lint\s+Check a recipe corpus against the genre'
+
+# it is a pure read: it writes nothing into the working tree.
+! exists .sporo

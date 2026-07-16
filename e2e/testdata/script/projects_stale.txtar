@@ -1,0 +1,14 @@
+# A registry entry whose recorded binary predates this one is the whole point of the list: it
+# is the hint that a repo's skills are stale and `sporo update` there is the fix. Seed the
+# global registry directly (SPORO_HOME/projects.yaml, pinned to this script's $WORK/home by the
+# harness) with an older binary and confirm the upgrade hint fires.
+exec sporo projects
+stdout 'installed by 0\.9\.0, this binary is dev: run `sporo update` there'
+stdout '/some/other/repo'
+
+-- home/projects.yaml --
+schema: 1
+projects:
+    - root: /some/other/repo
+      binary: 0.9.0
+      updated: "2026-01-01"

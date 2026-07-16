@@ -1,0 +1,15 @@
+# adopt's input is, by definition, the file `sporo export` printed — a fragment or a hand
+# rolled markdown file with no `name:`/`version:` frontmatter is refused loudly, before
+# anything is written.
+mkdir .claude
+exec sporo init
+
+! exec sporo adopt notarecipe.md
+stderr 'carries no `name:`/`version:` frontmatter'
+
+! exists .sporo/adopted
+
+-- notarecipe.md --
+# just some prose
+
+This is not an exported recipe — no frontmatter, no name, no version.

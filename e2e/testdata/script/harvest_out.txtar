@@ -1,0 +1,32 @@
+# --out writes the harvest to a file instead of stdout; the terminal gets a one-line summary
+# plus every source this project's record does not have — a stated absence, never a silent
+# zero, so gate/doctrine/decision/knowledge sources that were never declared are named aloud.
+exec git init
+exec git config user.email tester@example.com
+exec git config user.name Tester
+
+exec git add seed.txt
+exec git commit -F seed-msg.txt
+exec git tag v0.1.0
+
+exec git add feature.txt
+exec git commit -F feat-msg.txt
+
+exec sporo harvest --since v0.1.0 --out harvest.json
+stdout 'sporo: harvest\.json — 0 scar candidate\(s\), 1 design commit\(s\), 0 gate\(s\), 0 unsignaled'
+stderr 'gate registry'
+stderr 'principles corpus'
+stderr 'decision log'
+stderr 'knowledge base'
+! stdout '"design_candidates"'
+exists harvest.json
+grep '"subject": "feat\(x\): add the thing"' harvest.json
+
+-- seed.txt --
+hello
+-- seed-msg.txt --
+chore: initial commit
+-- feature.txt --
+feature
+-- feat-msg.txt --
+feat(x): add the thing

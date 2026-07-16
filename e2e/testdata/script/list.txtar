@@ -1,0 +1,48 @@
+# list shows this project's own recipes alongside the official corpus, each under its own
+# origin prefix — a project recipe (this repo's build) must read distinctly from an official
+# one (shipped read-only in the binary), or an author would edit the wrong copy.
+exec sporo list
+stdout 'official daily-progress-report'
+stdout 'project  nightly-digest'
+
+-- .sporo/recipes/nightly-digest.md --
+<!-- SSOT SOURCE (this project). -->
+
+---
+name: nightly-digest
+version: 1.0.0
+title: A nightly digest that checks itself
+problem: The record of a day's work is invisible to the people funding it.
+prerequisites: [read-files, run-shell]
+derived_from: [one live build]
+stack: { language: go, runtime: any, why: "one static binary" }
+verified: { project: e2e-consumer, release: v0.1.0, date: 2026-07-15 }
+effort: an evening
+---
+
+# Nightly digest
+
+## The problem
+You do not have the thing. You have it when the check passes.
+
+## Why the obvious approach fails
+The obvious approach hardcodes the origin and stops working anywhere else.
+
+## The principles
+Derive, never restate.
+
+## The ground it needs
+A machine-readable source of truth, because prose cannot be gated.
+
+## The contracts
+
+The record it persists — **Binding: adapt** (rename fields into your language):
+
+```json
+{ "schema": 1, "counted": 12 }
+```
+
+## The build sequence
+
+### 1. Stand up the record
+Write the source of truth first.

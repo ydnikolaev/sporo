@@ -1,0 +1,5 @@
+# upgrade is network-bound (it reaches GitHub for the latest release) even in its plain form,
+# so the only scenario this script can cover without a network call is a cobra-level failure
+# that happens before RunE ever runs: an unknown flag.
+! exec sporo upgrade --bogus
+stderr 'unknown flag: --bogus'

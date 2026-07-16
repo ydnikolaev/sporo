@@ -1,0 +1,11 @@
+# --root points the scaffold at another project entirely: it writes only there, never at the
+# working directory's own .sporo.
+mkdir sub
+mkdir sub/.claude
+exec sporo init --root sub
+
+exec sporo new rooted-capability --root sub --title 'A capability rooted elsewhere'
+stdout 'sporo new: draft at sub/\.sporo/recipes/rooted-capability\.md'
+exists sub/.sporo/recipes/rooted-capability.md
+! exists .sporo/recipes/rooted-capability.md
+! exists .sporo

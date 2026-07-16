@@ -1,0 +1,16 @@
+# --root points init at a directory other than the working directory — the whole surface
+# (seeds, skill, AGENTS.md, registry) lands under THAT root, not the cwd running the command.
+mkdir sub/.claude
+exec sporo init --root sub
+stdout 'seeded  \.sporo/config\.yaml'
+stdout 'wrote   \.claude/skills/sporo-recipe/SKILL\.md'
+stdout 'wrote   AGENTS\.md'
+exists sub/.sporo/config.yaml
+exists sub/.sporo/recipes/README.md
+exists sub/AGENTS.md
+exists sub/.claude/skills/sporo-recipe/SKILL.md
+exists sub/.sporo/registry.yaml
+
+# nothing was written at the working directory itself — the root argument is not a suggestion.
+! exists .sporo
+! exists AGENTS.md

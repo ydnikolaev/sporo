@@ -1,0 +1,41 @@
+# harvest mines a bounded git range for a recipe's raw material: it proposes SCAR candidates
+# (a fix commit whose own message admits it was found only by sabotage) and DESIGN candidates
+# (a feat commit) with the signal that proposed each, and it counts what neither pile explains.
+exec git init
+exec git config user.email tester@example.com
+exec git config user.name Tester
+
+exec git add seed.txt
+exec git commit -F seed-msg.txt
+exec git tag v0.1.0
+
+exec git add feature.txt
+exec git commit -F feat-msg.txt
+
+exec git add bug.txt
+exec git commit -F scar-msg.txt
+
+exec sporo harvest --since v0.1.0
+stdout '"since": "v0\.1\.0"'
+stdout '"until": "HEAD"'
+stdout '"subject": "feat\(x\): add the thing"'
+stdout '"subject": "fix\(x\): the bug"'
+stdout '"sabotage"'
+stdout '"unsignaled_commits": 0'
+stdout 'gate registry'
+stdout 'decision log'
+
+-- seed.txt --
+hello
+-- seed-msg.txt --
+chore: initial commit
+-- feature.txt --
+feature
+-- feat-msg.txt --
+feat(x): add the thing
+-- bug.txt --
+buggy
+-- scar-msg.txt --
+fix(x): the bug
+
+Found only by sabotage: removing the check made it silently pass.

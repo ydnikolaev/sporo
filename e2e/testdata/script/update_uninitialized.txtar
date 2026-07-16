@@ -1,0 +1,6 @@
+# update assumes init already stated the intent — on a repo that never ran init it refuses
+# outright, pointing at init, rather than half-installing anything.
+! exec sporo update
+stderr 'never initialized'
+stderr 'sporo init'
+! exists .sporo
