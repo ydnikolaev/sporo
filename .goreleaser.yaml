@@ -123,19 +123,27 @@ release:
 # specifically for `--snapshot` runs. `--snapshot` already skips every publisher
 # unconditionally (goreleaser.com/customization/publish/snapshots), so this is a
 # real but separate safety net: it covers a real `v*-rc1`-style tag release too.
-homebrew_casks:
-  - name: sporo
-    repository:
-      owner: ydnikolaev
-      name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    directory: Casks
-    homepage: "https://sporo.dev"
-    description: "Author, check, and export transferable build recipes"
-    skip_upload: auto
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sporo"]
-          end
+# DISABLED until HOMEBREW_TAP_TOKEN exists as a repo secret. The block below is correct and
+# ready; it is commented out ONLY so a real `v*` tag can release the CLI (install.sh channel)
+# without the token. goreleaser templates `{{ .Env.HOMEBREW_TAP_TOKEN }}` at release time and
+# errors on a missing key — `skip_upload: auto` skips the tap PUSH for prereleases but does
+# NOT skip that template evaluation, so an un-set token would still red the whole release.
+# To re-enable: `gh secret set HOMEBREW_TAP_TOKEN -R ydnikolaev/sporo` (fine-grained PAT,
+# contents:write on homebrew-tap only), then uncomment. Nothing else changes.
+#
+# homebrew_casks:
+#   - name: sporo
+#     repository:
+#       owner: ydnikolaev
+#       name: homebrew-tap
+#       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+#     directory: Casks
+#     homepage: "https://sporo.dev"
+#     description: "Author, check, and export transferable build recipes"
+#     skip_upload: auto
+#     hooks:
+#       post:
+#         install: |
+#           if OS.mac?
+#             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sporo"]
+#           end
