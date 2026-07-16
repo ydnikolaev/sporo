@@ -107,29 +107,35 @@ release:
     `xattr -d com.apple.quarantine ./sporo`, then move it onto your PATH
     (e.g. `mv sporo /usr/local/bin/`). Verify with `sporo --version`.
 
-# Inactive until the tap repo exists and this repo's release assets are reachable
-# by whatever fetches them (i.e. until `ydnikolaev/sporo` is public, or the tap
-# publish step is given its own token with private-repo read access). GoReleaser
-# will fail the whole release if a configured publisher can't reach its target,
-# so leave this commented out rather than pointing it at a repo that isn't there.
-#
 # `homebrew_casks`, not `brews` — confirmed against goreleaser.com/deprecations:
 # `brews` (Homebrew Formula) is marked deprecated in favor of `homebrew_casks`.
 # This is a case-in-point difference from the original ask, which named `brews`.
 # The cask block also gives us the post-install quarantine-removal hook for free,
 # which we'd otherwise have to tell every user to run by hand (see scripts/install.sh).
 #
-# homebrew_casks:
-#   - name: sporo
-#     repository:
-#       owner: ydnikolaev
-#       name: homebrew-tap
-#     directory: Casks
-#     homepage: "https://sporo.dev"
-#     description: "Author, check, and export transferable build recipes."
-#     hooks:
-#       post:
-#         install: |
-#           if OS.mac?
-#             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sporo"]
-#           end
+# No `license:` field here — confirmed against goreleaser.com/customization/homebrew:
+# `homebrew_casks` has no `license` key (unlike the deprecated `brews`/`scoops`, which
+# do). Homebrew's own Cask DSL has no license stanza either, so there's nothing to set
+# it to; a LICENSE file at the repo root is the only place Apache-2.0 lives.
+#
+# `skip_upload: auto` — confirmed against goreleaser.com/customization/publish/homebrew_casks:
+# it skips the tap push when the tag looks like a prerelease (e.g. v1.0.0-rc1), not
+# specifically for `--snapshot` runs. `--snapshot` already skips every publisher
+# unconditionally (goreleaser.com/customization/publish/snapshots), so this is a
+# real but separate safety net: it covers a real `v*-rc1`-style tag release too.
+homebrew_casks:
+  - name: sporo
+    repository:
+      owner: ydnikolaev
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Casks
+    homepage: "https://sporo.dev"
+    description: "Author, check, and export transferable build recipes"
+    skip_upload: auto
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sporo"]
+          end
