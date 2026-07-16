@@ -5,7 +5,7 @@ import { readRecipe } from '../lib/corpus.ts';
 // actions hand you. It is the source recipe (banner stripped); `sporo export` additionally
 // appends the adoption protocol.
 export const GET: APIRoute = () => {
-  const { raw } = readRecipe('daily-progress-report');
+  const { raw } = readRecipe('derived-progress-report');
   return new Response(raw, {
     headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
   });

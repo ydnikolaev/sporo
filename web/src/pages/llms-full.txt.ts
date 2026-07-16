@@ -68,7 +68,7 @@ fetch. Canonical version: sporo ${SPORO_VERSION}. Source: https://github.com/ydn
     commandReference(),
     `# The recipe genre (authoring spec)\n\n${genreSpec()}`,
     `# The adoption protocol\n\n${adoptionSpec()}`,
-    `# A complete recipe: daily-progress-report\n\n${rawRecipe('daily-progress-report')}`,
+    `# A complete recipe: derived-progress-report\n\n${rawRecipe('derived-progress-report')}`,
   ];
   return new Response(parts.join(rule) + '\n', {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },

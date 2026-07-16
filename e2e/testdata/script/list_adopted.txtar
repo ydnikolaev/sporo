@@ -5,7 +5,7 @@ exec sporo adopt handoff.md
 stdout 'sporo adopt: nightly-digest 1\.0\.0 \(source: handoff\.md\)'
 
 exec sporo list
-stdout 'official daily-progress-report'
+stdout 'official derived-progress-report'
 stdout 'adopted  nightly-digest \(1\.0\.0\)'
 
 -- handoff.md --

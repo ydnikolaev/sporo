@@ -2,7 +2,7 @@
 # origin prefix — a project recipe (this repo's build) must read distinctly from an official
 # one (shipped read-only in the binary), or an author would edit the wrong copy.
 exec sporo list
-stdout 'official daily-progress-report'
+stdout 'official derived-progress-report'
 stdout 'project  nightly-digest'
 
 -- .sporo/recipes/nightly-digest.md --

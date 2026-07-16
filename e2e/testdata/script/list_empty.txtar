@@ -2,6 +2,6 @@
 # of its own still gets the official corpus, so `sporo list` works from any repo, initialized
 # or not.
 exec sporo list
-stdout 'official daily-progress-report'
+stdout 'official derived-progress-report'
 ! stdout 'project'
 ! stdout 'adopted'

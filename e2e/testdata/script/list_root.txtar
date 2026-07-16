@@ -1,7 +1,7 @@
 # --root points list at a project that is not the current directory — the same recipes turn
 # up as they would from inside it, so a tool driving several repos can list each without a cd.
 exec sporo list --root sub
-stdout 'official daily-progress-report'
+stdout 'official derived-progress-report'
 stdout 'project  nightly-digest'
 
 -- sub/.sporo/recipes/nightly-digest.md --
