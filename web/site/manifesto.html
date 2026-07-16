@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Manifesto — sporo</title>
+<title>sporo — manifesto</title>
 <meta name="description" content="Capability doesn't move the way code does. Code moves by copying. Capability moves by teaching — and a recipe is transferable intent with a memory of what breaks.">
 <link rel="canonical" href="https://sporo.dev/manifesto.html">
 <link rel="alternate" hreflang="en" href="https://sporo.dev/manifesto.html">
@@ -23,122 +23,75 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Article","headline":"The sporo manifesto","description":"Code moves by copying. Capability moves by teaching.","author":{"@type":"Organization","name":"sporo"},"publisher":{"@type":"Organization","name":"sporo","url":"https://sporo.dev/"},"datePublished":"2026-07-15","mainEntityOfPage":"https://sporo.dev/manifesto.html"}
 </script>
+<link rel="preload" href="fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/plexmono-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts.css">
 <style>
-:root{
-  --bg:#f7f6f2; --ink:#151815; --muted:#5d655d; --accent:#25714a; --accent-soft:#25714a22;
-  --line:#15181521;
-}
-@media (prefers-color-scheme: dark){:root{
-  --bg:#0b0d0c; --ink:#e8ebe6; --muted:#98a298; --accent:#6cc98d; --accent-soft:#6cc98d1f;
-  --line:#e8ebe61f;
-}}
 *{box-sizing:border-box;margin:0}
-body{background:var(--bg);color:var(--ink);
-  font:400 1.0625rem/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  -webkit-font-smoothing:antialiased}
-.wrap{max-width:66rem;margin:0 auto;padding:0 1.25rem}
+body{margin:0;background:#f7f6f2}
+@media (prefers-color-scheme:dark){body{background:#0b0d0c}}
+[data-theme]{--bg:#f7f6f2;--ink:#151815;--muted:#5d655d;--accent:#25714a;--accent-soft:#25714a1a;--line:#15181522;--card:#fffefa;--head:#f7f6f2d9}
+@media (prefers-color-scheme:dark){[data-theme="auto"]{--bg:#0b0d0c;--ink:#e8ebe6;--muted:#98a298;--accent:#6cc98d;--accent-soft:#6cc98d1c;--line:#e8ebe61f;--card:#111412;--head:#0b0d0cd9}}
+[data-theme="dark"]{--bg:#0b0d0c;--ink:#e8ebe6;--muted:#98a298;--accent:#6cc98d;--accent-soft:#6cc98d1c;--line:#e8ebe61f;--card:#111412;--head:#0b0d0cd9}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline;text-underline-offset:3px}
-::selection{background:var(--accent);color:var(--bg)}
-header{padding:1.4rem 0}
-nav{display:flex;align-items:center;gap:1.5rem}
-.mark{display:flex;align-items:center;gap:.55rem;font-weight:650;font-size:1.1rem;color:var(--ink)}
-nav .links{margin-left:auto;display:flex;gap:1.4rem;font-size:.95rem}
-nav .links a{color:var(--muted)}
-article{max-width:42rem;margin:0 auto;padding:3.5rem 1.25rem 5.5rem}
-.kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1rem}
-h1{font-size:clamp(2rem,5.5vw,3rem);line-height:1.1;letter-spacing:-.025em;font-weight:700}
-article p{margin-top:1.35em;font-size:1.1rem}
-article p:first-of-type{font-size:1.35rem;font-weight:600;letter-spacing:-.01em;margin-top:1.6em}
-article strong{font-weight:650}
-article em{font-style:italic}
-.close{margin-top:2.5em;padding-top:1.8em;border-top:1px solid var(--line);
-  font-size:1.25rem;font-weight:650;letter-spacing:-.01em}
-.close span{color:var(--accent)}
-footer{border-top:1px solid var(--line);padding:2.5rem 0 3.5rem;color:var(--muted);font-size:.9rem}
-footer .wrap{display:flex;flex-wrap:wrap;gap:1.4rem}
-footer .links{margin-left:auto;display:flex;gap:1.4rem}
-footer a{color:var(--muted)}
+::selection{background:#25714a;color:#f7f6f2}
+.hov-nou:hover{text-decoration:none}
+.hov-ink:hover{color:var(--ink)}
+.hov-ink-nou:hover{color:var(--ink);text-decoration:none}
 </style>
 </head>
 <body>
+<div data-theme="auto" style="background:var(--bg);color:var(--ink);min-height:100vh;font-family:'Archivo',-apple-system,'Helvetica Neue',sans-serif;font-size:1.06rem;line-height:1.7;-webkit-font-smoothing:antialiased">
 
-<header class="wrap">
-  <nav>
-    <a class="mark" href="./" aria-label="sporo home">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-        <circle cx="11" cy="11" r="4.2" fill="var(--accent)"/>
-        <circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"/>
-        <circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"/>
-        <circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"/>
-        <circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"/>
-        <circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"/>
-      </svg>
+<header style="position:sticky;top:0;z-index:50;background:var(--head);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)">
+  <nav style="max-width:76rem;margin:0 auto;padding:.95rem 1.5rem;display:flex;align-items:center;gap:1.5rem">
+    <a href="./" class="hov-nou" style="display:flex;align-items:center;gap:.55rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);font-size:1.12rem">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
       sporo
     </a>
-    <div class="links">
-      <a href="what-is-a-recipe.html">the genre</a>
-      <a href="manifesto.html" style="color:var(--ink)">manifesto</a>
-      <a href="./#get">download</a>
+    <div style="margin-left:auto;display:flex;gap:1.6rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.78rem">
+      <a href="what-is-a-recipe.html" class="hov-ink-nou" style="color:var(--muted)">the genre</a>
+      <a href="manifesto.html" class="hov-nou" style="color:var(--ink)">manifesto</a>
+      <a href="https://github.com/ydnikolaev/sporo" class="hov-ink-nou" style="color:var(--muted)">github</a>
+      <a href="./#get" class="hov-ink-nou" style="color:var(--accent)">install ↓</a>
     </div>
   </nav>
 </header>
 
-<article>
-  <div class="kicker">Manifesto</div>
-  <h1>Capability doesn't move the way code does.</h1>
+<main style="max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem">
+  <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">manifesto</div>
+  <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">Capability doesn't move the way code does.</h1>
 
-  <p>Code moves by copying: clone the repo, run the binary, install the package.</p>
+  <div style="display:grid;gap:1.4rem;margin-top:2.8rem;color:var(--ink)">
+    <p style="text-wrap:pretty">Code moves by copying: clone the repo, run the binary, install the package. That works when the destination looks like the source — same stack, same harness, same company. It stops working the moment it doesn't. A skill built for one agent's harness doesn't run in another's. A prompt tuned for one team's conventions produces something else entirely on a different team's codebase. And some of the time, the code simply cannot cross the boundary at all — a different company, a different client, a wall neither side can remove.</p>
+    <p style="text-wrap:pretty">What actually survives that crossing is <strong>intent</strong>: the principles a build rests on, the shape of what it produces, and — the part everyone skips — the specific ways it went wrong the first time. A recipe is that intent, written down in a fixed genre, addressed to an agent that has never seen your repository and has to arrive at your capability anyway.</p>
+    <p style="border-left:2px solid var(--accent);padding-left:1.2rem;color:var(--muted);text-wrap:pretty">This is not a prompt. A prompt is a request; it carries no memory of what breaks. It is not a skill package; a skill is a promise about <em>your</em> harness, silent about everyone else's. Marketplaces for either optimize for the wrong thing: volume of artifacts, not the compounding value of a build history. A prompt store gets you more prompts. <strong style="color:var(--ink)">It never gets you fewer failures.</strong></p>
+    <p style="text-wrap:pretty">A recipe gets you fewer failures, because it has a memory built into its shape. Every scar section is a debt someone already paid so the next reader doesn't have to. And the loop doesn't end at export: when a reader builds the recipe somewhere else, they report back — what they degraded, what broke that the document didn't warn about, what turned out to be wrong on their ground. That report becomes a new scar. The new scar raises the version. The recipe you read next month has already survived a failure you would otherwise hit this month.</p>
+    <p style="text-wrap:pretty"><strong>That loop is the moat, not the file format.</strong> Anyone can write a markdown template with eleven headings. What compounds is a genre disciplined enough — gated on neutrality, gated on shown contracts, gated on earned scars — that reports keep landing in a shape worth reading, version after version, without one author's private conventions leaking into everyone else's build.</p>
+    <p style="text-wrap:pretty">Transferable intent is not a better prompt and not a smaller skill. It's a third thing: a document that survives being handed to a stranger, checks its own outcome when they follow it, and gets strictly better every time someone does.</p>
+  </div>
 
-  <p>That works when the destination looks like the source — same stack, same harness, same
-  company. It stops working the moment it doesn't. A skill built for one agent's harness
-  doesn't run in another's. A prompt tuned for one team's conventions produces something else
-  entirely on a different team's codebase. And some of the time, the code simply cannot cross
-  the boundary at all — a different company, a different client, a wall neither side can
-  remove.</p>
+  <p style="margin-top:3.2rem;font-size:clamp(1.3rem,2.6vw,1.7rem);line-height:1.35;letter-spacing:-.02em;font-weight:650;text-wrap:balance">Code moves by copying.<br>Capability moves by teaching.<br><em style="color:var(--accent);font-style:italic">sporo is built for the second kind.</em></p>
 
-  <p>What actually survives that crossing is intent: the principles a build rests on, the
-  shape of what it produces, and — the part everyone skips — the specific ways it went wrong
-  the first time. A recipe is that intent, written down in a fixed genre, addressed to an
-  agent that has never seen your repository and has to arrive at your capability anyway.</p>
+  <div style="margin-top:3.5rem;padding-top:1.6rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:1rem;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem">
+    <a href="what-is-a-recipe.html">read the genre →</a>
+    <a href="./#get" class="hov-ink" style="margin-left:auto;color:var(--muted)">get sporo</a>
+  </div>
+</main>
 
-  <p>This is not a prompt. A prompt is a request; it carries no memory of what breaks. It is
-  not a skill package; a skill is a promise about <em>your</em> harness, silent about everyone
-  else's. Marketplaces for either optimize for the wrong thing: volume of artifacts, not the
-  compounding value of a build history. A prompt store gets you more prompts. It never gets
-  you fewer failures.</p>
-
-  <p>A recipe gets you fewer failures, because it has a memory built into its shape. Every
-  scar section is a debt someone already paid so the next reader doesn't have to. And the
-  loop doesn't end at export: when a reader builds the recipe somewhere else, they report
-  back — what they degraded, what broke that the document didn't warn about, what turned out
-  to be wrong on their ground. That report becomes a new scar. The new scar raises the
-  version. The recipe you read next month has already survived a failure you would otherwise
-  hit this month.</p>
-
-  <p>That loop is the moat, not the file format. Anyone can write a markdown template with
-  eleven headings. What compounds is a genre disciplined enough — gated on neutrality, gated
-  on shown contracts, gated on earned scars — that reports keep landing in a shape worth
-  reading, version after version, without one author's private conventions leaking into
-  everyone else's build.</p>
-
-  <p>Transferable intent is not a better prompt and not a smaller skill. It's a third thing:
-  a document that survives being handed to a stranger, checks its own outcome when they
-  follow it, and gets strictly better every time someone does.</p>
-
-  <p class="close">Code moves by copying.<br>Capability moves by teaching.<br>
-  <span>sporo is built for the second kind.</span></p>
-</article>
-
-<footer>
-  <div class="wrap">
+<footer style="border-top:1px solid var(--line)">
+  <div style="max-width:76rem;margin:0 auto;padding:2.2rem 1.5rem;display:flex;flex-wrap:wrap;gap:1rem 1.6rem;align-items:center;color:var(--muted);font-size:.85rem;font-family:'IBM Plex Mono',ui-monospace,monospace">
     <span>© 2026 sporo · sporo.dev</span>
-    <div class="links">
-      <a href="./">Home</a>
-      <a href="what-is-a-recipe.html">What is a recipe</a>
+    <div style="margin-left:auto;display:flex;flex-wrap:wrap;gap:1.4rem">
+      <a href="what-is-a-recipe.html" class="hov-ink" style="color:var(--muted)">what is a recipe</a>
+      <a href="./" class="hov-ink" style="color:var(--muted)">home</a>
+      <a href="https://github.com/ydnikolaev/sporo" class="hov-ink" style="color:var(--muted)">github</a>
+      <a href="https://sporo.dev/llms.txt" class="hov-ink" style="color:var(--muted)">llms.txt</a>
     </div>
   </div>
 </footer>
 
+</div>
 </body>
 </html>

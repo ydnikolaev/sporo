@@ -1,4 +1,4 @@
-# sporo — a recipe rebuilds the capability. A skill just runs it.
+# sporo — code moves by copying. Capability moves by teaching.
 
 sporo turns a build you already did into a **recipe**: one self-contained file that teaches
 an AI agent in a repository that has never seen yours how to build the same capability — on
