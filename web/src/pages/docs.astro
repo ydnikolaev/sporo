@@ -106,7 +106,10 @@ const footer = {
           <div style="display:grid;gap:.9rem">
             {byGroup(g.key).map((v) => (
               <div style="background:var(--card);border:1px solid var(--line);border-radius:.9rem;padding:1.15rem 1.3rem">
-                <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9rem;color:var(--accent);font-weight:600">sporo {v.use}</div>
+                <div style="display:flex;align-items:center;gap:.75rem">
+                  <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9rem;color:var(--accent);font-weight:600;flex:1;min-width:0;overflow-wrap:anywhere">sporo {v.use}</div>
+                  <button class="verb-copy hov-btn" data-copy={`sporo ${v.use}`} aria-label={`Copy command: sporo ${v.use}`} style="flex:none;border:1px solid var(--line);background:transparent;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;padding:.28rem .6rem;border-radius:.45rem;cursor:pointer">copy</button>
+                </div>
                 <p style="margin-top:.4rem;color:var(--muted);font-size:.95rem">{v.short}</p>
                 {v.flags && v.flags.length > 0 && (
                   <div style="margin-top:.8rem;display:grid;gap:.35rem">
@@ -142,3 +145,19 @@ const footer = {
     </section>
   </main>
 </Layout>
+
+<script>
+  // One delegated handler for every verb card's copy button — copies the command template
+  // (sporo <use>, placeholders and all) and flips the label to a confirmation briefly.
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.verb-copy');
+    if (!btn) return;
+    const text = btn.getAttribute('data-copy') || '';
+    if (navigator.clipboard) navigator.clipboard.writeText(text);
+    const prev = btn.textContent;
+    btn.textContent = 'copied ✓';
+    setTimeout(() => {
+      btn.textContent = prev;
+    }, 1600);
+  });
+</script>
