@@ -80,15 +80,14 @@ const head = {
 ---
 
 <Layout head={head} active="compare">
-  <Frame layout="reading" measure="60rem">
+  <Frame layout="reading">
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">the comparison</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">Recipe, skill, prompt, or&nbsp;MCP?</h1>
     <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;max-width:52ch;text-wrap:pretty">All four move capability between agents. Only one is a self-contained artifact that rebuilds it in a repository that has never seen yours. Here is where each one actually fits.</p>
     <div style="margin-top:2.2rem"><AgentMarks label="Rebuilt by any agent" /></div>
 
-    <section style="margin-top:3.5rem">
-      <div style="overflow-x:auto;border:1px solid var(--line);border-radius:.9rem">
-        <table style="border-collapse:collapse;width:100%;min-width:44rem;font-size:.92rem">
+    <div class="breakout" style="margin-top:3.5rem;overflow-x:auto;border:1px solid var(--line);border-radius:.9rem">
+      <table style="border-collapse:collapse;width:100%;min-width:44rem;font-size:.92rem">
           <thead>
             <tr>
               <th style="text-align:left;padding:1rem 1.1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);vertical-align:bottom"></th>
@@ -113,10 +112,9 @@ const head = {
               </tr>
             ))}
           </tbody>
-        </table>
-      </div>
-      <p style="margin-top:1rem;color:var(--muted);font-size:.9rem;text-wrap:pretty">A recipe does not replace a skill — <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo init</code> installs the skill that <em>writes</em> recipes. The two work together: the skill authors in your repo, the recipe travels to the next one.</p>
-    </section>
+      </table>
+    </div>
+    <p style="margin-top:1rem;color:var(--muted);font-size:.9rem;text-wrap:pretty">A recipe does not replace a skill — <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo init</code> installs the skill that <em>writes</em> recipes. The two work together: the skill authors in your repo, the recipe travels to the next one.</p>
 
     <section style="margin-top:4.5rem;padding-top:3rem;border-top:1px solid var(--line)">
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.8rem">frequently asked</div>

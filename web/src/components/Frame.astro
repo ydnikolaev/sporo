@@ -2,21 +2,21 @@
 // The one place the page frame lives. Every page's <main> is a Frame, so the 76rem width and
 // the vertical rails that line up with the header and footer can never drift page-to-page —
 // add a page, pick a layout, done. Two layouts:
-//   wide    — content fills the frame (landing, docs, example, the comparison table).
-//   reading — a centered reading column inside the same frame, one shared measure and padding,
-//             for long-form prose (manifesto, the genre, the changelog).
-// Horizontal padding matches the frame pages' clamp() so content left-edges align everywhere.
+//   wide    — content fills the frame (the landing only).
+//   reading — THE content-page standard: one centered reading column, one fixed measure, one
+//             shared padding, for every inner page (manifesto — the reference — the genre,
+//             compare, example, docs, changelog).
+// There is deliberately no `measure` knob: the reading width is a single SSOT constant here,
+// so no page can widen its own column and drift out of alignment. A wide element on a reading
+// page (a table, a code block) scrolls inside its own overflow-x container — the column never
+// grows to fit it. Horizontal padding matches so content left-edges align on every page.
 interface Props {
   layout?: 'wide' | 'reading';
-  // The reading measure. Default suits long-form prose; a page with a wide element (a
-  // comparison table) can widen it. Left edge and padding stay identical either way, so the
-  // frame and the content's left edge line up across every page regardless of measure.
-  measure?: string;
 }
-const { layout = 'wide', measure = '52rem' } = Astro.props;
+const { layout = 'wide' } = Astro.props;
 ---
 <main class="frame">
-  {layout === 'reading' ? <div class="reading" style={`max-width:${measure}`}><slot /></div> : <slot />}
+  {layout === 'reading' ? <div class="reading"><slot /></div> : <slot />}
 </main>
 
 <style>
@@ -31,10 +31,27 @@ const { layout = 'wide', measure = '52rem' } = Astro.props;
     border-right: 1px solid var(--line);
   }
   .reading {
-    /* Centered inside the frame (margin auto), not left-aligned — so a reading page has even
-       gutters, not a wide empty right rail. Top padding matches the home hero so pages don't
-       jump vertically when you navigate between them. */
-    margin: 0 auto;
-    padding: clamp(5rem, 10vh, 8rem) clamp(1.25rem, 3vw, 2.5rem) clamp(5rem, 10vh, 7rem);
+    /* A content grid, not a plain block: prose sits in a centered `content` column of one
+       fixed measure (even gutters, no wide right rail), while a genuinely wide child — a
+       table, a wide code block — opts into `breakout` (up to --breakout) or `full` (to the
+       frame gutter) instead of scrolling inside the narrow column. Given the room, a wide
+       table should widen, not scroll. The three column widths are the SSOT: no page passes a
+       measure, so alignment can't drift. Top padding matches the home hero so pages don't jump
+       vertically between navigations. The child rules are :global() because the content that
+       fills the column is slotted from the page, outside Frame's style scope. */
+    --padX: clamp(1.25rem, 3vw, 2.5rem);
+    --measure: 52rem;
+    --breakout: 72rem;
+    display: grid;
+    grid-template-columns:
+      [full-start] minmax(var(--padX), 1fr)
+      [breakout-start] minmax(0, calc((var(--breakout) - var(--measure)) / 2))
+      [content-start] min(100% - var(--padX) * 2, var(--measure)) [content-end]
+      minmax(0, calc((var(--breakout) - var(--measure)) / 2)) [breakout-end]
+      minmax(var(--padX), 1fr) [full-end];
+    padding-block: clamp(5rem, 10vh, 8rem) clamp(5rem, 10vh, 7rem);
   }
+  .reading > :global(*) { grid-column: content; }
+  .reading > :global(.breakout) { grid-column: breakout; }
+  .reading > :global(.full) { grid-column: full; }
 </style>
