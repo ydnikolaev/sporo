@@ -50,7 +50,7 @@ func root() *cobra.Command {
 	}
 	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd(), sealCmd(),
 		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd(), newCmd(),
-		conformCmd(), upgradeCmd(), adoptCmd(), pullCmd())
+		conformCmd(), upgradeCmd(), adoptCmd(), pullCmd(), docsCmd())
 
 	// The passive freshness hint: one line on stderr when a newer release is known, refreshed
 	// through the network at most once a day (the cache answers in between), silent on any

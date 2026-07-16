@@ -37,6 +37,16 @@ jobs:
 
       - run: go vet ./...
 
+      - name: docs surface is in sync
+        # web/src/data/surface.json is the committed snapshot of the command surface the
+        # site's docs page renders from. Regenerate it from the live cobra tree and fail on
+        # any diff — a changed Short:, a new flag, or a new verb can never silently outdate
+        # the docs. (A Go change triggers this job even though web/ is path-ignored, because
+        # the source of the drift is always a Go edit, never the generated file.)
+        run: |
+          go generate ./...
+          git diff --exit-code -- web/src/data/surface.json
+
   # web:
   #   Nuxt CI (lint/build) once web/ has content worth gating. Trigger on paths: web/**
   #   (the inverse filter of the `go` job above), runs independently on its own runtime.

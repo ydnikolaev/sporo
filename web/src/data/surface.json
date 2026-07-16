@@ -1,0 +1,292 @@
+{
+  "version": "dev",
+  "verbs": [
+    {
+      "use": "adopt <exported-recipe.md>",
+      "name": "adopt",
+      "short": "Record a handed-over recipe this repository builds from — the reader-side seal",
+      "group": "handover",
+      "flags": [
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "repository that adopts the recipe"
+        },
+        {
+          "name": "source",
+          "usage": "where pull re-fetches this recipe from later — a path or an http(s) URL (default: the file argument)"
+        }
+      ]
+    },
+    {
+      "use": "conform <slug|recipe.md> <output-file>",
+      "name": "conform",
+      "short": "Check an output file against a recipe's exact-bound contracts",
+      "group": "handover",
+      "flags": [
+        {
+          "name": "contract",
+          "default": "0",
+          "usage": "check against one exact contract by its index (default: all)"
+        },
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "project root (searched for the recipe when a slug is given)"
+        }
+      ]
+    },
+    {
+      "use": "docs",
+      "name": "docs",
+      "short": "Print this binary's command surface — the source the docs page is built from",
+      "group": "surface",
+      "flags": [
+        {
+          "name": "json",
+          "default": "false",
+          "usage": "emit the surface as JSON (what the docs page consumes)"
+        },
+        {
+          "name": "out",
+          "usage": "write the JSON snapshot to this file (used by `go generate`)"
+        }
+      ]
+    },
+    {
+      "use": "export <slug>",
+      "name": "export",
+      "short": "Print one recipe (or, with --bundle, a composed set) as a single self-contained file",
+      "group": "authoring",
+      "flags": [
+        {
+          "name": "bundle",
+          "default": "false",
+          "usage": "treat <slug> as a bundle manifest and compose its members into one document"
+        },
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "project root (searched for this repo's own recipes before the official corpus)"
+        }
+      ]
+    },
+    {
+      "use": "feedback",
+      "name": "feedback",
+      "short": "File and list report-backs — the channel a recipe's next version comes from",
+      "group": "authoring",
+      "subcommands": [
+        {
+          "use": "add <slug> <report.md>",
+          "name": "add",
+          "short": "Validate a reader's report-back against the protocol and file it (`-` reads stdin)",
+          "group": "other",
+          "flags": [
+            {
+              "name": "root",
+              "default": ".",
+              "usage": "project root (the recipe this report answers must be authored here)"
+            }
+          ]
+        },
+        {
+          "use": "list [slug]",
+          "name": "list",
+          "short": "List the filed report-backs, per recipe",
+          "group": "authoring",
+          "flags": [
+            {
+              "name": "root",
+              "default": ".",
+              "usage": "project root"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "use": "genre",
+      "name": "genre",
+      "short": "Print the recipe genre spec — the authoring rules this binary enforces",
+      "group": "surface"
+    },
+    {
+      "use": "harvest",
+      "name": "harvest",
+      "short": "Gather a recipe's raw material from a revision range of the project's own record",
+      "group": "authoring",
+      "flags": [
+        {
+          "name": "out",
+          "usage": "write the harvest here (default: stdout)"
+        },
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "repository to harvest"
+        },
+        {
+          "name": "since",
+          "usage": "starting revision, exclusive (a tag: the release before the work)"
+        },
+        {
+          "name": "until",
+          "default": "HEAD",
+          "usage": "ending revision, inclusive"
+        }
+      ]
+    },
+    {
+      "use": "init",
+      "name": "init",
+      "short": "Install the recipe-authoring surface into this repository (skill, AGENTS.md block, seeds)",
+      "group": "surface",
+      "flags": [
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "repository to initialize"
+        }
+      ]
+    },
+    {
+      "use": "lint [dir]",
+      "name": "lint",
+      "short": "Check a recipe corpus against the genre — shape, acceptance, scars, and neutrality",
+      "group": "authoring",
+      "flags": [
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "project root (its config names the recipes home and the forbidden product vocabulary)"
+        }
+      ]
+    },
+    {
+      "use": "list",
+      "name": "list",
+      "short": "List the recipes available here — this project's own, and the official corpus",
+      "group": "authoring",
+      "flags": [
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "project root (its own recipes are listed alongside the official corpus)"
+        }
+      ]
+    },
+    {
+      "use": "new <slug>",
+      "name": "new",
+      "short": "Scaffold a draft recipe — coached section stubs, optionally pre-seeded from a harvest",
+      "group": "authoring",
+      "flags": [
+        {
+          "name": "from-harvest",
+          "usage": "a `sporo harvest --out` file; its scar candidates pre-seed the scars section"
+        },
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "project root (the draft lands in its recipes home)"
+        },
+        {
+          "name": "title",
+          "usage": "the recipe's title (defaults to a TODO)"
+        }
+      ]
+    },
+    {
+      "use": "projects",
+      "name": "projects",
+      "short": "List the repositories on this machine that sporo was installed into",
+      "group": "surface"
+    },
+    {
+      "use": "pull [slug]",
+      "name": "pull",
+      "short": "Check adopted recipes against their sources — loud when an exact contract moved",
+      "group": "handover",
+      "flags": [
+        {
+          "name": "apply",
+          "default": "false",
+          "usage": "refresh the stored copy and record for each update (default: report only)"
+        },
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "repository whose adopted recipes are checked"
+        }
+      ]
+    },
+    {
+      "use": "review <slug>",
+      "name": "review",
+      "short": "Build a self-contained review pack for any agent, and verify the verdicts it returns",
+      "group": "authoring",
+      "flags": [
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "project root"
+        }
+      ],
+      "subcommands": [
+        {
+          "use": "verify <slug> <verdict.json>...",
+          "name": "verify",
+          "short": "Validate returned verdicts and record the tally beside the recipe's seal",
+          "group": "other",
+          "flags": [
+            {
+              "name": "root",
+              "default": ".",
+              "usage": "project root"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "use": "seal <slug>",
+      "name": "seal",
+      "short": "Record a recipe's version and content hash in the registry — a sealed recipe never silently mutates",
+      "group": "authoring",
+      "flags": [
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "project root (its registry records the seal)"
+        }
+      ]
+    },
+    {
+      "use": "update",
+      "name": "update",
+      "short": "Re-sync the managed authoring surface from this binary — never clobbering your edits",
+      "group": "surface",
+      "flags": [
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "repository to update"
+        }
+      ]
+    },
+    {
+      "use": "upgrade",
+      "name": "upgrade",
+      "short": "Update this binary to the latest release — then run `sporo update` in each repo",
+      "group": "binary",
+      "flags": [
+        {
+          "name": "check",
+          "default": "false",
+          "usage": "report the latest release and its notes; change nothing"
+        }
+      ]
+    }
+  ]
+}

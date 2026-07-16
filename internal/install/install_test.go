@@ -201,11 +201,13 @@ func TestSeedsAreWrittenOnceAndNeverTouchedAgain(t *testing.T) {
 func TestTheInstalledSkillNamesOnlyVerbsTheBinaryHas(t *testing.T) {
 	// The skill tells an agent to run `sporo <verb>`; a verb it names that the CLI does not
 	// carry sends every consumer's agent into a wall. The verb list here is maintained by
-	// hand on purpose: adding a verb to the skill forces this test to acknowledge it.
+	// hand on purpose: adding a verb to the skill forces this test to acknowledge it. (That
+	// the full command surface matches the binary is a separate, mechanical gate — see
+	// TestSurfaceCoversTheWholeCommandTree in cmd/sporo, which walks the live cobra tree.)
 	known := map[string]bool{
 		"harvest": true, "lint": true, "export": true, "list": true, "new": true,
 		"seal": true, "init": true, "update": true, "genre": true, "feedback": true, "review": true,
-		"conform": true, "adopt": true, "pull": true,
+		"conform": true, "adopt": true, "pull": true, "projects": true, "upgrade": true, "docs": true,
 	}
 	for _, m := range regexpVerbs.FindAllStringSubmatch(skillContent("test"), -1) {
 		if !known[m[1]] {
