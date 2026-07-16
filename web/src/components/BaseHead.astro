@@ -1,0 +1,85 @@
+---
+// The whole <head>, parameterised. The split between what every page shares (charset, fonts,
+// theme-color, the design tokens + utility classes) and what each page sets (title, canonical,
+// the OG/Twitter richness, the JSON-LD shape) is deliberate: the home page carries a fuller
+// OG/Twitter set and a 3-type @graph, the article pages a trimmed set and a single Article —
+// so those are props, not baked-in. Do NOT normalise them.
+interface OG {
+  type: 'website' | 'article';
+  title: string;
+  description: string;
+  rich?: boolean; // home only: adds image width/height + locale
+}
+interface Twitter {
+  title?: string; // present → home; absent → article omits title+description
+  description?: string;
+}
+interface Props {
+  title: string;
+  description: string;
+  path: string; // '/', '/manifesto.html', … — canonical, hreflang, og:url
+  mdMirror?: string; // 'index.md' — the text/markdown alternate
+  og: OG;
+  twitter: Twitter;
+  jsonLd: unknown;
+}
+const { title, description, path, mdMirror, og, twitter, jsonLd } = Astro.props;
+const url = new URL(path, Astro.site).href;
+const ogImage = 'https://sporo.dev/og.png';
+---
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={url} />
+<link rel="alternate" hreflang="en" href={url} />
+<link rel="alternate" hreflang="x-default" href={url} />
+{mdMirror && <link rel="alternate" type="text/markdown" href={mdMirror} title="Markdown version of this page" />}
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0b0d0c" media="(prefers-color-scheme: dark)" />
+<meta property="og:type" content={og.type} />
+<meta property="og:url" content={url} />
+<meta property="og:site_name" content="sporo" />
+<meta property="og:title" content={og.title} />
+<meta property="og:description" content={og.description} />
+<meta property="og:image" content={ogImage} />
+{og.rich && (
+  <>
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:locale" content="en_US" />
+  </>
+)}
+<meta name="twitter:card" content="summary_large_image" />
+{twitter.title && <meta name="twitter:title" content={twitter.title} />}
+{twitter.description && <meta name="twitter:description" content={twitter.description} />}
+<meta name="twitter:image" content={ogImage} />
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+<link rel="preload" href="/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/plexmono-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/fonts.css" />
+<style is:global>
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{margin:0;background:#f7f6f2}
+@media (prefers-color-scheme:dark){body{background:#0b0d0c}}
+[data-theme]{--bg:#f7f6f2;--ink:#151815;--muted:#5d655d;--accent:#25714a;--accent-soft:#25714a1a;--line:#15181522;--card:#fffefa;--head:#f7f6f2d9;--ghost:#15181510}
+@media (prefers-color-scheme:dark){[data-theme="auto"]{--bg:#0b0d0c;--ink:#e8ebe6;--muted:#98a298;--accent:#6cc98d;--accent-soft:#6cc98d1c;--line:#e8ebe61f;--card:#111412;--head:#0b0d0cd9;--ghost:#e8ebe60d}}
+[data-theme="dark"]{--bg:#0b0d0c;--ink:#e8ebe6;--muted:#98a298;--accent:#6cc98d;--accent-soft:#6cc98d1c;--line:#e8ebe61f;--card:#111412;--head:#0b0d0cd9;--ghost:#e8ebe60d}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+::selection{background:#25714a;color:#f7f6f2}
+.hov-nou:hover{text-decoration:none}
+.hov-ink:hover{color:var(--ink)}
+.hov-ink-nou:hover{color:var(--ink);text-decoration:none}
+.hov-btn:hover{background:#ffffff0d}
+/* The watermark numerals render via pseudo-content: identical to the eye, but no DOM text
+   node — a decorative 8%-opacity glyph must never be held to (or fixed for) text contrast. */
+.ghost::before{content:attr(data-n)}
+@media (prefers-reduced-motion: no-preference){
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.35);opacity:1}}
+}
+</style>

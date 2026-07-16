@@ -1,0 +1,32 @@
+---
+// The footer. The copyright string and the link set differ per page (home carries the license
+// and the big watermark; the article pages link back home instead of listing themselves), so
+// each page passes its own — explicit beats a variant flag here. The llms.txt link is relative
+// everywhere (it resolves the same from every root-level page), fixing the home-relative /
+// article-absolute drift of the hand-written pages.
+interface Link {
+  href: string;
+  label: string;
+}
+interface Props {
+  copyright: string;
+  links: Link[];
+  watermark?: boolean;
+}
+const { copyright, links, watermark = false } = Astro.props;
+---
+<footer style="border-top:1px solid var(--line);overflow:hidden">
+  <div style="max-width:76rem;margin:0 auto;padding:3rem clamp(1.25rem,3vw,2.5rem) 0;display:flex;flex-wrap:wrap;gap:1rem 1.6rem;align-items:center;color:var(--muted);font-size:.88rem;font-family:'IBM Plex Mono',ui-monospace,monospace">
+    <span>{copyright}</span>
+    <div style="margin-left:auto;display:flex;flex-wrap:wrap;gap:1.4rem">
+      {links.map((l) => (
+        <a href={l.href} class="hov-ink" style="color:var(--muted)">{l.label}</a>
+      ))}
+    </div>
+  </div>
+  {watermark && (
+    <div aria-hidden="true" style="max-width:76rem;margin:0 auto;padding:1.5rem clamp(1.25rem,3vw,2.5rem) 0;display:flex;align-items:flex-end;gap:1.2rem">
+      <div class="ghost" data-n="sporo" style="font-size:clamp(4.5rem,17vw,13rem);line-height:.78;font-weight:800;letter-spacing:-.055em;color:var(--ink);opacity:.08;transform:translateY(6%)"></div>
+    </div>
+  )}
+</footer>

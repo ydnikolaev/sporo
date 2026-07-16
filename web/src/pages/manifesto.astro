@@ -1,0 +1,63 @@
+---
+import Layout from '../components/Layout.astro';
+import { SITE_DATE } from '../lib/site.ts';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The sporo manifesto',
+  author: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+  publisher: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+  datePublished: SITE_DATE,
+  mainEntityOfPage: 'https://sporo.dev/manifesto.html',
+};
+
+const head = {
+  title: 'sporo — manifesto',
+  description:
+    "Capability doesn't move the way code does. Code moves by copying. Capability moves by teaching — and a recipe is transferable intent with a memory of what breaks.",
+  path: '/manifesto.html',
+  mdMirror: 'manifesto.md',
+  og: {
+    type: 'article' as const,
+    title: 'The sporo manifesto',
+    description: 'Code moves by copying. Capability moves by teaching.',
+  },
+  twitter: {},
+  jsonLd,
+};
+
+const footer = {
+  copyright: '© 2026 sporo · sporo.dev',
+  links: [
+    { href: 'what-is-a-recipe.html', label: 'what is a recipe' },
+    { href: '/', label: 'home' },
+    { href: 'https://github.com/ydnikolaev/sporo', label: 'github' },
+    { href: 'llms.txt', label: 'llms.txt' },
+  ],
+  watermark: false,
+};
+---
+
+<Layout head={head} active="manifesto" footer={footer}>
+  <main style="max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem">
+    <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">manifesto</div>
+    <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">Capability doesn't move the way code does.</h1>
+
+    <div style="display:grid;gap:1.4rem;margin-top:2.8rem;color:var(--ink)">
+      <p style="text-wrap:pretty">Code moves by copying: clone the repo, run the binary, install the package. That works when the destination looks like the source — same stack, same harness, same company. It stops working the moment it doesn't. A skill built for one agent's harness doesn't run in another's. A prompt tuned for one team's conventions produces something else entirely on a different team's codebase. And some of the time, the code simply cannot cross the boundary at all — a different company, a different client, a wall neither side can remove.</p>
+      <p style="text-wrap:pretty">What actually survives that crossing is <strong>intent</strong>: the principles a build rests on, the shape of what it produces, and — the part everyone skips — the specific ways it went wrong the first time. A recipe is that intent, written down in a fixed genre, addressed to an agent that has never seen your repository and has to arrive at your capability anyway.</p>
+      <p style="border-left:2px solid var(--accent);padding-left:1.2rem;color:var(--muted);text-wrap:pretty">This is not a prompt. A prompt is a request; it carries no memory of what breaks. It is not a skill package; a skill is a promise about <em>your</em> harness, silent about everyone else's. Marketplaces for either optimize for the wrong thing: volume of artifacts, not the compounding value of a build history. A prompt store gets you more prompts. <strong style="color:var(--ink)">It never gets you fewer failures.</strong></p>
+      <p style="text-wrap:pretty">A recipe gets you fewer failures, because it has a memory built into its shape. Every scar section is a debt someone already paid so the next reader doesn't have to. And the loop doesn't end at export: when a reader builds the recipe somewhere else, they report back — what they degraded, what broke that the document didn't warn about, what turned out to be wrong on their ground. That report becomes a new scar. The new scar raises the version. The recipe you read next month has already survived a failure you would otherwise hit this month.</p>
+      <p style="text-wrap:pretty"><strong>That loop is the moat, not the file format.</strong> Anyone can write a markdown template with eleven headings. What compounds is a genre disciplined enough — gated on neutrality, gated on shown contracts, gated on earned scars — that reports keep landing in a shape worth reading, version after version, without one author's private conventions leaking into everyone else's build.</p>
+      <p style="text-wrap:pretty">Transferable intent is not a better prompt and not a smaller skill. It's a third thing: a document that survives being handed to a stranger, checks its own outcome when they follow it, and gets strictly better every time someone does.</p>
+    </div>
+
+    <p style="margin-top:3.2rem;font-size:clamp(1.3rem,2.6vw,1.7rem);line-height:1.35;letter-spacing:-.02em;font-weight:650;text-wrap:balance">Code moves by copying.<br>Capability moves by teaching.<br><em style="color:var(--accent);font-style:italic">sporo is built for the second kind.</em></p>
+
+    <div style="margin-top:3.5rem;padding-top:1.6rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:1rem;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem">
+      <a href="what-is-a-recipe.html">read the genre →</a>
+      <a href="./#get" class="hov-ink" style="margin-left:auto;color:var(--muted)">get sporo</a>
+    </div>
+  </main>
+</Layout>

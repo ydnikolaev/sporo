@@ -1,12 +1,13 @@
-# Deploys web/site (static, no build step — that is the point of it) to GitHub Pages.
-# The site is the landing for sporo.dev; the custom domain is attached in the repo's Pages
-# settings once DNS points here. Action versions verified against their releases, 2026-07-16.
+# Builds the Astro site (web/) and deploys it to GitHub Pages. Unlike the pre-Astro version,
+# this runs a Node build step — that is the price of the docs page being generated from the
+# committed command surface instead of hand-written. Action versions verified against their
+# releases, 2026-07-16.
 name: Pages
 
 on:
   push:
     branches: [main]
-    paths: ["web/site/**", "scripts/install.sh", ".github/workflows/pages.yml"]
+    paths: ["web/**", "scripts/install.sh", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -26,12 +27,39 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # The real release version, injected so the landing's badge and the JSON-LD
+      # softwareVersion cite the shipped binary — not surface.json's build-time "dev". Written
+      # to .env because Vite reads PUBLIC_* from .env files deterministically.
+      - name: resolve release version
+        run: |
+          V=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName | sed 's/^v//')
+          echo "PUBLIC_SPORO_VERSION=$V" > web/.env
+          echo "resolved release version: $V"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # install.sh's source of truth is scripts/ (the release tooling owns it); the site serves
+      # a copy composed at build time from public/, so the two can never drift.
+      - run: cp scripts/install.sh web/public/install.sh
+
+      - run: npm ci
+        working-directory: web
+
+      - run: npm run build
+        working-directory: web
+
       - uses: actions/configure-pages@v6
-      # install.sh's source of truth is scripts/ (the release tooling owns it); the site
-      # serves a copy composed at deploy time, so the two can never drift.
-      - run: cp scripts/install.sh web/site/install.sh
+
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: web/site
+          path: web/dist
+
       - id: deployment
         uses: actions/deploy-pages@v5

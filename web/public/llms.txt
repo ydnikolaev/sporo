@@ -25,6 +25,9 @@ Key facts an agent should know:
 
 ## Docs
 
+- [Command reference](https://sporo.dev/docs.md): every verb the CLI carries, grouped and
+  generated from the binary itself, plus the sporo-recipe skill's harvest → draft → lint →
+  seal → export cycle
 - [What is a recipe](https://sporo.dev/what-is-a-recipe.md): the genre in full — the eleven
   sections and why each exists, the neutrality rule and its careful edges, the ground
   ladder, bindings, and the two sections appended at export

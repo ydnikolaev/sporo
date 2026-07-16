@@ -1,0 +1,34 @@
+---
+// The sticky nav, shared across every page. `active` marks the current page so its own link
+// reads as ink (not a muted target); the install link points at the home anchor from anywhere.
+// The nav links are relative and resolve from any root-level page (/manifesto.html → the same
+// /what-is-a-recipe.html). Padding and letter-spacing are unified here on purpose — their
+// per-page drift in the hand-written pages was accidental, not design.
+interface Props {
+  active?: 'home' | 'genre' | 'manifesto' | 'docs';
+}
+const { active = 'home' } = Astro.props;
+const cls = (k: string) => (active === k ? 'hov-nou' : 'hov-ink-nou');
+const col = (k: string) => (active === k ? 'var(--ink)' : 'var(--muted)');
+const installHref = active === 'home' ? '#get' : '/#get';
+const links = [
+  { k: 'genre', href: 'what-is-a-recipe.html', label: 'the genre' },
+  { k: 'manifesto', href: 'manifesto.html', label: 'manifesto' },
+  { k: 'docs', href: 'docs.html', label: 'docs' },
+];
+---
+<header style="position:sticky;top:0;z-index:50;background:var(--head);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)">
+  <nav style="max-width:76rem;margin:0 auto;padding:.95rem clamp(1.25rem,3vw,2.5rem);display:flex;align-items:center;gap:1.5rem">
+    <a href="/" class="hov-nou" style="display:flex;align-items:center;gap:.55rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);font-size:1.12rem">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
+      sporo
+    </a>
+    <div style="margin-left:auto;display:flex;gap:1.6rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.78rem;letter-spacing:.02em">
+      {links.map((l) => (
+        <a href={l.href} class={cls(l.k)} style={`color:${col(l.k)}`}>{l.label}</a>
+      ))}
+      <a href="https://github.com/ydnikolaev/sporo" class="hov-ink-nou" style="color:var(--muted)">github</a>
+      <a href={installHref} class="hov-ink-nou" style="color:var(--accent)">install ↓</a>
+    </div>
+  </nav>
+</header>

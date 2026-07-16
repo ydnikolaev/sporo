@@ -1,0 +1,354 @@
+---
+import Layout from '../components/Layout.astro';
+import { SPORO_VERSION, VERB_COUNT } from '../lib/site.ts';
+
+// softwareVersion and the "N CLI verbs" stat come from surface.json (via site.ts), never a
+// hand-typed number — the drift that left the badge saying 0.5.0 while the binary was 0.6.0.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'SoftwareApplication',
+      name: 'sporo',
+      url: 'https://sporo.dev/',
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'macOS, Linux, Windows',
+      softwareVersion: SPORO_VERSION,
+      downloadUrl: 'https://github.com/ydnikolaev/sporo/releases/latest',
+      license: 'https://www.apache.org/licenses/LICENSE-2.0',
+      description:
+        'A CLI that turns a build you already did into a transferable recipe an AI agent can rebuild in any repository, on any stack.',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@type': 'Organization',
+      name: 'sporo',
+      url: 'https://sporo.dev/',
+      logo: 'https://sporo.dev/favicon.svg',
+      sameAs: ['https://github.com/ydnikolaev/sporo'],
+    },
+    { '@type': 'WebSite', name: 'sporo', url: 'https://sporo.dev/' },
+  ],
+};
+
+const head = {
+  title: 'sporo — capability moves by teaching',
+  description:
+    'sporo turns a build you already did into a recipe: one self-contained file that teaches an AI agent in a repository that has never seen yours how to build the same capability — on its own stack, without repeating your scars.',
+  path: '/',
+  mdMirror: 'index.md',
+  og: {
+    type: 'website' as const,
+    title: 'sporo — code moves by copying. Capability moves by teaching.',
+    description:
+      'Turn a build you already did into a recipe: a self-contained file that teaches an AI agent in a foreign repository how to build the same capability — on its own stack, without repeating your scars.',
+    rich: true,
+  },
+  twitter: {
+    title: 'sporo — transferable build recipes for AI agents',
+    description: 'A skill runs in your harness. A recipe rebuilds the capability in any harness.',
+  },
+  jsonLd,
+};
+
+const footer = {
+  copyright: '© 2026 sporo · sporo.dev · Apache-2.0',
+  links: [
+    { href: 'what-is-a-recipe.html', label: 'what is a recipe' },
+    { href: 'manifesto.html', label: 'manifesto' },
+    { href: 'https://github.com/ydnikolaev/sporo', label: 'github' },
+    { href: 'llms.txt', label: 'llms.txt' },
+  ],
+  watermark: true,
+};
+---
+
+<Layout head={head} active="home" footer={footer}>
+  <main style="max-width:76rem;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)">
+
+    <div style="position:relative;padding:clamp(5rem,10vh,8rem) clamp(1.25rem,3vw,2.5rem) 4rem;overflow:clip">
+      <svg aria-hidden="true" viewBox="0 0 22 22" fill="none" style="position:absolute;top:-8%;right:-14%;width:clamp(320px,42vw,620px);height:auto;opacity:.08;animation:spin 160s linear infinite;pointer-events:none"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
+      <div style="position:relative">
+        <div style="display:flex;align-items:center;gap:.7rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.08em;color:var(--muted);margin-bottom:2.6rem">
+          <span style="width:.5rem;height:.5rem;border-radius:50%;background:var(--accent);animation:pulse 2.4s ease-in-out infinite"></span>
+          <span><b style="color:var(--accent);font-weight:600">v{SPORO_VERSION}</b> · transferable build recipes for AI agents · open source</span>
+        </div>
+        <h1 style="font-size:clamp(2.9rem,8.2vw,6.4rem);line-height:.98;letter-spacing:-.05em;font-weight:760;max-width:15ch;text-wrap:balance">Code moves by copying. Capability moves by <em style="font-style:italic;color:var(--accent)">teaching</em>.</h1>
+        <p style="margin-top:2rem;font-size:clamp(1.08rem,1.9vw,1.3rem);color:var(--muted);max-width:52ch;text-wrap:pretty">sporo turns a build you already did into a <strong style="color:var(--ink)">recipe</strong> — one self-contained file any AI agent can rebuild from, on its own stack, in a repository that has never seen yours. Your scars included, so nobody pays for them twice.</p>
+        <div style="margin-top:3rem;max-width:44rem">
+          <div style="display:flex;align-items:stretch;border:1px solid #ffffff1c;border-radius:.9rem;overflow:hidden;background:#101410;box-shadow:0 24px 70px -40px rgba(0,0,0,.55)">
+            <code style="flex:1;display:flex;align-items:center;padding:1.15rem 1.3rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:clamp(.92rem,1.9vw,1.12rem);color:#d9e4da;white-space:nowrap;overflow-x:auto"><span style="color:#8fd1a4;margin-right:.6em;user-select:none">$</span><span id="typed">curl -fsSL sporo.dev/install.sh | sh</span><span aria-hidden="true" style="display:inline-block;width:.55em;height:1.15em;margin-left:2px;background:#8fd1a4;animation:blink 1.05s steps(1) infinite"></span></code>
+            <button id="copy" title="copy install command" class="hov-btn" style="border:none;border-left:1px solid #ffffff14;background:transparent;color:#8fd1a4;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.8rem;padding:0 1.3rem;cursor:pointer">copy</button>
+          </div>
+          <div style="margin-top:.75rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.76rem;color:var(--muted)">one static binary · macOS / linux / windows · zero accounts, servers or runtimes · <a href="https://github.com/ydnikolaev/sporo/releases/latest" style="text-decoration:underline;text-underline-offset:3px">latest release</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;margin-top:3.5rem;border:1px solid var(--line);background:var(--line);border-radius:1rem;overflow:hidden">
+          <div style="background:var(--card);padding:1.4rem 1.4rem 1.3rem">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;color:var(--accent);font-weight:600;margin-bottom:.6rem">01 — INSTALL</div>
+            <div style="font-weight:600;letter-spacing:-.01em">One command, one binary.</div>
+            <p style="margin-top:.3rem;color:var(--muted);font-size:.92rem">Nothing else lands on the machine.</p>
+          </div>
+          <div style="background:var(--card);padding:1.4rem 1.4rem 1.3rem">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;color:var(--accent);font-weight:600;margin-bottom:.6rem">02 — INIT</div>
+            <div style="font-weight:600;letter-spacing:-.01em"><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.92em;background:var(--accent-soft);padding:.1em .4em;border-radius:.35em">sporo init</code> in your repo.</div>
+            <p style="margin-top:.3rem;color:var(--muted);font-size:.92rem">It writes the <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.92em;color:var(--ink)">sporo-recipe</code> skill into your agent, plus the seeds and guardrails it works within.</p>
+          </div>
+          <div style="background:var(--card);padding:1.4rem 1.4rem 1.3rem">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;color:var(--accent);font-weight:600;margin-bottom:.6rem">03 — AUTHOR</div>
+            <div style="font-weight:600;letter-spacing:-.01em">The skill drives your agent.</div>
+            <p style="margin-top:.3rem;color:var(--muted);font-size:.92rem"><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.92em;color:var(--ink)">sporo-recipe</code> walks it through harvest → draft → lint → seal → export, on the record, not from memory. You review one file.</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.8rem 2.6rem;margin-top:3rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.78rem;color:var(--muted)">
+          <span><b style="color:var(--ink);font-weight:600">11</b> gated sections per recipe</span>
+          <span><b style="color:var(--ink);font-weight:600">{VERB_COUNT}</b> CLI verbs</span>
+          <span><b style="color:var(--ink);font-weight:600">6</b> platforms, checksummed</span>
+          <span><b style="color:var(--ink);font-weight:600">0</b> accounts, servers or runtimes</span>
+        </div>
+      </div>
+    </div>
+
+    <section id="what" style="position:relative;border-top:1px solid var(--line)">
+      <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <div aria-hidden="true" style="position:absolute;top:1.5rem;right:clamp(1rem,2.5vw,2rem);font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:clamp(5rem,11vw,9rem);line-height:1;color:var(--ghost);pointer-events:none;user-select:none" class="ghost" data-n="01"></div>
+      <div style="padding:4.5rem clamp(1.25rem,3vw,2.5rem)" data-reveal="1">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">01</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">what is a recipe</span></div>
+        <h2 style="font-size:clamp(1.9rem,4vw,2.9rem);letter-spacing:-.035em;line-height:1.06;font-weight:720;max-width:22ch">Not a prompt. Not a template. Not a packaged skill.</h2>
+        <p style="margin-top:1.3rem;max-width:60ch;color:var(--muted);text-wrap:pretty">A recipe is <strong style="color:var(--ink)">transferable, verifiable build intent</strong>. The name comes from <em>spore</em> — the minimal portable unit that grows the organism in a foreign environment. A recipe carries that minimum — principles, contracts, scars — and leaves behind everything that only makes sense in your repo.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:2.6rem">
+          <div style="border:1px solid var(--line);border-radius:1rem;background:var(--card);padding:1.5rem 1.5rem 1.2rem">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem">a skill</div>
+            <div style="display:grid;gap:1rem;font-size:.95rem;color:var(--muted)">
+              <div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-bottom:.15rem">runs where</div>inside the harness that defines it</div>
+              <div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-bottom:.15rem">assumes</div>your tools, your paths, your conventions</div>
+              <div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-bottom:.15rem">transfers</div>by copying the package</div>
+              <div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-bottom:.15rem">on failure</div>breaks silently when the harness drifts</div>
+            </div>
+          </div>
+          <div style="border:1px solid var(--accent);border-radius:1rem;background:var(--card);padding:1.5rem 1.5rem 1.2rem">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem">a recipe</div>
+            <div style="display:grid;gap:1rem;font-size:.95rem;color:var(--ink)">
+              <div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.15rem">runs where</div>anywhere an agent can read and act</div>
+              <div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.15rem">assumes</div>nothing — it probes and maps</div>
+              <div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.15rem">transfers</div>by being rebuilt, once, from scratch</div>
+              <div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.15rem">on failure</div>loud by design — every step carries its own acceptance</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="anatomy" style="position:relative;border-top:1px solid var(--line)">
+      <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <div aria-hidden="true" style="position:absolute;top:1.5rem;right:clamp(1rem,2.5vw,2rem);font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:clamp(5rem,11vw,9rem);line-height:1;color:var(--ghost);pointer-events:none;user-select:none" class="ghost" data-n="02"></div>
+      <div style="padding:4.5rem clamp(1.25rem,3vw,2.5rem)" data-reveal="1">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">02</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">the genre</span></div>
+        <h2 style="font-size:clamp(1.9rem,4vw,2.9rem);letter-spacing:-.035em;line-height:1.06;font-weight:720;max-width:24ch">Eleven sections. Every one gated, none of them decorative.</h2>
+        <p style="margin-top:1.3rem;max-width:60ch;color:var(--muted);text-wrap:pretty">A recipe isn't free-form prose — it's a fixed shape a linter enforces: neutrality (<strong style="color:var(--ink)">roles, never your paths or product names</strong>), a <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85em;background:var(--accent-soft);padding:.1em .4em;border-radius:.35em">Done when:</code> on every build step, and scars that carry symptom, root cause and fix. <a href="what-is-a-recipe.html">The full genre →</a></p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.2rem;margin-top:2.6rem;align-items:start">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.55rem">
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">01</span><span><b style="color:var(--ink);font-weight:600">The problem</b> — acceptance at the top, in the reader's terms</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">02</span><span><b style="color:var(--ink);font-weight:600">Why the obvious approach fails</b> — the dead end, named</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">03</span><span><b style="color:var(--ink);font-weight:600">The principles</b> — the payload; portable claims</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">04</span><span><b style="color:var(--ink);font-weight:600">The ground it needs</b> — preconditions, each as a ladder</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">05</span><span><b style="color:var(--ink);font-weight:600">The contracts</b> — shapes shown, each with its binding</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">06</span><span><b style="color:var(--ink);font-weight:600">The build sequence</b> — a Done-when per step</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">07</span><span><b style="color:var(--ink);font-weight:600">The seams</b> — what stays configurable, and why</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">08</span><span><b style="color:var(--ink);font-weight:600">The scars</b> — symptom → root cause → fix, earned</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">09</span><span><b style="color:var(--ink);font-weight:600">Verification</b> — gates ship with the capability</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">10</span><span><b style="color:var(--ink);font-weight:600">The trade-offs</b> — including when not to build it</span></div>
+            <div style="border:1px solid var(--line);background:var(--card);border-radius:.7rem;padding:.65rem .85rem;font-size:.85rem;color:var(--muted);display:flex;gap:.6rem;align-items:baseline"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;color:var(--accent)">11</span><span><b style="color:var(--ink);font-weight:600">For the human</b> — the one section written for you</span></div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:.9rem;padding:1.4rem 1.5rem;font-size:.92rem">
+            <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600">from a real recipe — the scars section</span>
+            <h3 style="font-size:1.05rem;margin:.6rem 0 .9rem;letter-spacing:-.01em">The day that was 25.3 hours long</h3>
+            <p style="color:var(--muted)"><b style="color:var(--ink)">Symptom:</b> the effort total exceeded the length of the day it reported.</p>
+            <p style="margin-top:.5rem;color:var(--muted)"><b style="color:var(--ink)">Root cause:</b> summing parallel agent sessions measures machine busy-time, not elapsed time — two different questions, silently added.</p>
+            <p style="margin-top:.5rem;color:var(--muted)"><b style="color:var(--ink)">Fix:</b> report both, name the method next to each number, never add them.</p>
+            <small style="display:block;margin-top:1rem;color:var(--muted);font-style:italic">A clean-room rebuild cannot produce this section. That's why it's the most valuable one.</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" style="position:relative;border-top:1px solid var(--line)">
+      <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <div aria-hidden="true" style="position:absolute;top:1.5rem;right:clamp(1rem,2.5vw,2rem);font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:clamp(5rem,11vw,9rem);line-height:1;color:var(--ghost);pointer-events:none;user-select:none" class="ghost" data-n="03"></div>
+      <div style="padding:4.5rem clamp(1.25rem,3vw,2.5rem)" data-reveal="1">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">03</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">how it works</span></div>
+        <h2 style="font-size:clamp(1.9rem,4vw,2.9rem);letter-spacing:-.035em;line-height:1.06;font-weight:720;max-width:24ch">Author once. Rebuild anywhere. Improve on every return.</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.1rem;margin-top:2.6rem">
+          <div style="background:var(--card);border:1px solid var(--line);border-radius:1rem;padding:1.4rem 1.35rem">
+            <h3 style="font-size:1.02rem;letter-spacing:-.01em;margin-bottom:.9rem">The author side</h3>
+            <ol style="padding-left:1.1rem;color:var(--muted);font-size:.93rem;display:grid;gap:.55rem">
+              <li><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo harvest</code> — mine the repo's own record; scars come from history, not memory</li>
+              <li><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo new</code> — a coached draft, scar candidates pre-seeded</li>
+              <li><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo lint</code> — the genre gate: shape, scars, neutrality</li>
+              <li><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo seal</code> — version + content hash; sealed text never silently mutates</li>
+              <li><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo export</code> — one self-contained file. Hand over this, never the source</li>
+            </ol>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--line);border-radius:1rem;padding:1.4rem 1.35rem">
+            <h3 style="font-size:1.02rem;letter-spacing:-.01em;margin-bottom:.9rem">The reader side</h3>
+            <ul style="padding-left:1.1rem;color:var(--muted);font-size:.93rem;display:grid;gap:.55rem">
+              <li><strong style="color:var(--ink)">Probe, don't assume</strong> — every precondition checked against the real repository</li>
+              <li><strong style="color:var(--ink)">Map roles</strong> — <em>the facts file</em>, <em>the collector</em>: the reader decides where each lives here</li>
+              <li><strong style="color:var(--ink)">Agree the outcome</strong> — which outputs, in what form, confirmed with a human first</li>
+              <li><strong style="color:var(--ink)">Never substitute silently</strong> — degrade honestly, label it in the output</li>
+            </ul>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--line);border-radius:1rem;padding:1.4rem 1.35rem">
+            <h3 style="font-size:1.02rem;letter-spacing:-.01em;margin-bottom:.9rem">The loop</h3>
+            <ul style="padding-left:1.1rem;color:var(--muted);font-size:.93rem;display:grid;gap:.55rem">
+              <li>Report-backs are new scars</li>
+              <li>New scars raise the version</li>
+              <li>Today's recipe has already absorbed a failure you'd hit next month</li>
+              <li><strong style="color:var(--ink)">The moat isn't the file format. It's this loop.</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:2rem;display:flex;flex-wrap:wrap;align-items:center;gap:.55rem;font-size:.88rem;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace">
+          <span style="border:1px solid var(--line);background:var(--card);border-radius:99px;padding:.38rem .9rem;white-space:nowrap">author</span><span style="color:var(--accent);font-weight:700">→</span>
+          <span style="border:1px solid var(--line);background:var(--card);border-radius:99px;padding:.38rem .9rem;white-space:nowrap">export</span><span style="color:var(--accent);font-weight:700">→</span>
+          <span style="border:1px solid var(--line);background:var(--card);border-radius:99px;padding:.38rem .9rem;white-space:nowrap">rebuilt on a foreign stack</span><span style="color:var(--accent);font-weight:700">→</span>
+          <span style="border:1px solid var(--line);background:var(--card);border-radius:99px;padding:.38rem .9rem;white-space:nowrap">report back</span><span style="color:var(--accent);font-weight:700">→</span>
+          <span style="border:1px solid var(--accent);background:var(--card);border-radius:99px;padding:.38rem .9rem;white-space:nowrap;color:var(--ink)">new scar → new version</span><span style="color:var(--accent);font-weight:700">↺</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="teams" style="position:relative;border-top:1px solid var(--line)">
+      <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <div aria-hidden="true" style="position:absolute;top:1.5rem;right:clamp(1rem,2.5vw,2rem);font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:clamp(5rem,11vw,9rem);line-height:1;color:var(--ghost);pointer-events:none;user-select:none" class="ghost" data-n="04"></div>
+      <div style="padding:4.5rem clamp(1.25rem,3vw,2.5rem)" data-reveal="1">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">04</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">for teams</span></div>
+        <h2 style="font-size:clamp(1.9rem,4vw,2.9rem);letter-spacing:-.035em;line-height:1.06;font-weight:720">One schema. Ten stacks. Zero drift.</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2.4rem;margin-top:2rem;align-items:center">
+          <div>
+            <p style="color:var(--muted);max-width:56ch;text-wrap:pretty">The team case: everyone rebuilds a reporting system on their own stack, but one shared consumer parses every feed. In a recipe that shape is marked <strong style="color:var(--ink)">Binding: exact</strong> — and exact is enforced, not promised:</p>
+            <ul style="margin-top:1.2rem;padding-left:1.1rem;color:var(--muted);display:grid;gap:.7rem;font-size:.96rem">
+              <li><b style="color:var(--ink)">The seal refuses</b> a change to an exact shape under anything less than a major version — a break never ships wearing a compatible number</li>
+              <li><b style="color:var(--ink)">Fixtures travel with the shape</b> — a valid instance, and the mutations a consumer must reject; the linter runs them</li>
+              <li><b style="color:var(--ink)">Every adopter checks their own output</b> in CI, against the handed-over file alone — no checkout of your repo, no account, no server</li>
+            </ul>
+          </div>
+          <pre style="background:#0e120f;color:#d9e4da;border:1px solid #ffffff14;border-radius:.9rem;padding:1.1rem 1.2rem;overflow-x:auto;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.83rem;line-height:1.75"><code><span style="color:#75857a">$</span> sporo conform handoff.md my-feed.json
+<span style="color:#75857a"># the renamed field a consumer would miss:</span>
+  <span style="color:#e0847c">✗</span> contract #1 $.counted: missing — the consumer
+    parses this field and will starve without it
+  <span style="color:#e0847c">✗</span> contract #1 $.tallied: not in the contract
+<span style="color:#75857a">$</span> sporo conform handoff.md fixed-feed.json
+<span style="color:#8fd1a4">sporo conform: contract #1 ✓</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="trust" style="position:relative;border-top:1px solid var(--line)">
+      <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <div style="padding:5.5rem clamp(1.25rem,3vw,2.5rem);text-align:center" data-reveal="1">
+        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:1.6rem"><span style="color:var(--accent);font-weight:600">05</span> · why prose, not packages</div>
+        <p style="margin:0 auto;max-width:26ch;font-size:clamp(1.7rem,4.2vw,3.1rem);line-height:1.15;letter-spacing:-.035em;font-weight:720;text-wrap:balance">Readable before it runs. Self-checking after. <em style="color:var(--accent);font-style:italic">It makes the result check itself.</em></p>
+        <p style="margin:1.6rem auto 0;max-width:60ch;color:var(--muted);text-wrap:pretty">A skill package is opaque until it runs: you trust it or you audit its code. A recipe is prose — a human reads it and decides whether to let an agent act, <strong style="color:var(--ink)">before a single line executes</strong>. Every step carries its acceptance, verification gates ship with the capability, exact-bound schemas are checked mechanically.</p>
+      </div>
+    </section>
+
+    <section id="honest" style="position:relative;border-top:1px solid var(--line)">
+      <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <div aria-hidden="true" style="position:absolute;top:1.5rem;right:clamp(1rem,2.5vw,2rem);font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:clamp(5rem,11vw,9rem);line-height:1;color:var(--ghost);pointer-events:none;user-select:none" class="ghost" data-n="06"></div>
+      <div style="padding:4.5rem clamp(1.25rem,3vw,2.5rem)" data-reveal="1">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">06</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">when not to use it</span></div>
+        <h2 style="font-size:clamp(1.9rem,4vw,2.9rem);letter-spacing:-.035em;line-height:1.06;font-weight:720">Recipes are not the right tool everywhere.</h2>
+        <ul style="margin:1.9rem 0 0;display:grid;gap:.9rem;max-width:46rem;padding:0;list-style:none">
+          <li style="padding-left:1.9rem;position:relative;color:var(--muted)"><span style="position:absolute;left:0;top:.05rem;font-weight:700;opacity:.55">✕</span><strong style="color:var(--ink)">Same stack, same harness, same company</strong> — hand over the code, or package a skill. A recipe re-derives what you could have copied.</li>
+          <li style="padding-left:1.9rem;position:relative;color:var(--muted)"><span style="position:absolute;left:0;top:.05rem;font-weight:700;opacity:.55">✕</span><strong style="color:var(--ink)">Determinism matters more than adaptability</strong> — zero re-derivation cost beats a document an agent has to interpret.</li>
+          <li style="padding-left:1.9rem;position:relative;color:var(--muted)"><span style="position:absolute;left:0;top:.05rem;font-weight:700;opacity:.55">✕</span><strong style="color:var(--ink)">The capability is one library call</strong> — the recipe is the install command.</li>
+          <li style="padding-left:1.9rem;position:relative;color:var(--muted)"><span style="position:absolute;left:0;top:.05rem;font-weight:700;opacity:.55">✕</span><strong style="color:var(--ink)">Nothing went wrong building it</strong> — a build with no scars didn't need a recipe.</li>
+        </ul>
+        <p style="margin-top:1.9rem;max-width:60ch;color:var(--muted);text-wrap:pretty">Recipes earn their cost where the destination is genuinely heterogeneous: a different stack, a different agent, a different company — and code that literally cannot be handed over. <strong style="color:var(--ink)">That's the wedge: private teams transferring capabilities across a boundary code can't cross.</strong></p>
+      </div>
+    </section>
+
+    <section id="get" style="position:relative;border-top:1px solid var(--line)">
+      <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <div aria-hidden="true" style="position:absolute;top:1.5rem;right:clamp(1rem,2.5vw,2rem);font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:clamp(5rem,11vw,9rem);line-height:1;color:var(--ghost);pointer-events:none;user-select:none" class="ghost" data-n="07"></div>
+      <div style="padding:4.5rem clamp(1.25rem,3vw,2.5rem)" data-reveal="1">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">07</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">get sporo</span></div>
+        <h2 style="font-size:clamp(1.9rem,4vw,2.9rem);letter-spacing:-.035em;line-height:1.06;font-weight:720">One binary. No runtime. No dependencies.</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2.4rem;align-items:start;margin-top:2rem">
+          <div>
+            <pre style="background:#0e120f;color:#d9e4da;border:1px solid #ffffff14;border-radius:.9rem;padding:1.1rem 1.2rem;overflow-x:auto;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.88rem;line-height:1.8"><code><span style="color:#75857a">$</span> curl -fsSL sporo.dev/install.sh | sh
+<span style="color:#75857a">$</span> sporo init          <span style="color:#75857a"># install the authoring surface into a repo</span>
+<span style="color:#75857a">$</span> sporo genre         <span style="color:#75857a"># read the rules the gate enforces</span></code></pre>
+            <small style="display:block;margin-top:.8rem;color:var(--muted);font-size:.87rem">Updating later: <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em">sporo upgrade</code> (the binary), then <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em">sporo update</code> in each repo (its skills). The binary hints — one quiet line, at most once a day — when a newer release exists.</small>
+          </div>
+          <div style="color:var(--muted)">
+            <p style="text-wrap:pretty">macOS (Apple Silicon &amp; Intel), Linux, Windows — amd64 and arm64, checksums published with every release. Apache-2.0, source on <a href="https://github.com/ydnikolaev/sporo">GitHub</a>.</p>
+            <p style="margin-top:1rem;text-wrap:pretty"><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">go install sporo.dev/sporo/cmd/sporo@latest</code> works too; a <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em">brew</code> tap follows.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Progressive enhancement, faithfully translated from the design's DC logic. Without JS the
+    // full install command is already in the markup — the page loses nothing but motion.
+    (function () {
+      var cmd = 'curl -fsSL sporo.dev/install.sh | sh';
+      var motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      var typed = document.getElementById('typed');
+      if (typed && motion) {
+        typed.textContent = '';
+        var i = 0;
+        setTimeout(function tick() {
+          if (i <= cmd.length) {
+            typed.textContent = cmd.slice(0, i++);
+            setTimeout(tick, 14 + Math.random() * 24);
+          }
+        }, 500);
+      }
+
+      var copy = document.getElementById('copy');
+      if (copy)
+        copy.addEventListener('click', function () {
+          if (navigator.clipboard) navigator.clipboard.writeText(cmd);
+          copy.textContent = 'copied ✓';
+          setTimeout(function () {
+            copy.textContent = 'copy';
+          }, 1600);
+        });
+
+      if (motion && 'IntersectionObserver' in window) {
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) {
+                e.target.style.opacity = '1';
+                e.target.style.transform = 'none';
+                io.unobserve(e.target);
+              }
+            });
+          },
+          { threshold: 0.1 }
+        );
+        document.querySelectorAll('[data-reveal]').forEach(function (el) {
+          var r = el.getBoundingClientRect();
+          if (r.top > innerHeight * 0.92) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(22px)';
+            el.style.transition = 'opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1)';
+            io.observe(el);
+          }
+        });
+      }
+    })();
+  </script>
+</Layout>
