@@ -43,18 +43,22 @@ type Config struct {
 // Sources is the project's record — the places a recipe is distilled FROM. Every field is a
 // path relative to the project root, and every one is optional: a project with no decision
 // log still gets a harvest, and the harvest says so out loud.
+// The json tags are not optional decoration: this struct is nested inside Harvest, which is
+// emitted as JSON, and every sibling field there is tagged snake_case. Without matching json
+// tags here the nested `sources` object alone would serialize with Go's PascalCase field
+// names — one inconsistent island in an otherwise snake_case contract. Tag both dialects.
 type Sources struct {
 	// Gates is the gate registry — what this project guards, i.e. what a recipe's
 	// `## Verification` section must teach the next builder to guard too.
-	Gates string `yaml:"gates"`
+	Gates string `yaml:"gates" json:"gates"`
 	// Doctrine is the principles corpus — the payload section's raw material.
-	Doctrine string `yaml:"doctrine"`
+	Doctrine string `yaml:"doctrine" json:"doctrine"`
 	// Decisions is the ADR / decision log: WHY the build went the way it did. Without it a
 	// recipe reconstructs the rationale from commit messages, which is a lossy guess.
-	Decisions string `yaml:"decisions"`
+	Decisions string `yaml:"decisions" json:"decisions"`
 	// Knowledge is the durable knowledge base (a DKB, an architecture corpus) — the ground
 	// the capability stands on.
-	Knowledge string `yaml:"knowledge"`
+	Knowledge string `yaml:"knowledge" json:"knowledge"`
 }
 
 // probes are the locations a source is looked for when the config does not declare it.

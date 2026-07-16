@@ -168,6 +168,27 @@ func TestAnEmptyFindingIsAnEmptyListNotNull(t *testing.T) {
 	}
 }
 
+// The nested `sources` object must speak the same snake_case dialect as every sibling field —
+// it is one JSON contract, not two. A `Sources` field carrying only a yaml tag serializes with
+// Go's PascalCase name (`Gates`), a single inconsistent island a consumer's parser trips on.
+// This is the ADD-direction teeth: it reddens the moment a new Sources field lands untagged.
+func TestSourcesSerializeSnakeCaseInTheJSONContract(t *testing.T) {
+	b, err := json.Marshal(Harvest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, key := range []string{"gates", "doctrine", "decisions", "knowledge"} {
+		if !strings.Contains(string(b), `"`+key+`"`) {
+			t.Fatalf("sources key %q missing from the JSON contract — a Sources field lost its json tag: %s", key, b)
+		}
+	}
+	for _, leaked := range []string{`"Gates"`, `"Doctrine"`, `"Decisions"`, `"Knowledge"`} {
+		if strings.Contains(string(b), leaked) {
+			t.Fatalf("PascalCase %s leaked into the JSON contract — a Sources field is missing its json tag: %s", leaked, b)
+		}
+	}
+}
+
 // The teeth of the gate-registry parser. Its first version searched for a row grammar the
 // registry does not use, so it returned "no gates added" on every input — a check that
 // cannot fire, and one that reads exactly like the truth. The fixture is the registry's real
