@@ -65,6 +65,15 @@ export function genreSpec(): string {
   return stripBanner(fs.readFileSync(path.join(recipesDir, '_authoring.md'), 'utf-8'));
 }
 
+export function adoptionSpec(): string {
+  return stripBanner(fs.readFileSync(path.join(recipesDir, '_adoption.md'), 'utf-8'));
+}
+
+// The raw markdown of one recipe, banner stripped — for the llms-full.txt corpus dump.
+export function rawRecipe(slug: string): string {
+  return stripBanner(fs.readFileSync(path.join(recipesDir, `${slug}.md`), 'utf-8'));
+}
+
 // listCorpus enumerates the official recipes (the `_`-prefixed files are the authoring and
 // adoption specs, not recipes).
 export function listCorpus(): Array<Record<string, string>> {
