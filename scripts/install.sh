@@ -2,16 +2,10 @@
 # Installs the latest `sporo` release from GitHub. POSIX sh — no bashisms — so it
 # runs under whatever /bin/sh the user's box ships (dash, ash, busybox, ...).
 #
-# Today: the repo (ydnikolaev/sporo) is PRIVATE and releases are unlisted, so a
-# plain `curl <asset-url>` 404s — GitHub won't serve a private repo's release
-# assets to an unauthenticated request. This script asks for GITHUB_TOKEN and
-# uses the release-asset API (not the redirecting browser_download_url), which
-# is the one path that works for a private repo with a token.
-#
-# Later, once the repo/assets go public, none of that machinery is needed: this
-# script (or its successor at sporo.dev/install.sh, once that domain redirects
-# here) drops the token requirement and curls the browser_download_url directly.
-# Kept as one script now so the later cutover is deleting code, not writing it.
+# The repo (ydnikolaev/sporo) is PUBLIC, so no token is needed: the release-asset
+# API (`/releases/assets/{id}`) serves a public repo's assets to an unauthenticated
+# request. A GITHUB_TOKEN is honoured if present — it only lifts GitHub's low
+# unauthenticated API rate limit, nothing more — but it is entirely optional.
 
 set -eu
 
@@ -46,15 +40,11 @@ ext="tar.gz"
 asset_name="${BINARY}_LATEST_${os}_${arch}.${ext}"
 checksums_name="checksums.txt"
 
-# --- 2. auth headers (private-repo phase) -----------------------------------
+# --- 2. auth headers (optional; public repo needs none) ---------------------
 
 auth_header=""
 if [ -n "${GITHUB_TOKEN:-}" ]; then
   auth_header="Authorization: Bearer ${GITHUB_TOKEN}"
-else
-  log "no GITHUB_TOKEN set — this will fail while ydnikolaev/sporo is private."
-  log "generate one with the 'repo' scope (read-only is enough) and re-run:"
-  log "  GITHUB_TOKEN=ghp_xxx sh install.sh"
 fi
 
 api="https://api.github.com/repos/${OWNER}/${REPO}"
@@ -181,10 +171,8 @@ esac
 
 log "done — run '${BINARY} --help' to get started."
 
-# --- future channels ----------------------------------------------------------
-# Once ydnikolaev/sporo (and its release assets) are public:
-#   - this script drops steps 2 and the auth_header branches entirely and curls
-#     browser_download_url straight from releases/latest — no token, no asset API.
-#   - sporo.dev/install.sh becomes a redirect (or mirror) to this file's public URL,
-#     so `curl -fsSL sporo.dev/install.sh | sh` is the one-liner people actually run.
-#   - a `brew install ydnikolaev/tap/sporo` path opens up too (see docs/distribution.md).
+# --- other channels -----------------------------------------------------------
+# `curl -fsSL sporo.dev/install.sh | sh` is the one-liner people run (this file is
+# mirrored to that URL by the Pages deploy). A `brew install ydnikolaev/tap/sporo`
+# path is wired and ready in .goreleaser.yaml — it turns on the moment the
+# HOMEBREW_TAP_TOKEN secret exists (see docs/distribution.md).
