@@ -100,7 +100,7 @@ const footer = {
     {groups.map((g) => (
       <section style="position:relative;border-top:1px solid var(--line)">
         <div style="padding:3.5rem clamp(1.25rem,3vw,2.5rem)">
-          <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1rem"><span style="color:var(--accent);font-weight:600">{g.title}</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">{byGroup(g.key).length} verbs</span></div>
+          <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1rem"><span style="color:var(--accent);font-weight:600">{g.title}</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">{byGroup(g.key).length} {byGroup(g.key).length === 1 ? 'verb' : 'verbs'}</span></div>
           <p style="color:var(--muted);max-width:60ch;margin-bottom:1.8rem;text-wrap:pretty">{g.blurb}</p>
           <div style="display:grid;gap:.9rem">
             {byGroup(g.key).map((v) => (
