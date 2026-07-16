@@ -2,8 +2,11 @@
 // The sticky nav, shared across every page. `active` marks the current page so its own link
 // reads as ink (not a muted target); the install link points at the home anchor from anywhere.
 // The nav links are relative and resolve from any root-level page (/manifesto.html → the same
-// /what-is-a-recipe.html). Padding and letter-spacing are unified here on purpose — their
-// per-page drift in the hand-written pages was accidental, not design.
+// /what-is-a-recipe.html).
+//
+// Responsive: on a phone the five links do not fit one line at any legible size, so below
+// 700px they collapse behind an accessible hamburger (a real <button> with aria-expanded /
+// aria-controls) that drops a full-width panel. Desktop is unchanged.
 interface Props {
   active?: 'home' | 'genre' | 'manifesto' | 'docs';
 }
@@ -17,13 +20,16 @@ const links = [
   { k: 'docs', href: 'docs.html', label: 'docs' },
 ];
 ---
-<header style="position:sticky;top:0;z-index:50;background:var(--head);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)">
-  <nav style="max-width:76rem;margin:0 auto;padding:.95rem clamp(1.25rem,3vw,2.5rem);display:flex;align-items:center;gap:1.5rem">
-    <a href="/" class="hov-nou" style="display:flex;align-items:center;gap:.55rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);font-size:1.12rem">
+<header class="hdr">
+  <nav class="bar">
+    <a href="/" class="hov-nou brand">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
       sporo
     </a>
-    <div style="margin-left:auto;display:flex;gap:1.6rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.78rem;letter-spacing:.02em">
+    <button class="toggle" data-nav-toggle aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-links">
+      <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <div id="nav-links" class="links">
       {links.map((l) => (
         <a href={l.href} class={cls(l.k)} style={`color:${col(l.k)}`}>{l.label}</a>
       ))}
@@ -32,3 +38,130 @@ const links = [
     </div>
   </nav>
 </header>
+
+<style>
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--head);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    position: relative;
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 0.95rem clamp(1.25rem, 3vw, 2.5rem);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-size: 1.12rem;
+  }
+  .links {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+  }
+  .toggle {
+    display: none;
+  }
+  @media (max-width: 700px) {
+    .toggle {
+      display: inline-flex;
+      margin-left: auto;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 0.55rem;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .toggle .bars {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 18px;
+    }
+    .toggle .bars span {
+      height: 2px;
+      background: currentColor;
+      border-radius: 2px;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .toggle[aria-expanded='true'] .bars span:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+    .toggle[aria-expanded='true'] .bars span:nth-child(2) {
+      opacity: 0;
+    }
+    .toggle[aria-expanded='true'] .bars span:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+    .links {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-left: 0;
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      background: var(--card);
+      border-bottom: 1px solid var(--line);
+      padding: 0.2rem clamp(1.25rem, 3vw, 2.5rem) 0.6rem;
+      font-size: 0.92rem;
+    }
+    .links.open {
+      display: flex;
+    }
+    .links a {
+      padding: 0.85rem 0;
+      border-top: 1px solid var(--line);
+    }
+    .links a:first-child {
+      border-top: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toggle .bars span {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector('[data-nav-toggle]');
+  const panel = document.getElementById('nav-links');
+  if (toggle && panel) {
+    const setOpen = (open: boolean) => {
+      panel.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    toggle.addEventListener('click', () =>
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true')
+    );
+    // A tap on any destination, or Escape, closes the panel.
+    panel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+  }
+</script>
