@@ -10,12 +10,12 @@ import Footer from './Footer.astro';
 const { head, active, footer } = Astro.props;
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
   <head>
     <BaseHead {...head} />
   </head>
   <body>
-    <div data-theme="auto" style="background:var(--bg);color:var(--ink);min-height:100vh;font-family:'Archivo',-apple-system,'Helvetica Neue',sans-serif;font-size:1.04rem;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:clip">
+    <div style="background:var(--bg);color:var(--ink);min-height:100vh;font-family:'Archivo',-apple-system,'Helvetica Neue',sans-serif;font-size:1.04rem;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:clip">
       <Header active={active} />
       <slot />
       <Footer {...footer} />
