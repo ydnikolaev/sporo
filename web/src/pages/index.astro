@@ -103,6 +103,67 @@ const head = {
       </div>
     </div>
 
+    <section id="core" style="position:relative;border-top:1px solid var(--line);background:var(--band)">
+      <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
+      <div style="padding:5rem clamp(1.25rem,3vw,2.5rem)" data-reveal="1">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">◉</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">the core idea</span></div>
+        <h2 style="font-size:clamp(1.9rem,4.4vw,3.1rem);letter-spacing:-.04em;line-height:1.04;font-weight:730;max-width:20ch;text-wrap:balance">Package anything. Rebuild it <em style="font-style:italic;color:var(--accent)">anywhere</em>.</h2>
+        <p style="margin-top:1.3rem;max-width:62ch;color:var(--muted);font-size:clamp(1.02rem,1.7vw,1.18rem);text-wrap:pretty">A single prompt, a module, a whole project, an entire microservice — <span class="brand">sporo</span> distils it into one portable recipe. Not the code: the <strong style="color:var(--ink)">principles, contracts and scars</strong> that make it work. On the far side an agent germinates it back into the real thing — on a different stack, in a repo that has never seen yours.</p>
+
+        <div style="display:flex;flex-wrap:wrap;align-items:stretch;gap:1rem;margin-top:3rem">
+
+          <div style="flex:1 1 260px;display:flex;flex-direction:column;gap:.6rem">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">package anything</div>
+            <div style="display:grid;gap:.55rem">
+              <div style="display:flex;align-items:center;gap:.7rem;background:var(--card);border:1px solid var(--line);border-radius:.7rem;padding:.7rem .9rem"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.68rem;color:var(--accent);width:2.6rem">skill</span><span style="font-weight:600;font-size:.94rem">a single prompt</span><span style="margin-left:auto;width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.28"></span></div>
+              <div style="display:flex;align-items:center;gap:.7rem;background:var(--card);border:1px solid var(--line);border-radius:.7rem;padding:.7rem .9rem"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.68rem;color:var(--accent);width:2.6rem">module</span><span style="font-weight:600;font-size:.94rem">a library / package</span><span style="margin-left:auto;display:flex;gap:.2rem"><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.28"></span><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.45"></span></span></div>
+              <div style="display:flex;align-items:center;gap:.7rem;background:var(--card);border:1px solid var(--line);border-radius:.7rem;padding:.7rem .9rem"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.68rem;color:var(--accent);width:2.6rem">project</span><span style="font-weight:600;font-size:.94rem">a whole codebase</span><span style="margin-left:auto;display:flex;gap:.2rem"><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.28"></span><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.45"></span><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.62"></span></span></div>
+              <div style="display:flex;align-items:center;gap:.7rem;background:var(--card);border:1px solid var(--accent);border-radius:.7rem;padding:.7rem .9rem"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.68rem;color:var(--accent);width:2.6rem">service</span><span style="font-weight:600;font-size:.94rem">an entire microservice</span><span style="margin-left:auto;display:flex;gap:.2rem"><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.4"></span><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.6"></span><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent);opacity:.8"></span><span style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--accent)"></span></span></div>
+            </div>
+          </div>
+
+          <div aria-hidden="true" style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:1.5rem;font-weight:700;min-width:2rem">→</div>
+
+          <div style="flex:1 1 240px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem .5rem;min-height:16rem">
+            <div aria-hidden="true" style="position:absolute;top:0;bottom:0;left:50%;border-left:2px dashed var(--line)"></div>
+            <div aria-hidden="true" style="position:absolute;top:.4rem;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;background:var(--band);padding:0 .5rem">the boundary code can't cross</div>
+            <div style="position:relative;background:#0e120f;border:1px solid #ffffff1f;border-radius:1rem;padding:1.5rem 1.3rem;text-align:center;box-shadow:0 24px 60px -34px rgba(0,0,0,.6);max-width:15rem">
+              <svg aria-hidden="true" viewBox="0 0 22 22" fill="none" width="46" height="46" style="animation:spin 44s linear infinite"><circle cx="11" cy="11" r="4.2" fill="#6cc98d"></circle><circle cx="11" cy="2.6" r="1.5" fill="#6cc98d" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="#6cc98d" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="#6cc98d" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="#6cc98d" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="#6cc98d" opacity=".75"></circle></svg>
+              <div style="margin-top:.7rem;color:#e8ebe6;font-weight:650;letter-spacing:-.01em">one recipe</div>
+              <div style="margin-top:.15rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:#8fd1a4">self-contained file</div>
+              <div style="margin-top:.8rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.62rem;color:#98a298"><span style="border:1px solid #ffffff1f;border-radius:99px;padding:.15rem .5rem">sealed 2.1.0</span><span style="border:1px solid #ffffff1f;border-radius:99px;padding:.15rem .5rem">content-hashed</span></div>
+            </div>
+          </div>
+
+          <div aria-hidden="true" style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:1.5rem;font-weight:700;min-width:2rem">→</div>
+
+          <div style="flex:1 1 260px;display:flex;flex-direction:column;gap:.6rem">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">rebuild it anywhere</div>
+            <div style="background:var(--card);border:1px solid var(--accent);border-radius:.9rem;padding:1.1rem 1.2rem;flex:1;display:flex;flex-direction:column">
+              <div style="font-weight:650;letter-spacing:-.01em">The same capability, re-derived</div>
+              <div style="margin-top:.7rem;display:grid;gap:.4rem;font-size:.9rem;color:var(--muted)">
+                <div style="display:flex;gap:.55rem"><span style="color:var(--accent);font-weight:700">→</span>a different language &amp; stack</div>
+                <div style="display:flex;gap:.55rem"><span style="color:var(--accent);font-weight:700">→</span>a different agent &amp; harness</div>
+                <div style="display:flex;gap:.55rem"><span style="color:var(--accent);font-weight:700">→</span>a different company entirely</div>
+              </div>
+              <div style="margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--line)">
+                <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem">governed by, not copied from</div>
+                <div style="display:flex;flex-wrap:wrap;gap:.35rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.68rem">
+                  <span style="background:var(--accent-soft);color:var(--ink);border-radius:99px;padding:.2rem .6rem">principles</span>
+                  <span style="background:var(--accent-soft);color:var(--ink);border-radius:99px;padding:.2rem .6rem">contracts</span>
+                  <span style="background:var(--accent-soft);color:var(--ink);border-radius:99px;padding:.2rem .6rem">scars</span>
+                  <span style="background:var(--accent-soft);color:var(--ink);border-radius:99px;padding:.2rem .6rem">Done-when gates</span>
+                  <span style="background:var(--accent-soft);color:var(--ink);border-radius:99px;padding:.2rem .6rem">verification</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
     <section id="what" style="position:relative;border-top:1px solid var(--line)">
       <span aria-hidden="true" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>
       <span aria-hidden="true" style="position:absolute;top:0;right:0;transform:translate(50%,-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);font-size:.95rem;pointer-events:none">+</span>

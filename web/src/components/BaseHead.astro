@@ -75,9 +75,12 @@ const ogImageUrl = new URL(ogImage, Astro.site).href;
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg)}
-[data-theme]{--bg:#f7f6f2;--ink:#151815;--muted:#5d655d;--accent:#25714a;--accent-soft:#25714a1a;--line:#15181522;--card:#fffefa;--head:#f7f6f2d9;--ghost:#15181510}
-@media (prefers-color-scheme:dark){[data-theme="auto"]{--bg:#0b0d0c;--ink:#e8ebe6;--muted:#98a298;--accent:#6cc98d;--accent-soft:#6cc98d1c;--line:#e8ebe61f;--card:#111412;--head:#0b0d0cd9;--ghost:#e8ebe60d}}
-[data-theme="dark"]{--bg:#0b0d0c;--ink:#e8ebe6;--muted:#98a298;--accent:#6cc98d;--accent-soft:#6cc98d1c;--line:#e8ebe61f;--card:#111412;--head:#0b0d0cd9;--ghost:#e8ebe60d}
+/* --band: a full-bleed section tint. It must sit *under* --card in both themes — the cards on
+   it lift, the band recedes — so dark is an opaque green-black, not --accent-soft over --bg
+   (that composites to a lighter, murkier green than the body it's meant to sit beneath). */
+[data-theme]{--bg:#f7f6f2;--ink:#151815;--muted:#5d655d;--accent:#25714a;--accent-soft:#25714a1a;--line:#15181522;--card:#fffefa;--head:#f7f6f2d9;--ghost:#15181510;--band:#e2e8e1}
+@media (prefers-color-scheme:dark){[data-theme="auto"]{--bg:#0b0d0c;--ink:#e8ebe6;--muted:#98a298;--accent:#6cc98d;--accent-soft:#6cc98d1c;--line:#e8ebe61f;--card:#111412;--head:#0b0d0cd9;--ghost:#e8ebe60d;--band:#071009}}
+[data-theme="dark"]{--bg:#0b0d0c;--ink:#e8ebe6;--muted:#98a298;--accent:#6cc98d;--accent-soft:#6cc98d1c;--line:#e8ebe61f;--card:#111412;--head:#0b0d0cd9;--ghost:#e8ebe60d;--band:#071009}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline;text-underline-offset:3px}
 ::selection{background:#25714a;color:#f7f6f2}
