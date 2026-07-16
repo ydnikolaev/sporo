@@ -1,0 +1,184 @@
+---
+import Layout from '../components/Layout.astro';
+import { readRecipe } from '../lib/corpus.ts';
+
+// The proof the rest of the site only describes: a real recipe, rendered. Read straight from
+// the embedded corpus at build, so it is the recipe, not a retyped copy of it.
+const recipe = readRecipe('daily-progress-report');
+const m = recipe.meta;
+
+const head = {
+  title: 'sporo — a real recipe',
+  description:
+    'A real recipe, rendered: the daily-progress-report recipe with its eleven gated sections, the scars a clean-room rebuild could never reproduce, and the export you would hand an agent. Read the artifact, not the pitch.',
+  path: '/example.html',
+  mdMirror: 'daily-progress-report.md',
+  og: {
+    type: 'article' as const,
+    title: 'A real sporo recipe',
+    description:
+      'The daily-progress-report recipe in full — eleven gated sections, earned scars, and the export an agent rebuilds from.',
+  },
+  twitter: {},
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: m.title || 'A real recipe',
+    author: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+    publisher: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+    mainEntityOfPage: 'https://sporo.dev/example.html',
+  },
+};
+const footer = {
+  copyright: '© 2026 sporo · sporo.dev',
+  links: [
+    { href: 'what-is-a-recipe.html', label: 'the genre' },
+    { href: '/', label: 'home' },
+    { href: 'https://github.com/ydnikolaev/sporo', label: 'github' },
+    { href: 'llms.txt', label: 'llms.txt' },
+  ],
+  watermark: false,
+};
+---
+
+<Layout head={head} active="genre" footer={footer}>
+  <main style="max-width:76rem;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)">
+    <div style="padding:clamp(4rem,8vh,6rem) clamp(1.25rem,3vw,2.5rem) 3rem">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem">a real recipe · v{m.version}</div>
+      <h1 style="font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:760;max-width:26ch">{m.title}</h1>
+      <p style="margin-top:1.4rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">{m.problem}</p>
+      <div style="margin-top:1.6rem;display:flex;flex-wrap:wrap;gap:.6rem">
+        <button id="copy-recipe" class="hov-btn" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--accent);color:var(--accent);background:var(--accent-soft);border-radius:.5rem;padding:.55rem 1rem;cursor:pointer">copy the recipe</button>
+        <a href="daily-progress-report.md" download style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--line);color:var(--ink);border-radius:.5rem;padding:.55rem 1rem;text-decoration:none">download .md ↓</a>
+      </div>
+      <p style="margin-top:1.2rem;font-size:.85rem;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace;max-width:62ch;text-wrap:pretty">What a reader receives is the <a href="what-is-a-recipe.html" style="text-decoration:underline;text-underline-offset:3px">exported</a> form — this, with the adoption protocol appended. It was rebuilt once on a different stack, and produced the same report from a codebase that had never seen the original.</p>
+    </div>
+
+    <section style="border-top:1px solid var(--line)">
+      <div style="padding:3rem clamp(1.25rem,3vw,2.5rem)" class="prose" set:html={recipe.introHtml}></div>
+    </section>
+
+    <section style="border-top:1px solid var(--line)">
+      <div style="padding:2.5rem clamp(1.25rem,3vw,2.5rem)">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:2rem"><span style="color:var(--accent);font-weight:600">the eleven sections</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">each gated · scars open</span></div>
+        <div style="display:grid;gap:.7rem">
+          {recipe.sections.map((s, i) => (
+            <details open={s.open} style="border:1px solid var(--line);border-radius:.8rem;background:var(--card);overflow:hidden">
+              <summary style="cursor:pointer;padding:1rem 1.3rem;display:flex;align-items:center;gap:.9rem;list-style:none">
+                <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--accent)">{String(i + 1).padStart(2, '0')}</span>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;letter-spacing:-.01em">{s.title}</h2>
+              </summary>
+              <div class="prose" style="padding:0 1.3rem 1.3rem" set:html={s.html}></div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const btn = document.getElementById('copy-recipe');
+    if (btn) {
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await fetch('daily-progress-report.md');
+          const text = await res.text();
+          if (navigator.clipboard) await navigator.clipboard.writeText(text);
+          const original = btn.textContent;
+          btn.textContent = 'copied ✓';
+          setTimeout(() => {
+            btn.textContent = original;
+          }, 1600);
+        } catch {
+          /* clipboard denied or offline — the download link still works */
+        }
+      });
+    }
+  </script>
+</Layout>
+
+<style is:global>
+  .prose {
+    color: var(--muted);
+    max-width: 68ch;
+    line-height: 1.66;
+  }
+  .prose h3 {
+    color: var(--ink);
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+    margin: 1.6rem 0 0.6rem;
+  }
+  .prose h4 {
+    color: var(--ink);
+    font-size: 1rem;
+    margin: 1.3rem 0 0.5rem;
+  }
+  .prose p {
+    margin: 0.7rem 0;
+    text-wrap: pretty;
+  }
+  .prose strong {
+    color: var(--ink);
+  }
+  .prose ul,
+  .prose ol {
+    margin: 0.7rem 0;
+    padding-left: 1.3rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .prose blockquote {
+    margin: 1rem 0;
+    padding: 0.2rem 0 0.2rem 1.1rem;
+    border-left: 3px solid var(--accent);
+    color: var(--ink);
+  }
+  .prose code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.88em;
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 0.1em 0.4em;
+    border-radius: 0.35em;
+  }
+  .prose pre {
+    background: #0e120f;
+    color: #d9e4da;
+    border: 1px solid #ffffff14;
+    border-radius: 0.7rem;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .prose pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: 0.84rem;
+    line-height: 1.7;
+  }
+  .prose table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  .prose th,
+  .prose td {
+    border: 1px solid var(--line);
+    padding: 0.5rem 0.7rem;
+    text-align: left;
+  }
+  .prose th {
+    color: var(--ink);
+    background: var(--accent-soft);
+  }
+  .prose a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

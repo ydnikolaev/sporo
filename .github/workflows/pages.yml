@@ -7,7 +7,7 @@ name: Pages
 on:
   push:
     branches: [main]
-    paths: ["web/**", "scripts/install.sh", ".github/workflows/pages.yml"]
+    paths: ["web/**", "recipes/**", "scripts/install.sh", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
