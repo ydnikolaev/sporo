@@ -72,10 +72,19 @@ checksums_name="checksums.txt"
 # Pull "id" + "name" pairs out of the assets array and grep for the ones we want.
 # (Not using jq: it isn't guaranteed present, and this script has exactly two
 # fields to extract.)
+#
+# GitHub returns the release JSON pretty-printed — one field per line, each ending
+# in a comma. `tr ',' '\n'` therefore turns every `,\n` into a BLANK line, so an
+# asset object splits to `"id":…`, «», `"node_id":…`, «», `"name":…`, and the id
+# ends up FOUR lines above the name, out of a `-B2` window's reach. Dropping the
+# blank lines first restores id-is-two-lines-above-name, which holds for both the
+# pretty and the compact JSON shape. (This is the exact bug that hid until the
+# install path was driven end-to-end against a real release.)
 find_asset_id() {
   name="$1"
   printf '%s' "$release_json" \
     | tr ',' '\n' \
+    | sed '/^[[:space:]]*$/d' \
     | grep -B2 "\"name\": *\"${name}\"" \
     | grep '"id"' \
     | head -1 \
