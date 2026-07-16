@@ -62,21 +62,11 @@ const head = {
     mainEntityOfPage: 'https://sporo.dev/docs.html',
   },
 };
-const footer = {
-  copyright: '© 2026 sporo · sporo.dev',
-  links: [
-    { href: 'what-is-a-recipe.html', label: 'what is a recipe' },
-    { href: '/', label: 'home' },
-    { href: 'https://github.com/ydnikolaev/sporo', label: 'github' },
-    { href: 'llms.txt', label: 'llms.txt' },
-  ],
-  watermark: false,
-};
 ---
 
-<Layout head={head} active="docs" footer={footer}>
+<Layout head={head} active="docs">
   <Frame layout="wide">
-    <div style="padding:clamp(4rem,8vh,6rem) clamp(1.25rem,3vw,2.5rem) 3rem">
+    <div style="padding:clamp(5rem,10vh,8rem) clamp(1.25rem,3vw,2.5rem) 3rem">
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem">documentation</div>
       <h1 style="font-size:clamp(2.4rem,6vw,4rem);line-height:1.02;letter-spacing:-.045em;font-weight:760;max-width:18ch">Every verb the binary carries.</h1>
       <p style="margin-top:1.6rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:60ch;text-wrap:pretty">This page is generated from the CLI itself — the same snapshot <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo docs --json</code> emits, kept in sync by a build gate. Read the authoring rules with <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo genre</code>.</p>

@@ -31,21 +31,11 @@ const head = {
     mainEntityOfPage: 'https://sporo.dev/example.html',
   },
 };
-const footer = {
-  copyright: '© 2026 sporo · sporo.dev',
-  links: [
-    { href: 'what-is-a-recipe.html', label: 'the genre' },
-    { href: '/', label: 'home' },
-    { href: 'https://github.com/ydnikolaev/sporo', label: 'github' },
-    { href: 'llms.txt', label: 'llms.txt' },
-  ],
-  watermark: false,
-};
 ---
 
-<Layout head={head} active="genre" footer={footer}>
+<Layout head={head} active="example">
   <Frame layout="wide">
-    <div style="padding:clamp(4rem,8vh,6rem) clamp(1.25rem,3vw,2.5rem) 3rem">
+    <div style="padding:clamp(5rem,10vh,8rem) clamp(1.25rem,3vw,2.5rem) 3rem">
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem">a real recipe · v{m.version}</div>
       <h1 style="font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:760;max-width:26ch">{m.title}</h1>
       <p style="margin-top:1.4rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">{m.problem}</p>

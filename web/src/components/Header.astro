@@ -4,23 +4,21 @@
 // The nav links are relative and resolve from any root-level page (/manifesto.html → the same
 // /what-is-a-recipe.html).
 //
-// Responsive: on a phone the five links do not fit one line at any legible size, so below
-// 700px they collapse behind an accessible hamburger (a real <button> with aria-expanded /
-// aria-controls) that drops a full-width panel. Desktop is unchanged.
+// Responsive: on a phone the links do not fit one line at any legible size, so below 700px they
+// collapse behind an accessible hamburger (a real <button> with aria-expanded / aria-controls)
+// that drops a full-width panel. Desktop is unchanged.
+//
+// The links come from lib/nav.ts, the single source the footer's sitemap reads too, ordered by
+// weight (the two concept pages, the decision page, the proof, the reference, history last).
+import { NAV } from '../lib/nav.ts';
 interface Props {
-  active?: 'home' | 'genre' | 'compare' | 'manifesto' | 'docs' | 'changelog';
+  active?: 'home' | 'genre' | 'manifesto' | 'compare' | 'example' | 'docs' | 'changelog';
 }
 const { active = 'home' } = Astro.props;
 const cls = (k: string) => (active === k ? 'hov-nou' : 'hov-ink-nou');
 const col = (k: string) => (active === k ? 'var(--ink)' : 'var(--muted)');
 const installHref = active === 'home' ? '#get' : '/#get';
-const links = [
-  { k: 'genre', href: 'what-is-a-recipe.html', label: 'the genre' },
-  { k: 'compare', href: 'compare.html', label: 'compare' },
-  { k: 'docs', href: 'docs.html', label: 'docs' },
-  { k: 'changelog', href: 'changelog.html', label: 'changelog' },
-  { k: 'manifesto', href: 'manifesto.html', label: 'manifesto' },
-];
+const links = NAV;
 ---
 <header class="hdr">
   <nav class="bar">

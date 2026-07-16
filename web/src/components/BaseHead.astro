@@ -85,6 +85,11 @@ a:hover{text-decoration:underline;text-underline-offset:3px}
 .hov-ink:hover{color:var(--ink)}
 .hov-ink-nou:hover{color:var(--ink);text-decoration:none}
 .hov-btn:hover{background:#ffffff0d}
+/* The product name in prose: accent + weight, never underlined, so a brand mention reads as
+   itself and not as a link. Applied only where "sporo" is the subject — never on a command
+   (sporo init), the skill (sporo-recipe), or the domain (sporo.dev), which carry their own
+   treatment. */
+.brand{color:var(--accent);font-weight:650}
 /* The watermark numerals render via pseudo-content: identical to the eye, but no DOM text
    node — a decorative 8%-opacity glyph must never be held to (or fixed for) text contrast. */
 .ghost::before{content:attr(data-n)}

@@ -1,32 +1,32 @@
 ---
-// The footer. The copyright string and the link set differ per page (home carries the license
-// and the big watermark; the article pages link back home instead of listing themselves), so
-// each page passes its own — explicit beats a variant flag here. The llms.txt link is relative
-// everywhere (it resolves the same from every root-level page), fixing the home-relative /
-// article-absolute drift of the hand-written pages.
-interface Link {
-  href: string;
-  label: string;
-}
-interface Props {
-  copyright: string;
-  links: Link[];
-  watermark?: boolean;
-}
-const { copyright, links, watermark = false } = Astro.props;
+// The footer, self-contained: it reads the site's nav from lib/nav.ts, so its sitemap can never
+// fall out of sync with the header's menu, and a new page is wired in exactly one place. Three
+// bands, identical on every page: the full sitemap (every menu item), a meta row (copyright +
+// project resources + the author's own links), and the big SPORO watermark. No per-page props —
+// the footer is the same everywhere by construction.
+import { NAV, RESOURCES, AUTHOR, COPYRIGHT } from '../lib/nav.ts';
 ---
 <footer style="border-top:1px solid var(--line);overflow:hidden">
-  <div style="max-width:76rem;margin:0 auto;padding:3rem clamp(1.25rem,3vw,2.5rem) 0;display:flex;flex-wrap:wrap;gap:1rem 1.6rem;align-items:center;color:var(--muted);font-size:.88rem;font-family:'IBM Plex Mono',ui-monospace,monospace">
-    <span>{copyright}</span>
-    <div style="margin-left:auto;display:flex;flex-wrap:wrap;gap:1.4rem">
-      {links.map((l) => (
-        <a href={l.href} class="hov-ink" style="color:var(--muted)">{l.label}</a>
+  <div style="max-width:76rem;margin:0 auto;padding:3.2rem clamp(1.25rem,3vw,2.5rem) 0">
+    <nav aria-label="Footer" style="display:flex;flex-wrap:wrap;gap:.9rem 1.8rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9rem">
+      {NAV.map((l) => (
+        <a href={l.href} class="hov-ink" style="color:var(--ink)">{l.label}</a>
       ))}
+    </nav>
+    <div style="margin-top:1.8rem;padding-top:1.6rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:1rem 1.6rem;align-items:center;color:var(--muted);font-size:.84rem;font-family:'IBM Plex Mono',ui-monospace,monospace">
+      <span>{COPYRIGHT}</span>
+      <div style="margin-left:auto;display:flex;flex-wrap:wrap;gap:1rem 1.4rem;align-items:center">
+        {RESOURCES.map((l) => (
+          <a href={l.href} class="hov-ink" style="color:var(--muted)">{l.label}</a>
+        ))}
+        <span aria-hidden="true" style="opacity:.4">·</span>
+        {AUTHOR.map((l) => (
+          <a href={l.href} class="hov-ink" style="color:var(--muted)">{l.label}</a>
+        ))}
+      </div>
     </div>
   </div>
-  {watermark && (
-    <div aria-hidden="true" style="max-width:76rem;margin:0 auto;padding:1.5rem clamp(1.25rem,3vw,2.5rem) 0;display:flex;align-items:flex-end;gap:1.2rem">
-      <div class="ghost" data-n="sporo" style="font-size:clamp(4.5rem,17vw,13rem);line-height:.78;font-weight:800;letter-spacing:-.055em;color:var(--ink);opacity:.08;transform:translateY(6%)"></div>
-    </div>
-  )}
+  <div aria-hidden="true" style="max-width:76rem;margin:0 auto;padding:1.5rem clamp(1.25rem,3vw,2.5rem) 0;display:flex;align-items:flex-end;gap:1.2rem">
+    <div class="ghost" data-n="sporo" style="font-size:clamp(4.5rem,17vw,13rem);line-height:.78;font-weight:800;letter-spacing:-.055em;color:var(--ink);opacity:.08;transform:translateY(6%)"></div>
+  </div>
 </footer>

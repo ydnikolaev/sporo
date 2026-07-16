@@ -22,12 +22,19 @@ const { layout = 'wide', measure = '52rem' } = Astro.props;
 <style>
   .frame {
     max-width: 76rem;
+    /* flex:1 so the frame fills the body's flex column and the footer sits at the bottom of a
+       short page; margin:0 auto keeps it centered in the viewport. */
+    flex: 1 0 auto;
+    width: 100%;
     margin: 0 auto;
     border-left: 1px solid var(--line);
     border-right: 1px solid var(--line);
   }
   .reading {
-    margin: 0;
-    padding: clamp(4rem, 8vh, 6rem) clamp(1.25rem, 3vw, 2.5rem) clamp(5rem, 10vh, 7rem);
+    /* Centered inside the frame (margin auto), not left-aligned — so a reading page has even
+       gutters, not a wide empty right rail. Top padding matches the home hero so pages don't
+       jump vertically when you navigate between them. */
+    margin: 0 auto;
+    padding: clamp(5rem, 10vh, 8rem) clamp(1.25rem, 3vw, 2.5rem) clamp(5rem, 10vh, 7rem);
   }
 </style>

@@ -1,6 +1,7 @@
 ---
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
+import AgentMarks from '../components/AgentMarks.astro';
 import { SITE_DATE } from '../lib/site.ts';
 
 // The positioning page: where a recipe sits among the other ways capability "moves" — a
@@ -76,24 +77,14 @@ const head = {
   twitter: {},
   jsonLd,
 };
-
-const footer = {
-  copyright: '© 2026 sporo · sporo.dev',
-  links: [
-    { href: 'what-is-a-recipe.html', label: 'what is a recipe' },
-    { href: '/', label: 'home' },
-    { href: 'https://github.com/ydnikolaev/sporo', label: 'github' },
-    { href: 'llms.txt', label: 'llms.txt' },
-  ],
-  watermark: false,
-};
 ---
 
-<Layout head={head} active="compare" footer={footer}>
+<Layout head={head} active="compare">
   <Frame layout="reading" measure="60rem">
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">the comparison</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">Recipe, skill, prompt, or&nbsp;MCP?</h1>
     <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;max-width:52ch;text-wrap:pretty">All four move capability between agents. Only one is a self-contained artifact that rebuilds it in a repository that has never seen yours. Here is where each one actually fits.</p>
+    <div style="margin-top:2.2rem"><AgentMarks label="Rebuilt by any agent" /></div>
 
     <section style="margin-top:3.5rem">
       <div style="overflow-x:auto;border:1px solid var(--line);border-radius:.9rem">

@@ -1,13 +1,14 @@
 ---
 // The page shell: the <html>/<head>/<body> frame every page shares, so a page file is just its
-// <main> plus the head/footer data. `head` is forwarded to BaseHead; `active` marks the nav;
-// `footer` is forwarded to Footer. A page's interactive scripts (the home page's three) go in
-// the named `scripts` slot, which Astro bundles locally.
+// <main> plus the head data. `head` is forwarded to BaseHead; `active` marks the nav. The footer
+// is the same on every page (it reads the shared nav itself), so it takes no per-page props. The
+// body is a flex column with the <main> frame flexed to fill, so on a short page the footer sits
+// at the bottom of the viewport instead of floating mid-screen.
 import BaseHead from './BaseHead.astro';
 import Header from './Header.astro';
 import Footer from './Footer.astro';
 
-const { head, active, footer } = Astro.props;
+const { head, active } = Astro.props;
 ---
 <!doctype html>
 <html lang="en" data-theme="auto">
@@ -15,10 +16,10 @@ const { head, active, footer } = Astro.props;
     <BaseHead {...head} />
   </head>
   <body>
-    <div style="background:var(--bg);color:var(--ink);min-height:100vh;font-family:'Archivo',-apple-system,'Helvetica Neue',sans-serif;font-size:1.04rem;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:clip">
+    <div style="background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;font-family:'Archivo',-apple-system,'Helvetica Neue',sans-serif;font-size:1.04rem;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:clip">
       <Header active={active} />
       <slot />
-      <Footer {...footer} />
+      <Footer />
     </div>
   </body>
 </html>

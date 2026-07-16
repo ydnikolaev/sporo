@@ -29,20 +29,9 @@ const head = {
     isPartOf: { '@type': 'WebSite', name: 'sporo', url: 'https://sporo.dev/' },
   },
 };
-
-const footer = {
-  copyright: '© 2026 sporo · sporo.dev',
-  links: [
-    { href: '/', label: 'home' },
-    { href: 'docs.html', label: 'docs' },
-    { href: 'https://github.com/ydnikolaev/sporo/releases', label: 'releases on github' },
-    { href: 'llms.txt', label: 'llms.txt' },
-  ],
-  watermark: false,
-};
 ---
 
-<Layout head={head} active="changelog" footer={footer}>
+<Layout head={head} active="changelog">
   <Frame layout="reading">
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">changelog</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">What shipped, and when.</h1>
