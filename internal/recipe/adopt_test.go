@@ -68,6 +68,56 @@ func TestAdoptRecordsTheHandoverVerbatim(t *testing.T) {
 	}
 }
 
+// The trust boundary, with teeth. Adopt's input is BY DEFINITION a stranger's file, and its
+// `name:` becomes a write path. A name that walks (`../…`) must be refused before any byte
+// lands — otherwise "adopt this recipe" doubles as "overwrite any file the repo owner can".
+func TestAHostileRecipeNameCannotChooseWhereItIsWritten(t *testing.T) {
+	for _, hostile := range []string{
+		"../../outside", "..", "a/b", `a\b`, ".hidden", "UPPER", "name with spaces",
+	} {
+		root := adoptWorld(t)
+		src := []byte(strings.Replace(exportedFixture("1.0.0", "counted"),
+			"name: nightly-digest", "name: "+hostile, 1))
+		if _, _, err := Adopt(root, src, "handoff.md"); err == nil || !strings.Contains(err.Error(), "name") {
+			t.Fatalf("name %q must be refused as a write path; got: %v", hostile, err)
+		}
+		// Nothing may have been written anywhere under root — not even the adopted home.
+		if _, err := os.Stat(filepath.Join(root, adoptedHome)); !os.IsNotExist(err) {
+			t.Fatalf("name %q: the adopted home exists — something was written before the refusal", hostile)
+		}
+	}
+}
+
+// The second write site: a hand-edited registry key must not become the traversal door the
+// frontmatter no longer is.
+func TestPullApplyRefusesAnIllegalRegistryKey(t *testing.T) {
+	root := adoptWorld(t)
+	srcFile := filepath.Join(root, "source.md")
+	if err := os.WriteFile(srcFile, []byte(exportedFixture("2.0.0", "counted")), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	reg, err := LoadRegistry(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reg.Adopted = map[string]AdoptedEntry{
+		"../escape": {Version: "1.0.0", Hash: "sha256:0", Source: srcFile},
+	}
+	if err := reg.Save(root); err != nil {
+		t.Fatal(err)
+	}
+	reports, err := Pull(root, "", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reports) != 1 || reports[0].Status != "skipped" || !strings.Contains(reports[0].Note, "not a legal recipe name") {
+		t.Fatalf("an illegal registry key must be a reported skip, never a write; got %+v", reports)
+	}
+	if _, err := os.Stat(filepath.Join(root, ".sporo", "escape.md")); !os.IsNotExist(err) {
+		t.Fatal("the traversal target exists — pull wrote through the illegal key")
+	}
+}
+
 func TestReAdoptingTheSameBytesIsIdempotent(t *testing.T) {
 	root := adoptWorld(t)
 	src := []byte(exportedFixture("1.0.0", "counted"))

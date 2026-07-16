@@ -29,6 +29,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -58,6 +59,13 @@ type AdoptedEntry struct {
 // own lint/seal/export surface.
 const adoptedHome = ".sporo/adopted"
 
+// reSlug is the whole alphabet a recipe name may use in a file this repository WRITES
+// FROM. It is a security boundary, not a style rule: adopt's input is, by the product's own
+// definition, a file handed over by a stranger, and its `name:` becomes a write path — a
+// name carrying `/`, `\` or `..` would walk out of the adopted home and overwrite whatever
+// it aimed at. The gate's own naming convention (kebab slugs) already fits inside this.
+var reSlug = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,63}$`)
+
 // Adopt records a handed-over exported recipe: verbatim copy + registry entry.
 func Adopt(root string, src []byte, source string) (string, AdoptedEntry, error) {
 	slug := fmValue(src, "name")
@@ -65,9 +73,17 @@ func Adopt(root string, src []byte, source string) (string, AdoptedEntry, error)
 	if slug == "" || version == "" {
 		return "", AdoptedEntry{}, fmt.Errorf("this file carries no `name:`/`version:` frontmatter — every real export does; adopt the file `sporo export` printed, not a fragment of it")
 	}
+	if !reSlug.MatchString(slug) {
+		return "", AdoptedEntry{}, fmt.Errorf("refusing to adopt %q — a recipe name must match %s: this name becomes a path this repository writes, and a stranger's file does not get to choose where", slug, reSlug)
+	}
 
 	dir := filepath.Join(root, adoptedHome)
 	path := filepath.Join(dir, slug+".md")
+	// Defense in depth: even a slug the allowlist somehow passed must resolve INSIDE the
+	// adopted home, or nothing is written.
+	if filepath.Dir(path) != dir {
+		return "", AdoptedEntry{}, fmt.Errorf("refusing to adopt %q — its name resolves outside the adopted home", slug)
+	}
 	entry := AdoptedEntry{
 		Version:        version,
 		Hash:           ContentHash(src),
@@ -164,6 +180,14 @@ func Pull(root, slug string, apply bool) ([]PullReport, error) {
 			r.ExactChanged = exactContractsDigest(body) != entry.ExactContracts
 			r.fetched = body
 			if apply {
+				// The same boundary adopt enforces, re-checked at the second write site: the
+				// key normally comes from a guarded Adopt, but a hand-edited registry must
+				// not become the traversal door the frontmatter no longer is.
+				if !reSlug.MatchString(s) {
+					r.Status, r.Note = "skipped", fmt.Sprintf("registry key %q is not a legal recipe name — refusing to write from it", s)
+					out = append(out, r)
+					continue
+				}
 				if err := os.WriteFile(filepath.Join(root, adoptedHome, s+".md"), body, 0o644); err != nil {
 					return out, err
 				}
