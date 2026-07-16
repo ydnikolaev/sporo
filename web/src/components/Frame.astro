@@ -1,0 +1,33 @@
+---
+// The one place the page frame lives. Every page's <main> is a Frame, so the 76rem width and
+// the vertical rails that line up with the header and footer can never drift page-to-page —
+// add a page, pick a layout, done. Two layouts:
+//   wide    — content fills the frame (landing, docs, example, the comparison table).
+//   reading — a centered reading column inside the same frame, one shared measure and padding,
+//             for long-form prose (manifesto, the genre, the changelog).
+// Horizontal padding matches the frame pages' clamp() so content left-edges align everywhere.
+interface Props {
+  layout?: 'wide' | 'reading';
+  // The reading measure. Default suits long-form prose; a page with a wide element (a
+  // comparison table) can widen it. Left edge and padding stay identical either way, so the
+  // frame and the content's left edge line up across every page regardless of measure.
+  measure?: string;
+}
+const { layout = 'wide', measure = '52rem' } = Astro.props;
+---
+<main class="frame">
+  {layout === 'reading' ? <div class="reading" style={`max-width:${measure}`}><slot /></div> : <slot />}
+</main>
+
+<style>
+  .frame {
+    max-width: 76rem;
+    margin: 0 auto;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+  .reading {
+    margin: 0;
+    padding: clamp(4rem, 8vh, 6rem) clamp(1.25rem, 3vw, 2.5rem) clamp(5rem, 10vh, 7rem);
+  }
+</style>

@@ -1,5 +1,6 @@
 ---
 import Layout from '../components/Layout.astro';
+import Frame from '../components/Frame.astro';
 import { SITE_DATE } from '../lib/site.ts';
 
 const jsonLd = {
@@ -41,7 +42,7 @@ const footer = {
 ---
 
 <Layout head={head} active="manifesto" footer={footer}>
-  <main style="max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem">
+  <Frame layout="reading">
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">manifesto</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">Capability doesn't move the way code does.</h1>
 
@@ -60,5 +61,5 @@ const footer = {
       <a href="what-is-a-recipe.html">read the genre →</a>
       <a href="./#get" class="hov-ink" style="margin-left:auto;color:var(--muted)">get sporo</a>
     </div>
-  </main>
+  </Frame>
 </Layout>

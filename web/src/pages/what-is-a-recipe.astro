@@ -1,5 +1,6 @@
 ---
 import Layout from '../components/Layout.astro';
+import Frame from '../components/Frame.astro';
 import { SITE_DATE } from '../lib/site.ts';
 
 const jsonLd = {
@@ -42,7 +43,7 @@ const footer = {
 ---
 
 <Layout head={head} active="genre" footer={footer}>
-  <main style="max-width:48rem;margin:0 auto;padding:5.5rem 1.5rem 6rem">
+  <Frame layout="reading">
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">the genre</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">What is a recipe</h1>
     <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;text-wrap:pretty">You've read the pitch. Here's the actual genre — the fixed shape every recipe has to take, and why each part of it exists. If you're the senior engineer who's going to decide whether to let an agent act on one of these, this is the page that earns that.</p>
@@ -112,5 +113,5 @@ const footer = {
       <a href="manifesto.html">read the manifesto →</a>
       <a href="./#get" class="hov-ink" style="margin-left:auto;color:var(--muted)">get sporo</a>
     </div>
-  </main>
+  </Frame>
 </Layout>

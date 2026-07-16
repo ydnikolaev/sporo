@@ -1,5 +1,6 @@
 ---
 import Layout from '../components/Layout.astro';
+import Frame from '../components/Frame.astro';
 import { readRecipe } from '../lib/corpus.ts';
 
 // The proof the rest of the site only describes: a real recipe, rendered. Read straight from
@@ -43,7 +44,7 @@ const footer = {
 ---
 
 <Layout head={head} active="genre" footer={footer}>
-  <main style="max-width:76rem;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)">
+  <Frame layout="wide">
     <div style="padding:clamp(4rem,8vh,6rem) clamp(1.25rem,3vw,2.5rem) 3rem">
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem">a real recipe · v{m.version}</div>
       <h1 style="font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:760;max-width:26ch">{m.title}</h1>
@@ -75,7 +76,7 @@ const footer = {
         </div>
       </div>
     </section>
-  </main>
+  </Frame>
 
   <script>
     const btn = document.getElementById('copy-recipe');

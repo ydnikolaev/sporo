@@ -1,5 +1,6 @@
 ---
 import Layout from '../components/Layout.astro';
+import Frame from '../components/Frame.astro';
 import { surface, SPORO_VERSION } from '../lib/site.ts';
 
 // The docs page renders from surface.json — the snapshot `sporo docs --json` emits and CI keeps
@@ -74,7 +75,7 @@ const footer = {
 ---
 
 <Layout head={head} active="docs" footer={footer}>
-  <main style="max-width:76rem;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)">
+  <Frame layout="wide">
     <div style="padding:clamp(4rem,8vh,6rem) clamp(1.25rem,3vw,2.5rem) 3rem">
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem">documentation</div>
       <h1 style="font-size:clamp(2.4rem,6vw,4rem);line-height:1.02;letter-spacing:-.045em;font-weight:760;max-width:18ch">Every verb the binary carries.</h1>
@@ -143,7 +144,7 @@ const footer = {
         generated from sporo <b style="color:var(--ink)">{SPORO_VERSION}</b> · <a href="https://github.com/ydnikolaev/sporo" style="text-decoration:underline;text-underline-offset:3px">source on github</a>
       </div>
     </section>
-  </main>
+  </Frame>
 </Layout>
 
 <script>
