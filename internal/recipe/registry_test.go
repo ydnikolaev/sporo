@@ -44,6 +44,61 @@ func TestSealRecordsVersionHashAndLocalProvenance(t *testing.T) {
 	}
 }
 
+func TestSealRecordsTheID(t *testing.T) {
+	root, cfg := sealFixture(t)
+	entry, err := Seal(root, cfg, "baseline")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if entry.ID != "01ARZ3NDEKTSV4RRFFQ69G5FAV" {
+		t.Fatalf("the seal must record the frontmatter id so the ledger witnesses the identity, not just the file; got %q", entry.ID)
+	}
+}
+
+func TestSealRefusesAChangedID(t *testing.T) {
+	root, cfg := sealFixture(t)
+	if _, err := Seal(root, cfg, "baseline"); err != nil {
+		t.Fatal(err)
+	}
+	// The id is permanent. A bumped version does NOT license rewriting it — a new id under an
+	// old slug is a different recipe stealing a permalink.
+	rewritten := strings.Replace(conformant, "id: 01ARZ3NDEKTSV4RRFFQ69G5FAV", "id: 01BX5ZZKBKACTAV9WEVGEMMVRZ", 1)
+	rewritten = strings.Replace(rewritten, "version: 1.0.0", "version: 2.0.0", 1)
+	if err := os.WriteFile(filepath.Join(root, cfg.Home, "baseline.md"), []byte(rewritten), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Seal(root, cfg, "baseline"); err == nil || !strings.Contains(err.Error(), "permanent identity") {
+		t.Fatalf("a changed id must be refused even under a version bump; got: %v", err)
+	}
+}
+
+func TestSealBackfillsAnIDOntoAPreIDSeal(t *testing.T) {
+	root, cfg := sealFixture(t)
+	if _, err := Seal(root, cfg, "baseline"); err != nil {
+		t.Fatal(err)
+	}
+	// Simulate a registry sealed before ids existed: strip the id from the stored entry.
+	reg, err := LoadRegistry(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e := reg.Recipes["baseline"]
+	e.ID = ""
+	reg.Recipes["baseline"] = e
+	if err := reg.Save(root); err != nil {
+		t.Fatal(err)
+	}
+	// Re-sealing the same bytes must backfill the id WITHOUT demanding a version bump — the
+	// ledger is catching up to a field the file already carries, not recording a mutation.
+	entry, err := Seal(root, cfg, "baseline")
+	if err != nil {
+		t.Fatalf("backfilling an id onto an old seal must not be treated as a silent mutation: %v", err)
+	}
+	if entry.ID != "01ARZ3NDEKTSV4RRFFQ69G5FAV" {
+		t.Fatalf("the id must be backfilled from the frontmatter; got %q", entry.ID)
+	}
+}
+
 func TestResealingUnchangedContentIsIdempotent(t *testing.T) {
 	root, cfg := sealFixture(t)
 	first, err := Seal(root, cfg, "baseline")
@@ -199,6 +254,18 @@ func TestVerifyFindsContentDriftedFromItsSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertFinding(t, root, cfg, "drifted")
+}
+
+func TestVerifyFindsAChangedID(t *testing.T) {
+	root, cfg := sealFixture(t)
+	if _, err := Seal(root, cfg, "baseline"); err != nil {
+		t.Fatal(err)
+	}
+	rewritten := strings.Replace(conformant, "id: 01ARZ3NDEKTSV4RRFFQ69G5FAV", "id: 01BX5ZZKBKACTAV9WEVGEMMVRZ", 1)
+	if err := os.WriteFile(filepath.Join(root, cfg.Home, "baseline.md"), []byte(rewritten), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	assertFinding(t, root, cfg, "permanent identity")
 }
 
 func TestVerifyFindsAVersionBumpedButNotResealed(t *testing.T) {

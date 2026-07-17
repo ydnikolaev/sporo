@@ -33,9 +33,16 @@ import (
 // registry instead of misreading it.
 const RegistrySchema = 1
 
-// RegistryEntry is one sealed recipe: the version the author declared, the content that
-// version names, and whose build it is.
+// RegistryEntry is one sealed recipe: its permanent identity, the version the author
+// declared, the content that version names, and whose build it is.
 type RegistryEntry struct {
+	// ID mirrors the recipe's frontmatter `id` — the ULID minted at `sporo new`. Unlike the
+	// version (which climbs) and the hash (which changes with every edit), the id is FIXED:
+	// it is the recipe's permanent identity across renames and releases, the key a marketplace
+	// and a report-back thread hang on. The registry records it so the ledger — not just the
+	// file — witnesses the identity. `omitempty` keeps registries sealed before ids existed
+	// loadable; the next seal backfills them.
+	ID string `yaml:"id,omitempty"`
 	// Version mirrors the recipe's own frontmatter at seal time. The two diverging is a
 	// finding, not a preference — each is the other's witness.
 	Version string `yaml:"version"`
@@ -146,6 +153,7 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	if version == "" {
 		return RegistryEntry{}, fmt.Errorf("recipe %q has no `version:` in its frontmatter — the seal records a version the document itself declares, so declare one (and `sporo lint` requires it)", slug)
 	}
+	id := fmValue(src, "id")
 	hash := ContentHash(src)
 
 	reg, err := LoadRegistry(root)
@@ -154,11 +162,23 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	}
 	digest := exactContractsDigest(src)
 	entry, sealed := reg.Recipes[slug]
+	// The id is a PERMANENT identity — it may be recorded and it may be backfilled onto an old
+	// seal that predates ids, but it may never CHANGE. A changed id is not a new version of the
+	// same recipe; it is a different recipe wearing this one's slug, and letting it re-seal in
+	// place would silently rewrite a marketplace permalink.
+	if sealed && entry.ID != "" && id != "" && id != entry.ID {
+		return RegistryEntry{}, fmt.Errorf("recipe %q was sealed with id %s but its frontmatter now says %s — the id is a permanent identity, minted once and never edited; restore it (a genuinely new recipe gets a new slug, not a rewritten id)", slug, entry.ID, id)
+	}
 	switch {
 	case !sealed:
-		entry = RegistryEntry{Version: version, Hash: hash, Provenance: "local", ExactContracts: digest}
-	case entry.Hash == hash && entry.Version == version:
+		entry = RegistryEntry{ID: id, Version: version, Hash: hash, Provenance: "local", ExactContracts: digest}
+	case entry.Hash == hash && entry.Version == version && entry.ID == id:
 		return entry, nil // already sealed exactly so — idempotent by design
+	case entry.Hash == hash && entry.Version == version:
+		// Content and version match; only the id differs — an old seal being backfilled. Record
+		// it without demanding a version bump: adding the id to the registry is not a mutation
+		// of the recipe, it is the ledger catching up to a field the file already carries.
+		entry.ID = id
 	case entry.Version == version:
 		return RegistryEntry{}, fmt.Errorf("recipe %q changed since it was sealed at %s, but `version:` still says %s — a sealed recipe never silently mutates; bump the version, then seal", slug, entry.Version, version)
 	default:
@@ -168,7 +188,7 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 		if entry.ExactContracts != "" && digest != entry.ExactContracts && semverMajor(version) <= semverMajor(entry.Version) {
 			return RegistryEntry{}, fmt.Errorf("recipe %q changes an exact-bound contract — every consumer in the fleet parses that shape, so this is a MAJOR version (%s → at least %d.0.0), not %s", slug, entry.Version, semverMajor(entry.Version)+1, version)
 		}
-		entry.Version, entry.Hash, entry.ExactContracts = version, hash, digest
+		entry.ID, entry.Version, entry.Hash, entry.ExactContracts = id, version, hash, digest
 	}
 	reg.Recipes[slug] = entry
 	if err := reg.Save(root); err != nil {
@@ -196,6 +216,8 @@ func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
 		}
 		version := fmValue(src, "version")
 		switch {
+		case entry.ID != "" && fmValue(src, "id") != entry.ID:
+			out = append(out, Finding{name, 0, fmt.Sprintf("frontmatter id %s does not match the sealed id %s — the id is a permanent identity, never edited; restore it (a genuinely different recipe gets its own slug, not a rewritten id)", fmValue(src, "id"), entry.ID)})
 		case version != entry.Version:
 			out = append(out, Finding{name, 0, fmt.Sprintf("frontmatter says version %s but the seal says %s — re-seal (`sporo seal %s`) so the registry witnesses the version the document declares", version, entry.Version, slug)})
 		case ContentHash(src) != entry.Hash:
