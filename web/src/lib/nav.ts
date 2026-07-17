@@ -11,7 +11,7 @@ export const NAV: NavItem[] = [
   { k: 'genre', href: 'what-is-a-recipe.html', label: 'the genre' },
   { k: 'manifesto', href: 'manifesto.html', label: 'manifesto' },
   { k: 'compare', href: 'compare.html', label: 'compare' },
-  { k: 'example', href: 'example.html', label: 'example' },
+  { k: 'recipes', href: 'recipes.html', label: 'recipes' },
   { k: 'docs', href: 'docs.html', label: 'docs' },
   { k: 'changelog', href: 'changelog.html', label: 'changelog' },
 ];

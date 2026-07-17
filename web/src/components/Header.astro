@@ -12,7 +12,7 @@
 // weight (the two concept pages, the decision page, the proof, the reference, history last).
 import { NAV } from '../lib/nav.ts';
 interface Props {
-  active?: 'home' | 'genre' | 'manifesto' | 'compare' | 'example' | 'docs' | 'changelog';
+  active?: 'home' | 'genre' | 'manifesto' | 'compare' | 'recipes' | 'docs' | 'changelog';
 }
 const { active = 'home' } = Astro.props;
 const cls = (k: string) => (active === k ? 'hov-nou' : 'hov-ink-nou');

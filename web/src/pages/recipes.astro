@@ -1,0 +1,89 @@
+---
+import Layout from '../components/Layout.astro';
+import Frame from '../components/Frame.astro';
+import { listCorpus } from '../lib/corpus.ts';
+
+// The storefront. Every recipe in the corpus, as a card that links to its detail page. The list
+// is generated from the corpus at build, so publishing a recipe (a new `.md` under recipes/) adds
+// a card and a page with no edit here.
+const recipes = listCorpus()
+  .map(({ slug, meta }) => ({
+    slug,
+    version: meta.version ?? '',
+    title: meta.title ?? slug,
+    headline: (meta.title ?? slug).split(' — ')[0],
+    problem: meta.problem ?? '',
+    // The effort field opens with the size word (large / an evening / …); the rest is prose.
+    effort: (meta.effort ?? '').split(' — ')[0].trim(),
+  }))
+  .sort((a, b) => a.title.localeCompare(b.title));
+
+const head = {
+  title: 'sporo — the recipe corpus',
+  description:
+    'Every transferable build recipe in the sporo corpus: real, sealed, versioned recipes an AI agent can rebuild from in any repository. Read one in full, or hand it to an agent.',
+  path: '/recipes.html',
+  og: {
+    type: 'website' as const,
+    title: 'sporo recipes — the corpus',
+    description:
+      'Real, sealed, versioned build recipes an AI agent can rebuild from in a repository that has never seen yours.',
+  },
+  twitter: {},
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'sporo recipes',
+    url: 'https://sporo.dev/recipes.html',
+    description: 'The sporo recipe corpus — transferable build recipes for AI agents.',
+  },
+};
+---
+
+<Layout head={head} active="recipes">
+  <Frame layout="wide">
+    <section style="position:relative;padding:clamp(4rem,9vh,7rem) clamp(1.25rem,3vw,2.5rem) 3rem;overflow:clip">
+      <div aria-hidden="true" style="position:absolute;top:1.5rem;right:clamp(1rem,2.5vw,2rem);font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:clamp(5rem,11vw,9rem);line-height:1;color:var(--ghost);pointer-events:none;user-select:none">✦</div>
+      <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">◉</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">the corpus</span></div>
+      <h1 style="font-size:clamp(2.4rem,6vw,4rem);line-height:1.02;letter-spacing:-.045em;font-weight:760;max-width:16ch;text-wrap:balance">Recipes, ready to hand over.</h1>
+      <p style="margin-top:1.4rem;max-width:58ch;color:var(--muted);font-size:clamp(1.02rem,1.7vw,1.2rem);text-wrap:pretty">Each is a real build, distilled: principles, contracts and scars an AI agent germinates back into the capability — on its own stack, in a repository that has never seen yours. New to the idea? <a href="what-is-a-recipe.html" style="text-decoration:underline;text-underline-offset:3px">What a recipe is →</a></p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,400px));justify-content:start;gap:1rem;margin-top:3.2rem">
+        {recipes.map((r) => (
+          <a
+            href={`${r.slug}.html`}
+            class="recipe-card"
+            style="display:flex;flex-direction:column;border:1px solid var(--line);border-radius:1rem;background:var(--card);padding:1.5rem 1.5rem 1.3rem;text-decoration:none;color:inherit;transition:border-color .18s ease,transform .18s ease"
+          >
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.9rem">v{r.version}</div>
+            <h2 title={r.title} style="font-size:1.25rem;line-height:1.18;letter-spacing:-.02em;font-weight:680;color:var(--ink)">{r.headline}</h2>
+            <p style="margin-top:.7rem;color:var(--muted);font-size:.94rem;line-height:1.5;text-wrap:pretty;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">{r.problem}</p>
+            <div style="margin-top:1.3rem;padding-top:.9rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.04em;color:var(--muted)">
+              <span>{r.effort}</span>
+              <span class="recipe-arrow" style="color:var(--accent);font-weight:600">read →</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  </Frame>
+</Layout>
+
+<style>
+  .recipe-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .recipe-card:hover .recipe-arrow {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .recipe-card {
+      transition: none;
+    }
+    .recipe-card:hover {
+      transform: none;
+    }
+  }
+</style>

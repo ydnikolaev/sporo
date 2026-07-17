@@ -74,11 +74,21 @@ export function rawRecipe(slug: string): string {
   return stripBanner(fs.readFileSync(path.join(recipesDir, `${slug}.md`), 'utf-8'));
 }
 
+export interface CorpusEntry {
+  slug: string;
+  meta: Record<string, string>;
+}
+
 // listCorpus enumerates the official recipes (the `_`-prefixed files are the authoring and
-// adoption specs, not recipes).
-export function listCorpus(): Array<Record<string, string>> {
+// adoption specs, not recipes). It carries the slug — the filename minus `.md` — because that
+// is the recipe's route (`/<slug>.html`) and the key `getStaticPaths` builds every detail page
+// and `.md` mirror from. A meta-only list could render a card but never link it.
+export function listCorpus(): CorpusEntry[] {
   return fs
     .readdirSync(recipesDir)
     .filter((f) => f.endsWith('.md') && !f.startsWith('_'))
-    .map((f) => frontmatter(stripBanner(fs.readFileSync(path.join(recipesDir, f), 'utf-8'))).meta);
+    .map((f) => ({
+      slug: f.replace(/\.md$/, ''),
+      meta: frontmatter(stripBanner(fs.readFileSync(path.join(recipesDir, f), 'utf-8'))).meta,
+    }));
 }
