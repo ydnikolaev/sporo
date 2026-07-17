@@ -26,6 +26,7 @@ stderr 'accepts at most 1 arg\(s\), received 2'
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: nightly-digest
 version: 1.0.0
 title: A nightly digest that checks itself

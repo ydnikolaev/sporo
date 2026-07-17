@@ -463,17 +463,24 @@ func lintCmd() *cobra.Command {
 	return cmd
 }
 
-// export prints one recipe as a single self-contained file — banner stripped, adoption protocol
-// appended — for an agent in a repository that has never heard of this tool. The official corpus
-// is compiled into the binary for exactly that reason; the project's own recipes are searched
-// first.
+// export composes one recipe into a single self-contained file — banner stripped, adoption
+// protocol appended — for an agent in a repository that has never heard of this tool. The
+// official corpus is compiled into the binary for exactly that reason; the project's own
+// recipes are searched first.
+//
+// Delivery is the tool's whole job here — the point is to HAND the recipe to someone else — so
+// by default the composed file is WRITTEN, to `.sporo/exports/<slug>.md`, and the path printed.
+// Two escape hatches keep the old side-effect-free contract intact: `--stdout` forces the body
+// to stdout for piping (`export <slug> --stdout | pbcopy`), and a run with NO project home
+// falls back to stdout on its own — a stranger reading an official recipe from a bare directory
+// must never have a `.sporo/` tree created underfoot.
 func exportCmd() *cobra.Command {
 	var root string
-	var bundle bool
+	var bundle, toStdout bool
 	cmd := &cobra.Command{
 		Use:   "export <slug>",
 		Args:  cobra.ExactArgs(1),
-		Short: "Print one recipe (or, with --bundle, a composed set) as a single self-contained file",
+		Short: "Write one recipe (or, with --bundle, a composed set) as a single self-contained file",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home, err := homeOrNone(root)
 			if err != nil {
@@ -491,11 +498,24 @@ func exportCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Fprint(cmd.OutOrStdout(), body)
+			if toStdout || home == "" {
+				fmt.Fprint(cmd.OutOrStdout(), body)
+				return nil
+			}
+			dir := filepath.Join(root, ".sporo", "exports")
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return err
+			}
+			out := filepath.Join(dir, args[0]+".md")
+			if err := os.WriteFile(out, []byte(body), 0o644); err != nil {
+				return err
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "sporo export: wrote %s — hand this file over, not the source\n", out)
 			return nil
 		},
 	}
 	cmd.Flags().BoolVar(&bundle, "bundle", false, "treat <slug> as a bundle manifest and compose its members into one document")
+	cmd.Flags().BoolVar(&toStdout, "stdout", false, "print the composed document to stdout instead of writing a file (for piping)")
 	cmd.Flags().StringVar(&root, "root", ".", "project root (searched for this repo's own recipes before the official corpus)")
 	return cmd
 }

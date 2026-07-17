@@ -10,15 +10,24 @@ stdout 'conformant and neutral'
 exec sporo seal nightly-digest
 stdout '1\.0\.0'
 
-exec sporo export nightly-digest
+# --stdout prints the composed document for piping.
+exec sporo export nightly-digest --stdout
 stdout '## Adopt it here'
 stdout '## Report back'
 ! stdout '<!-- SSOT SOURCE'
+
+# the default WRITES the file — export exists to hand a recipe over, not to fill a terminal.
+exec sporo export nightly-digest
+stdout 'wrote .sporo/exports/nightly-digest.md'
+exists .sporo/exports/nightly-digest.md
+grep '## Adopt it here' .sporo/exports/nightly-digest.md
+! grep '<!-- SSOT SOURCE' .sporo/exports/nightly-digest.md
 
 -- .sporo/recipes/nightly-digest.md --
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: nightly-digest
 version: 1.0.0
 title: A nightly digest that checks itself

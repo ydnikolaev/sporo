@@ -64,12 +64,16 @@ not restate a corpus inside a recipe.
 Every recipe is these parts, in this order. The shape is **gated**, because a genre defined
 only by taste drifts into whatever the last author felt like writing.
 
-1. **Frontmatter** — `name`, `version` (semver), `title`, `problem` (one sentence),
+1. **Frontmatter** — `id`, `name`, `version` (semver), `title`, `problem` (one sentence),
    `prerequisites` (capabilities, never tool names), `derived_from`, `stack`, `verified:
-   {project, release, date}`, `effort`. Two of these are honesty stamps rather than metadata:
-   `verified` says a recipe is a **snapshot of one successful build** (whose, which release,
-   when) and not maintained doctrine; `stack` records what that build actually ran on, so the
-   reader can weigh how far their own ground is from it. `version` is the loop's anchor: the
+   {project, release, date}`, `effort`. `id` is the recipe's **permanent identity** — a ULID
+   minted once by `sporo new` and never hand-edited; the slug can be renamed, the id cannot,
+   because it is the key a marketplace, a permalink, and a report-back thread all hang on
+   (`adopt`/`pull` copy it verbatim, so an adopted recipe keeps its origin's id). Two other keys
+   are honesty stamps rather than metadata: `verified` says a recipe is a **snapshot of one
+   successful build** (whose, which release, when) and not maintained doctrine; `stack` records
+   what that build actually ran on, so the reader can weigh how far their own ground is from it.
+   `version` is the loop's anchor: the
    exported file is the only thing the reader has, so the version travels **in** the document,
    a report-back binds to it, and new scars from readers are what produce the next one. The
    frontmatter is the **one place a product may be named** — it is provenance, not
@@ -337,9 +341,9 @@ early that I forgot it was a decision?*
 
 ## 9. Porting checklist
 
-- [ ] Frontmatter carries `name`, `version`, `title`, `problem`, `prerequisites`,
-      `derived_from`, `stack`, `verified`, `effort` — and `effort` is honest about which half
-      of the build eats the budget.
+- [ ] Frontmatter carries `id`, `name`, `version`, `title`, `problem`, `prerequisites`,
+      `derived_from`, `stack`, `verified`, `effort` — `id` is the ULID `sporo new` minted (never
+      typed), and `effort` is honest about which half of the build eats the budget.
 - [ ] All eleven sections are present, in order (the appendix is optional). `## Adopt it here`
       and `## Report back` are **not** among them — delivery appends those.
 - [ ] The body contains **no** repository path, filename, or product name — in **any**

@@ -5,7 +5,7 @@ mkdir sub/.claude
 exec sporo init --root sub
 
 exec sporo seal --root sub crm-feed
-exec sporo export --root sub crm-feed
+exec sporo export --root sub crm-feed --stdout
 cp stdout handoff.md
 
 exec sporo adopt --root sub handoff.md
@@ -21,6 +21,7 @@ grep 'adopted:' sub/.sporo/registry.yaml
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: crm-feed
 version: 1.0.0
 title: A nightly digest that checks itself

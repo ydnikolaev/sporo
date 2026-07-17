@@ -7,7 +7,7 @@ exec sporo init
 exec sporo seal crm-feed
 stdout 'sporo seal: crm-feed 1\.0\.0'
 
-exec sporo export crm-feed
+exec sporo export crm-feed --stdout
 cp stdout handoff.md
 
 # contract #1 against a feed shaped for it, addressed explicitly.
@@ -29,6 +29,7 @@ stderr 'contract #2 \$\.ok: missing'
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: crm-feed
 version: 1.0.0
 title: A nightly digest that checks itself

@@ -5,7 +5,7 @@ mkdir .claude
 exec sporo init
 
 exec sporo seal crm-feed
-exec sporo export crm-feed
+exec sporo export crm-feed --stdout
 cp stdout handoff.md
 
 exec sporo adopt handoff.md --source https://recipes.example/crm-feed.md
@@ -17,6 +17,7 @@ grep 'source: https://recipes.example/crm-feed.md' .sporo/registry.yaml
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: crm-feed
 version: 1.0.0
 title: A nightly digest that checks itself

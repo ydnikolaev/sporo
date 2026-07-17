@@ -1,6 +1,7 @@
 <!-- SSOT SOURCE (sporo repo). Consumers receive a provenance-stamped copy via `sporo update` — edit HERE, never the synced copies. -->
 
 ---
+id: 01KXS4J44AWVNJMYZSWKYD5CC9
 name: derived-progress-report
 version: 1.0.1
 title: The daily progress report that checks itself — derived numbers, a page for people, a record the knowledge base ingests

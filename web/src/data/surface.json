@@ -56,7 +56,7 @@
     {
       "use": "export <slug>",
       "name": "export",
-      "short": "Print one recipe (or, with --bundle, a composed set) as a single self-contained file",
+      "short": "Write one recipe (or, with --bundle, a composed set) as a single self-contained file",
       "group": "authoring",
       "flags": [
         {
@@ -68,6 +68,11 @@
           "name": "root",
           "default": ".",
           "usage": "project root (searched for this repo's own recipes before the official corpus)"
+        },
+        {
+          "name": "stdout",
+          "default": "false",
+          "usage": "print the composed document to stdout instead of writing a file (for piping)"
         }
       ]
     },

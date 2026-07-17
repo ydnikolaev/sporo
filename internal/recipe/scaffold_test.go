@@ -57,6 +57,11 @@ func TestTheScaffoldMinusTheDraftMarkIsGenreGreen(t *testing.T) {
 	if f := Lint("my-capability.md", []byte(finished), cfg.Products); len(f) != 0 {
 		t.Fatalf("the scaffold is the first conformant document the author reads — it may not fail its own gate:\n%v", f)
 	}
+	// The id is minted, not typed — so it must be present and a real ULID the moment the draft
+	// is born, or the author hits a gate on a field they were never meant to touch.
+	if id := fmValue(src, "id"); !reULID.MatchString("id: " + id) {
+		t.Fatalf("the scaffold must mint a valid ULID id, got %q", id)
+	}
 }
 
 func TestTheScaffoldNeverOverwrites(t *testing.T) {

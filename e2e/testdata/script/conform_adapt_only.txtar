@@ -13,6 +13,7 @@ stdout 'this recipe declares no exact-bound contracts — every shape is Binding
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: nightly-digest
 version: 1.0.0
 title: A nightly digest that checks itself

@@ -1,0 +1,9 @@
+# With NO project home, export falls back to stdout and creates NO `.sporo/` tree. Export's
+# original contract was side-effect-free — a stranger reading an official recipe from a bare
+# directory just wants the text, and must never have a project scaffolded underfoot. The
+# default file-write is for authors in their own repo; the corpus reader gets stdout.
+exec sporo export derived-progress-report
+stdout '## Adopt it here'
+stdout '## Report back'
+! stdout 'sporo export: wrote'
+! exists .sporo

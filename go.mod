@@ -4,6 +4,7 @@ go 1.26.4
 
 require (
 	github.com/creativeprojects/go-selfupdate v1.6.0
+	github.com/oklog/ulid/v2 v2.1.1
 	github.com/rogpeppe/go-internal v1.15.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.9

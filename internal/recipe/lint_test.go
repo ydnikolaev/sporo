@@ -18,6 +18,7 @@ import (
 const conformant = `<!-- SSOT SOURCE (mate repo). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: baseline
 version: 1.0.0
 title: A conformant recipe
@@ -140,6 +141,20 @@ func TestAScarMissingItsRootCauseReds(t *testing.T) {
 // The loop's anchor. A report-back binds to the version its author actually built; a recipe
 // with no version — or one that cannot be ordered — makes every report ambiguous the day the
 // text changes.
+func TestAMissingIDReds(t *testing.T) {
+	// The id is minted by `sporo new`, so a recipe that lacks one was hand-assembled or ported
+	// from before ids existed — either way it has no permalink, and the gate must say so.
+	body := strings.Replace(conformant, "id: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n", "", 1)
+	assertRed(t, lintFixture(t, body), "id")
+}
+
+func TestAnIDThatIsNotAULIDReds(t *testing.T) {
+	// A hand-typed id is exactly what mints two recipes onto the same permalink. `l` and `o`
+	// are outside Crockford base32, and the value is not 26 chars — either alone must red.
+	body := strings.Replace(conformant, "id: 01ARZ3NDEKTSV4RRFFQ69G5FAV", "id: not-a-real-ulid", 1)
+	assertRed(t, lintFixture(t, body), "ULID")
+}
+
 func TestAMissingVersionReds(t *testing.T) {
 	body := strings.Replace(conformant, "version: 1.0.0\n", "", 1)
 	assertRed(t, lintFixture(t, body), "version")

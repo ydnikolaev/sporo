@@ -97,6 +97,7 @@ func (w world) read(t *testing.T, rel string) string {
 const recipeV1 = `<!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: nightly-digest
 version: 1.0.0
 title: A nightly digest that checks itself
@@ -257,7 +258,7 @@ func TestEndToEnd(t *testing.T) {
 	})
 
 	t.Run("conform holds every project's output to the exact shape — from the export alone", func(t *testing.T) {
-		handoff := w.mustRun(t, "export", "crm-feed")
+		handoff := w.mustRun(t, "export", "crm-feed", "--stdout")
 		w.write(t, "handoff.md", handoff)
 		w.write(t, "feed.json", `{ "schema": 3, "tallied": 40 }`)
 		if out := w.mustRun(t, "conform", "handoff.md", "feed.json"); !strings.Contains(out, "✓") {
@@ -274,12 +275,21 @@ func TestEndToEnd(t *testing.T) {
 	})
 
 	t.Run("export composes the deliverable", func(t *testing.T) {
-		out := w.mustRun(t, "export", "nightly-digest")
+		out := w.mustRun(t, "export", "nightly-digest", "--stdout")
 		if !strings.Contains(out, "## Adopt it here") || !strings.Contains(out, "## Report back") {
 			t.Fatal("the export must carry the adoption protocol")
 		}
 		if strings.Contains(out, "<!-- SSOT SOURCE") {
 			t.Fatal("the banner is house business and must be stripped")
+		}
+		// The default (no --stdout) writes the composed file instead of printing it — the
+		// delivery contract, since export exists to HAND a recipe over.
+		msg := w.mustRun(t, "export", "nightly-digest")
+		if !strings.Contains(msg, ".sporo/exports/nightly-digest.md") {
+			t.Fatalf("export must report the file it wrote: %s", msg)
+		}
+		if got := w.read(t, ".sporo/exports/nightly-digest.md"); !strings.Contains(got, "## Adopt it here") {
+			t.Fatal("the written export must carry the adoption protocol")
 		}
 	})
 
@@ -327,7 +337,7 @@ func TestEndToEnd(t *testing.T) {
 		second := strings.Replace(recipeV1, "name: nightly-digest", "name: weekly-rollup", 1)
 		w.write(t, ".sporo/recipes/weekly-rollup.md", second)
 		w.write(t, ".sporo/recipes/reporting.bundle.yaml", "bundle: reporting\ntitle: The reporting stack\nmembers: [nightly-digest, weekly-rollup]\n")
-		out := w.mustRun(t, "export", "--bundle", "reporting")
+		out := w.mustRun(t, "export", "--bundle", "reporting", "--stdout")
 		if n := strings.Count(out, "## Adopt it here"); n != 1 {
 			t.Fatalf("one composition, one protocol; got %d", n)
 		}

@@ -63,7 +63,7 @@ var requiredSections = []string{
 // `version` is the loop's anchor: a report-back that cannot say WHICH text its author built
 // is unusable the day the recipe changes, and the exported file is the only thing the reader
 // has — so the version travels in the document, not in a registry the reader never sees.
-var requiredKeys = []string{"name", "version", "title", "problem", "prerequisites", "derived_from", "stack", "verified", "effort"}
+var requiredKeys = []string{"id", "name", "version", "title", "problem", "prerequisites", "derived_from", "stack", "verified", "effort"}
 
 // The coordinate vocabulary — the shapes, never a snapshot of today's names, or the scan
 // goes blind the day someone adds a directory.
@@ -88,11 +88,15 @@ var (
 	// are holding, which is how one team's "example" becomes another team's broken feed.
 	reBinding    = regexp.MustCompile(`\*\*Binding: (exact|adapt)\*\*`)
 	reBindingAny = regexp.MustCompile(`\*\*Binding:`)
-	reHeading  = regexp.MustCompile(`^### `)
-	reFence    = regexp.MustCompile("^\\s*```")
-	reDone     = regexp.MustCompile(`\*\*Done when:\*\*`)
-	reSemver   = regexp.MustCompile(`^version:\s*"?\d+\.\d+\.\d+"?\s*$`)
-	reAllow    = "<!-- recipe-lint: allow" // line-precise opt-out; must carry a reason
+	reHeading    = regexp.MustCompile(`^### `)
+	reFence      = regexp.MustCompile("^\\s*```")
+	reDone       = regexp.MustCompile(`\*\*Done when:\*\*`)
+	reSemver     = regexp.MustCompile(`^version:\s*"?\d+\.\d+\.\d+"?\s*$`)
+	// A ULID: 26 chars of Crockford base32 (no I/L/O/U). The first char is [0-7] because a
+	// ULID is 130 bits (26×5) and the 48-bit timestamp caps the leading char at 7 — anything
+	// higher is an over-long value that only LOOKS like a ULID. Minted by NewID(), never typed.
+	reULID  = regexp.MustCompile(`^id:\s*"?[0-7][0-9A-HJKMNP-TV-Z]{25}"?\s*$`)
+	reAllow = "<!-- recipe-lint: allow" // line-precise opt-out; must carry a reason
 )
 
 // scarMarkers: a scar missing one of the three teaches nothing — it decays into a paragraph
@@ -141,6 +145,9 @@ func Lint(name string, src []byte, products []string) []Finding {
 			if !hasKey(fm, key) {
 				fail(0, "frontmatter is missing `%s:`", key)
 			}
+		}
+		if v := keyLine(fm, "id"); v != "" && !reULID.MatchString(v) {
+			fail(0, "`id:` must be a ULID (26 Crockford-base32 chars) — it is the recipe's permanent identity, minted by `sporo new`, never typed or edited; a hand-written id is how two recipes end up claiming the same permalink")
 		}
 		if v := keyLine(fm, "version"); v != "" && !reSemver.MatchString(v) {
 			fail(0, "`version:` must be a semver triple (MAJOR.MINOR.PATCH) — the report-back channel binds to it, and a version that cannot be ordered cannot say which text superseded which")

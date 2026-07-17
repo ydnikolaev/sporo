@@ -37,6 +37,7 @@ func Scaffold(root string, cfg Config, slug, title string, h *Harvest) (string, 
 
 	fmt.Fprintf(&b, "<!-- SSOT SOURCE (%s). The export strips this banner; edit here, hand over ONLY what `sporo export` prints. -->\n\n", project)
 	b.WriteString("---\n")
+	fmt.Fprintf(&b, "id: %s\n", NewID())
 	fmt.Fprintf(&b, "name: %s\n", slug)
 	b.WriteString("version: 0.1.0\n")
 	b.WriteString("draft: true\n")
@@ -51,6 +52,8 @@ func Scaffold(root string, cfg Config, slug, title string, h *Harvest) (string, 
 	fmt.Fprintf(&b, "# %s\n\n", strings.TrimSuffix(title, " — one line naming the capability, not the technology"))
 	b.WriteString("<!-- coach: every comment like this one is scaffolding. Replace the TODOs, DELETE the\n" +
 		"     coach comments, remove `draft: true` — then `sporo lint`, `sporo seal`, `sporo export`.\n" +
+		"     Leave `id:` ALONE — it is this recipe's permanent identity, minted once; editing it\n" +
+		"     breaks the permalink a marketplace and every report-back hang on.\n" +
 		"     The one rule that cannot bend: the body names ROLES, never your paths, filenames or\n" +
 		"     product names. Read `sporo genre` before filling anything. -->\n\n")
 

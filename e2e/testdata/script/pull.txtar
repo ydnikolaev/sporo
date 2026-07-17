@@ -5,7 +5,7 @@
 mkdir .claude
 exec sporo init
 
-exec sporo export crm-feed
+exec sporo export crm-feed --stdout
 cp stdout handoff.md
 
 exec sporo adopt handoff.md
@@ -33,6 +33,7 @@ stdout 'adopted  crm-feed \(3\.0\.0\)'
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: crm-feed
 version: 2.0.0
 title: Feed the CRM aggregator
@@ -93,6 +94,7 @@ It costs a build step.
 Built on a compiled language with a single binary.
 -- bumped/crm-feed.md --
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: crm-feed
 version: 3.0.0
 title: Feed the CRM aggregator

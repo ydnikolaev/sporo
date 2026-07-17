@@ -12,6 +12,7 @@ stderr 'nothing adopted as "no-such-slug"'
 
 -- widget-a.md --
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: widget-a
 version: 1.0.0
 title: Widget A
@@ -28,6 +29,7 @@ Nothing exact here — **Binding: adapt**.
 ```
 -- widget-b.md --
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: widget-b
 version: 1.0.0
 title: Widget B

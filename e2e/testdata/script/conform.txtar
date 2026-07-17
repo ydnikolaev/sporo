@@ -8,7 +8,7 @@ exec sporo init
 exec sporo seal crm-feed
 stdout 'sporo seal: crm-feed 1\.0\.0'
 
-exec sporo export crm-feed
+exec sporo export crm-feed --stdout
 cp stdout handoff.md
 stdout '## Adopt it here'
 ! stdout '<!-- SSOT SOURCE'
@@ -30,6 +30,7 @@ stderr 'the output does not hold the promise its recipe makes'
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: crm-feed
 version: 1.0.0
 title: A nightly digest that checks itself

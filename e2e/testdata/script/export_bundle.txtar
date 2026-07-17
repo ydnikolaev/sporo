@@ -6,7 +6,7 @@ exec sporo init
 exec sporo lint
 stdout 'conformant and neutral'
 
-exec sporo export --bundle reporting
+exec sporo export --bundle reporting --stdout
 cp stdout bundle.md
 stdout 'The reporting stack'
 grep -count=1 '## Adopt it here' bundle.md
@@ -20,6 +20,7 @@ grep '(?s)name: nightly-digest.*name: weekly-rollup' bundle.md
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: nightly-digest
 version: 1.0.0
 title: A nightly digest that checks itself
@@ -83,6 +84,7 @@ Incidental: the test runner. It cost a longer build.
 <!-- SSOT SOURCE (this project). -->
 
 ---
+id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
 name: weekly-rollup
 version: 1.0.0
 title: A nightly digest that checks itself
