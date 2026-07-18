@@ -1,0 +1,30 @@
+# The dumb, unbypassable backstop for the publish boundary. The rich gate
+# (scripts/classify-guard.sh) is PRIVATE harness and absent from this checkout, so
+# this job re-asserts the one invariant that matters here with self-contained bash:
+# the PUBLIC repo tracks NO private path. A local `--no-verify` can skip a git hook;
+# it cannot skip CI. Keep the denylist below in sync with that gate's DENY_* arrays.
+name: classify-guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  no-private-paths:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: assert no private path is tracked
+        run: |
+          set -euo pipefail
+          priv=$(git ls-files | grep -E '^(\.agents|\.claude|\.codex|\.mate|docs)/|^(AGENTS\.md|Makefile)$' || true)
+          # scripts/ is private except the public installer.
+          scripts_priv=$(git ls-files 'scripts/*' | grep -vx 'scripts/install.sh' || true)
+          leaked=$(printf '%s\n%s\n' "$priv" "$scripts_priv" | sed '/^$/d')
+          if [ -n "$leaked" ]; then
+            echo "::error::private paths tracked in the PUBLIC repo (harness/planning must live in the private repo):"
+            echo "$leaked"
+            exit 1
+          fi
+          echo "OK — no private path tracked in the public repo."

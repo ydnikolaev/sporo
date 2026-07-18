@@ -14,3 +14,17 @@ go.work.sum
 .DS_Store
 .env
 .env.*
+
+# ── publish boundary: private harness + planning ──────────────────────────────────
+# SSOT of this list is scripts/classify-guard.sh (the gate asserts the two agree).
+# These live in a separate private repo; the PUBLIC repo must never track them.
+# The harness is delivered by `mate fleet pull`, not committed here.
+.agents/
+.claude/
+.codex/
+.mate/
+docs/
+AGENTS.md
+Makefile
+scripts/*
+!scripts/install.sh
