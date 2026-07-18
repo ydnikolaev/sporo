@@ -1,0 +1,75 @@
+---
+import Layout from '../components/Layout.astro';
+import Frame from '../components/Frame.astro';
+import VerifyBlock from '../components/VerifyBlock.astro';
+
+// The trust destination: how to verify what you install, how the source is guarded, and how to
+// report a vulnerability. Every claim mirrors what the release pipeline mechanically produces and
+// what SECURITY.md commits to — no decorative assurances.
+const head = {
+  title: 'sporo — security & provenance',
+  description:
+    'Every sporo release is cosign-signed (keyless), carries a SLSA build-provenance attestation, and ships an SBOM. Verify your download in two commands; report a vulnerability privately.',
+  path: '/security.html',
+  ogImage: 'og.png',
+  og: {
+    type: 'website' as const,
+    title: 'sporo — security & provenance',
+    description:
+      'Signed, attested, SBOM-carrying releases you can verify yourself — plus the continuous scanning behind them and how to report a vulnerability.',
+  },
+  twitter: {},
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'sporo security & provenance',
+    author: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+    publisher: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+    mainEntityOfPage: 'https://sporo.dev/security.html',
+  },
+};
+
+const eyebrow =
+  "font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem";
+const h2s =
+  'font-size:clamp(1.6rem,3.4vw,2.3rem);letter-spacing:-.03em;line-height:1.08;font-weight:730';
+const link = 'color:var(--accent);text-decoration:underline;text-underline-offset:3px';
+---
+
+<Layout head={head} active="">
+  <Frame layout="reading">
+    <div style="padding:0 0 3rem">
+      <div style={eyebrow}>trust &amp; provenance</div>
+      <h1 style="font-size:clamp(2.4rem,6vw,4rem);line-height:1.02;letter-spacing:-.045em;font-weight:760;max-width:16ch">Every release, <em style="font-style:italic;color:var(--accent)">signed and provable</em>.</h1>
+      <p style="margin-top:1.6rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">You run a binary you downloaded from the internet — so you should be able to prove it's really ours before you trust it. Every <span style="color:var(--ink);font-weight:600">sporo</span> release is signed, attested, and inventoried, and the source it's built from is continuously scanned. None of this needs an account, a key, or our servers.</p>
+    </div>
+
+    <section style="position:relative;border-top:1px solid var(--line)">
+      <div style="padding:3rem 0">
+        <VerifyBlock divider={false} />
+      </div>
+    </section>
+
+    <section style="position:relative;border-top:1px solid var(--line)">
+      <div style="padding:3rem 0">
+        <div style={eyebrow}>report a vulnerability</div>
+        <h2 style={h2s}>Found something? Tell us privately.</h2>
+        <p style="margin-top:1.2rem;color:var(--muted);max-width:64ch;text-wrap:pretty">Please don't open a public issue for a security problem. Use GitHub's private advisory flow — <a href="https://github.com/ydnikolaev/sporo/security/advisories/new" rel="noopener" style={link}>Report a vulnerability</a> on the repository's Security tab — a channel visible only to the maintainers.</p>
+        <ul style="margin:1.6rem 0 0;display:grid;gap:.8rem;max-width:60rem;padding:0;list-style:none;color:var(--muted)">
+          <li style="padding-left:1.7rem;position:relative"><span style="position:absolute;left:0;top:.05rem;color:var(--accent);font-weight:700">→</span><strong style="color:var(--ink)">Acknowledgement</strong> within 3 business days; assessment and next steps within 7.</li>
+          <li style="padding-left:1.7rem;position:relative"><span style="position:absolute;left:0;top:.05rem;color:var(--accent);font-weight:700">→</span><strong style="color:var(--ink)">Supported version</strong> — only the latest release receives fixes; upgrade with <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">sporo upgrade</code> and confirm it still reproduces.</li>
+          <li style="padding-left:1.7rem;position:relative"><span style="position:absolute;left:0;top:.05rem;color:var(--accent);font-weight:700">→</span><strong style="color:var(--ink)">Credit</strong> in the published advisory, unless you'd rather stay anonymous.</li>
+        </ul>
+        <p style="margin-top:1.4rem;color:var(--muted)">Full policy: <a href="https://github.com/ydnikolaev/sporo/blob/main/SECURITY.md" rel="noopener" style={link}>SECURITY.md</a>.</p>
+      </div>
+    </section>
+
+    <section style="position:relative;border-top:1px solid var(--line)">
+      <div style="padding:3rem 0">
+        <div style={eyebrow}>transparency</div>
+        <h2 style={h2s}>We show the findings, not just the badge.</h2>
+        <p style="margin-top:1.2rem;color:var(--muted);max-width:64ch;text-wrap:pretty"><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9em;background:var(--accent-soft);color:var(--ink);padding:.1em .4em;border-radius:.35em">govulncheck</code> runs on every PR and daily. A vulnerability we can't yet fix — an unmaintained transitive dependency with no patched version — is <strong style="color:var(--ink)">not hidden</strong>: it's recorded in a public, commented allowlist (<a href="https://github.com/ydnikolaev/sporo/blob/main/.govulncheck-allow.txt" rel="noopener" style={link}>.govulncheck-allow.txt</a>) with the reason, so the gate stays green on the known one and loud on any new one. Same discipline as the recipe badges: a claim is only made when it's earned.</p>
+      </div>
+    </section>
+  </Frame>
+</Layout>

@@ -3,6 +3,7 @@ import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import AgentMarks from '../components/AgentMarks.astro';
 import TrustStrip from '../components/TrustStrip.astro';
+import VerifyBlock from '../components/VerifyBlock.astro';
 import { SPORO_VERSION, VERB_COUNT } from '../lib/site.ts';
 import { fetchDownloadCount } from '../lib/releases.ts';
 
@@ -357,42 +358,7 @@ const head = {
           </div>
         </div>
 
-        <!-- Verify what you install — every claim here is mechanically produced by the release
-             pipeline and checkable by a stranger, in the honest-badge spirit of the rest of the site. -->
-        <div style="margin-top:3.4rem;border-top:1px solid var(--line);padding-top:2.9rem">
-          <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:1.3rem"><span style="color:var(--accent);font-weight:600">signed · provable · auditable</span><span style="flex:1;height:1px;background:var(--line)"></span></div>
-          <h3 style="font-size:clamp(1.45rem,2.9vw,2.1rem);letter-spacing:-.03em;line-height:1.1;font-weight:720;max-width:26ch">Don't take our word for it — <em style="font-style:italic;color:var(--accent)">verify the binary</em>.</h3>
-          <p style="margin-top:1rem;max-width:66ch;color:var(--muted);text-wrap:pretty">Every release is signed with <strong style="color:var(--ink)">cosign</strong> — keyless, so there's no signing key you have to trust — and carries a <strong style="color:var(--ink)">SLSA build-provenance attestation</strong> binding the binary to this repository's release workflow, plus a full <strong style="color:var(--ink)">SBOM</strong>. Confirm what you downloaded is really ours, offline, in two commands:</p>
-
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1.2rem;margin-top:1.9rem">
-            <pre style="margin:0;background:#0e120f;color:#d9e4da;border:1px solid #ffffff14;border-radius:.9rem;padding:1.1rem 1.2rem;overflow-x:auto;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;line-height:1.75"><code><span style="color:#75857a"># build provenance — who built it, and from which commit</span>
-<span style="color:#75857a">$</span> gh attestation verify \
-    sporo_…_linux_amd64.tar.gz \
-    -R ydnikolaev/sporo
-<span style="color:#8fd1a4">✓ built by ydnikolaev/sporo · release.yml</span></code></pre>
-            <pre style="margin:0;background:#0e120f;color:#d9e4da;border:1px solid #ffffff14;border-radius:.9rem;padding:1.1rem 1.2rem;overflow-x:auto;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;line-height:1.75"><code><span style="color:#75857a"># signature — the keyless cosign bundle over checksums</span>
-<span style="color:#75857a">$</span> cosign verify-blob \
-    --bundle checksums.txt.sigstore.json \
-    checksums.txt
-<span style="color:#8fd1a4">Verified OK</span></code></pre>
-          </div>
-
-          <div style="margin-top:1.9rem"><TrustStrip /></div>
-
-          <div style="margin-top:2.6rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem">…and the source it's built from is continuously scanned</div>
-          <div style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:center">
-            {[
-              { l: 'CodeQL', h: 'https://github.com/ydnikolaev/sporo/security/code-scanning', t: 'GitHub CodeQL static security analysis on every push and weekly.' },
-              { l: 'govulncheck · daily', h: 'https://github.com/ydnikolaev/sporo/actions/workflows/govulncheck.yml', t: 'The official Go vulnerability scanner runs on every PR and daily; accepted findings are tracked in an auditable allowlist.' },
-              { l: 'gitleaks', h: 'https://github.com/ydnikolaev/sporo/actions/workflows/gitleaks.yml', t: 'Secret scanning across the working tree and full history on every push and PR.' },
-              { l: 'Dependabot', h: 'https://github.com/ydnikolaev/sporo/security/dependabot', t: 'Automated dependency + GitHub-Actions updates, with immediate security updates.' },
-              { l: 'coverage-gated', h: 'https://github.com/ydnikolaev/sporo/actions/workflows/ci.yml', t: 'A per-package + global coverage floor is enforced in CI from a single-source-of-truth policy.' },
-              { l: 'SHA-pinned CI', h: 'https://github.com/ydnikolaev/sporo/tree/main/.github/workflows', t: 'Every GitHub Action is pinned to a full commit SHA — no moving tags to hijack.' },
-            ].map((p) => (
-              <a href={p.h} rel="noopener" title={p.t} class="trust-chip" style="display:inline-flex;align-items:center;gap:.42rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;font-weight:600;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:.32rem .7rem;white-space:nowrap;text-decoration:none;transition:border-color .15s ease,color .15s ease"><span style="width:.42rem;height:.42rem;border-radius:50%;background:var(--accent);flex:none"></span>{p.l}</a>
-            ))}
-          </div>
-        </div>
+        <VerifyBlock />
       </div>
     </section>
   </Frame>

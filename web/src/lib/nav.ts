@@ -16,8 +16,11 @@ export const NAV: NavItem[] = [
   { k: 'changelog', href: 'changelog.html', label: 'changelog' },
 ];
 
-// Project resources and the author, shown in the footer's second row.
+// Project resources and the author, shown in the footer's second row. `security` lives here,
+// not in NAV, on purpose: the header menu is full, and the trust page is a resource a reader
+// seeks out rather than a step in the product narrative.
 export const RESOURCES: NavItem[] = [
+  { k: 'security', href: 'security.html', label: 'security' },
   { k: 'repo', href: 'https://github.com/ydnikolaev/sporo', label: 'github' },
   { k: 'llms', href: 'llms.txt', label: 'llms.txt' },
 ];

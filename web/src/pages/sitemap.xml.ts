@@ -19,6 +19,7 @@ const STATIC_PAGES: StaticPage[] = [
   { loc: '/recipes.html', priority: '0.8' },
   { loc: '/changelog.html', priority: '0.6' },
   { loc: '/manifesto.html', priority: '0.6' },
+  { loc: '/security.html', priority: '0.7' },
 ];
 
 export const GET: APIRoute = ({ site }) => {
