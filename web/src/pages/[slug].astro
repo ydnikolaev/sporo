@@ -69,7 +69,7 @@ const head = {
       <div style="margin-top:1.3rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
         <Publisher size={22} prefix="by" />
         <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>
-        <GateBadge />
+        <GateBadge sealed={recipe.sealed} />
         {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
         {date && <span>verified {date}</span>}
       </div>
@@ -88,7 +88,7 @@ const head = {
               <svg width="18" height="18" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
               <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85rem;font-weight:600;letter-spacing:-.01em;color:var(--accent)">sporo recipe</span>
             </span>
-            <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;color:var(--muted);display:inline-flex;align-items:center;gap:.55rem"><span aria-hidden="true" style="width:1px;height:.9rem;background:var(--line)"></span>{stats.sections} sections · {stats.scars} scars · v{m.version}</span>
+            <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;color:var(--muted);display:inline-flex;align-items:center;gap:.55rem"><span aria-hidden="true" style="width:1px;height:.9rem;background:var(--line)"></span>{stats.sections} sections · {stats.scars} scars · {recipe.sealed ? 'sealed ' : 'v'}{m.version}</span>
           </div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap">
             <button id="copy-recipe" data-md={mdHref} style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;font-weight:600;border:1px solid var(--accent);color:var(--bg);background:var(--accent);border-radius:.55rem;padding:.5rem 1rem;cursor:pointer;transition:opacity .15s ease">

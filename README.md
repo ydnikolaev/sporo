@@ -1,5 +1,7 @@
 # sporo
 
+[![recipes sealed & gated](https://img.shields.io/github/actions/workflow/status/ydnikolaev/sporo/ci.yml?branch=main&label=recipes%20sealed%20%26%20gated)](https://github.com/ydnikolaev/sporo/actions/workflows/ci.yml)
+
 A single self-installing CLI that turns a build you already did into a **recipe**: one
 self-contained file that teaches an agent in a repository that has never heard of yours how to
 build the same capability — on the same principles, possibly on a different stack, without

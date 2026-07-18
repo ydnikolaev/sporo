@@ -9,13 +9,14 @@ import { listCorpus, formatDate } from '../lib/corpus.ts';
 // is generated from the corpus at build, so publishing a recipe (a new `.md` under recipes/) adds
 // a card and a page with no edit here.
 const recipes = listCorpus()
-  .map(({ slug, meta }) => ({
+  .map(({ slug, meta, sealed }) => ({
     slug,
     version: meta.version ?? '',
     title: meta.title ?? slug,
     headline: (meta.title ?? slug).split(' — ')[0],
     problem: meta.problem ?? '',
     date: formatDate(meta.date),
+    sealed,
   }))
   .sort((a, b) => a.title.localeCompare(b.title));
 
@@ -48,6 +49,7 @@ const head = {
       <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">◉</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">the corpus</span></div>
       <h1 style="font-size:clamp(2.4rem,6vw,4rem);line-height:1.02;letter-spacing:-.045em;font-weight:760;max-width:16ch;text-wrap:balance">Recipes, ready to hand over.</h1>
       <p style="margin-top:1.4rem;max-width:58ch;color:var(--muted);font-size:clamp(1.02rem,1.7vw,1.2rem);text-wrap:pretty">Each is a real build, distilled: principles, contracts and scars an AI agent germinates back into the capability — on its own stack, in a repository that has never seen yours. New to the idea? <a href="what-is-a-recipe.html" style="text-decoration:underline;text-underline-offset:3px">What a recipe is →</a></p>
+      <p style="margin-top:1rem;max-width:58ch;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.78rem;line-height:1.6;text-wrap:pretty">Every recipe here is sealed — its bytes hash (sha256) to a value committed in the public registry — and gate-passed, re-checked on every push. <a href="https://github.com/ydnikolaev/sporo/actions/workflows/ci.yml" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px">Verified in CI ↗</a></p>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,400px));justify-content:start;gap:1rem;margin-top:3.2rem">
         {recipes.map((r) => (
@@ -64,7 +66,7 @@ const head = {
             <p style="margin-top:.7rem;color:var(--muted);font-size:.94rem;line-height:1.5;text-wrap:pretty;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">{r.problem}</p>
             <div style="margin-top:1.3rem;padding-top:.9rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap">
               <Publisher size={20} link={false} />
-              <GateBadge compact={true} />
+              <GateBadge compact={true} sealed={r.sealed} />
             </div>
           </a>
         ))}

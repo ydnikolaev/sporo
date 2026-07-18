@@ -6,9 +6,46 @@
 // edit rebuilds the site.)
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { marked } from 'marked';
+import { parse as parseYaml } from 'yaml';
 
 const recipesDir = path.resolve(process.cwd(), '../recipes');
+
+// The seal registry the CLI writes at `.sporo/registry.yaml` (repo root, one level up from the
+// corpus). It records, per recipe, the sha256 of the recipe's SOURCE bytes at seal time. The site
+// reads it so the "sealed" badge is not decorative: a recipe is shown sealed only when its file
+// STILL hashes to the sealed value — the same coherence `sporo lint` enforces in CI. Reading the
+// committed registry and recomputing the hash is a verification anyone can reproduce from the repo.
+const registryPath = path.resolve(process.cwd(), '../.sporo/registry.yaml');
+
+interface SealEntry {
+  hash?: string;
+}
+function loadRegistry(): Record<string, SealEntry> {
+  try {
+    const doc = parseYaml(fs.readFileSync(registryPath, 'utf-8')) as {
+      recipes?: Record<string, SealEntry>;
+    };
+    return doc?.recipes ?? {};
+  } catch {
+    // No registry, or unreadable — nothing is shown sealed; the badge degrades to gate-passed.
+    return {};
+  }
+}
+const registry = loadRegistry();
+
+// sealVerified recomputes the seal currency the CLI uses — sha256 over the recipe's RAW source
+// bytes, provenance banner INCLUDED (recipe.ContentHash hashes the file as sealed, not the
+// banner-stripped display form) — and returns true only when it matches the committed seal. A
+// drifted or unsealed recipe returns false, so the badge can never outrun the bytes it claims.
+export function sealVerified(slug: string): boolean {
+  const entry = registry[slug];
+  if (!entry?.hash) return false;
+  const raw = fs.readFileSync(path.join(recipesDir, `${slug}.md`)); // Buffer: the exact bytes Go sealed
+  const got = 'sha256:' + crypto.createHash('sha256').update(raw).digest('hex');
+  return got === entry.hash;
+}
 
 // The source recipes carry a leading HTML-comment provenance banner (the SSOT marker). It is
 // not content; strip it before parsing or rendering.
@@ -77,6 +114,7 @@ export interface Recipe {
   introHtml: string;
   sections: RecipeSection[];
   stats: RecipeStats;
+  sealed: boolean;
   raw: string;
 }
 
@@ -114,7 +152,7 @@ export function readRecipe(slug: string): Recipe {
     scars: (sectionMd(/scar/i).match(/^### /gm) ?? []).length,
     contracts: countContracts(sectionMd(/contract/i)),
   };
-  return { meta, introHtml: marked.parse(intro) as string, sections, stats, raw };
+  return { meta, introHtml: marked.parse(intro) as string, sections, stats, sealed: sealVerified(slug), raw };
 }
 
 export function genreSpec(): string {
@@ -133,6 +171,7 @@ export function rawRecipe(slug: string): string {
 export interface CorpusEntry {
   slug: string;
   meta: Record<string, string>;
+  sealed: boolean;
 }
 
 // listCorpus enumerates the official recipes (the `_`-prefixed files are the authoring and
@@ -143,8 +182,12 @@ export function listCorpus(): CorpusEntry[] {
   return fs
     .readdirSync(recipesDir)
     .filter((f) => f.endsWith('.md') && !f.startsWith('_'))
-    .map((f) => ({
-      slug: f.replace(/\.md$/, ''),
-      meta: frontmatter(stripBanner(fs.readFileSync(path.join(recipesDir, f), 'utf-8'))).meta,
-    }));
+    .map((f) => {
+      const slug = f.replace(/\.md$/, '');
+      return {
+        slug,
+        meta: frontmatter(stripBanner(fs.readFileSync(path.join(recipesDir, f), 'utf-8'))).meta,
+        sealed: sealVerified(slug),
+      };
+    });
 }
