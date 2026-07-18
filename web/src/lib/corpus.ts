@@ -81,9 +81,11 @@ export function readRecipe(slug: string): Recipe {
     // The scars section is the payload a clean-room rebuild cannot reproduce — open it.
     return { title, html: marked.parse(md) as string, open: /scar/i.test(title) };
   });
-  // Drop the recipe's own `# Title` H1 from the intro — the page already shows the title as
-  // its H1, and a second H1 breaks heading order.
-  const intro = parts[0].replace(/^#\s+.+\n+/, '');
+  // Drop the recipe's own `# Title` H1 from the intro — the page already shows the title as its
+  // H1, and a second copy of it below is the duplicate a reader sees. The body starts with a blank
+  // line after the frontmatter fence, so the H1 is NOT at index 0; allow leading whitespace or it
+  // survives the strip (the bug that printed the title twice).
+  const intro = parts[0].replace(/^\s*#\s+.+\n+/, '');
   return { meta, introHtml: marked.parse(intro) as string, sections, raw };
 }
 
