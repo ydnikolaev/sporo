@@ -4,7 +4,7 @@ import Frame from '../components/Frame.astro';
 import AgentMarks from '../components/AgentMarks.astro';
 import GateBadge from '../components/GateBadge.astro';
 import Publisher from '../components/Publisher.astro';
-import { readRecipe, listCorpus, adoptionSections, formatDate } from '../lib/corpus.ts';
+import { readRecipe, listCorpus, adoptionSections, formatDate, sealHash } from '../lib/corpus.ts';
 
 // One detail page per corpus recipe, generated from the slugs listCorpus() enumerates. The
 // page IS the recipe, read straight from the embedded corpus at build — not a retyped copy.
@@ -24,6 +24,18 @@ const date = formatDate(m.date);
 // shows the recipe as a reader actually receives it, not the bare source.
 const adopt = adoptionSections();
 const stats = recipe.stats;
+
+// The seal's public anchors, all on GitHub — the trust panel verifies against THESE, never against
+// anything sporo.dev asserts. `hash` is only the fingerprint shown; the browser check refetches the
+// recipe AND the registry from raw.githubusercontent and compares the two GitHub-sourced values.
+const GH_RAW = 'https://raw.githubusercontent.com/ydnikolaev/sporo/main';
+const seal = {
+  hash: sealHash(slug), // display only
+  recipeRawUrl: `${GH_RAW}/recipes/${slug}.md`,
+  registryRawUrl: `${GH_RAW}/.sporo/registry.yaml`,
+  registryBlobUrl: 'https://github.com/ydnikolaev/sporo/blob/main/.sporo/registry.yaml',
+  ciUrl: 'https://github.com/ydnikolaev/sporo/actions/workflows/ci.yml',
+};
 // Preview rows: number + title for every gated section, plus a derived count-tag on the two
 // sections that carry one (contracts → N bound, scars → N scars). All from the recipe + stats —
 // nothing hand-entered, so the panel can never drift from the recipe it previews.
@@ -69,10 +81,44 @@ const head = {
       <div style="margin-top:1.3rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
         <Publisher size={22} prefix="by" />
         <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>
-        <GateBadge sealed={recipe.sealed} />
+        {recipe.sealed ? (
+          <button id="seal-toggle" type="button" aria-expanded="false" aria-controls="seal-proof" class="seal-toggle" title="How this seal is verified">
+            <GateBadge sealed={true} />
+            <svg class="seal-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+        ) : (
+          <GateBadge sealed={false} />
+        )}
         {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
         {date && <span>verified {date}</span>}
       </div>
+
+      {recipe.sealed && (
+        <div id="seal-proof" class="seal-proof" hidden data-slug={slug} data-recipe-url={seal.recipeRawUrl} data-registry-url={seal.registryRawUrl}>
+          <p class="seal-plain">This recipe is <strong>sealed</strong>: these exact bytes have not changed since it was published. A SHA-256 fingerprint of the source is committed to a public registry — change one character and it no longer matches, and this badge is gone. You don't have to take our word for it.</p>
+
+          <div class="seal-block">
+            <div class="seal-k">Reproduce it yourself — the recipe and its fingerprint both live on GitHub, not here:</div>
+            <div class="seal-cmd">
+              <code>curl -s {seal.recipeRawUrl} | shasum -a 256</code>
+              <button type="button" class="seal-copy" data-copy={`curl -s ${seal.recipeRawUrl} | shasum -a 256`}>copy</button>
+            </div>
+            <p class="seal-muted">The result equals the hash committed in the <a href={seal.registryBlobUrl} target="_blank" rel="noopener">public registry ↗</a> — <code class="seal-hash">{seal.hash}</code>. Neither side is served by this site.</p>
+          </div>
+
+          <div class="seal-block">
+            <button id="seal-verify" type="button" class="seal-verify">Verify in your browser</button>
+            <span id="seal-result" class="seal-result" role="status" aria-live="polite"></span>
+            <p class="seal-muted">A convenience demo: your browser refetches the recipe <em>and</em> the registry from GitHub and recomputes the hash — it trusts nothing from this page. View source to confirm.</p>
+          </div>
+
+          <div class="seal-links">
+            <a href={seal.registryBlobUrl} target="_blank" rel="noopener">the registry ↗</a>
+            <a href={seal.recipeRawUrl} target="_blank" rel="noopener">the source ↗</a>
+            <a href={seal.ciUrl} target="_blank" rel="noopener">the CI gate ↗</a>
+          </div>
+        </div>
+      )}
       <p style="margin-top:1.5rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">{m.problem}</p>
 
       <div id="recipe-bar" data-open="false" style="margin-top:2rem;position:relative;border:1px solid var(--line);border-radius:.85rem;background:var(--card);overflow:hidden">
@@ -213,6 +259,67 @@ const head = {
         if (tlabel) tlabel.textContent = next ? 'hide' : 'preview';
       });
     }
+
+    // Seal proof: expand the panel, and let the reader re-verify the seal WITHOUT trusting this
+    // page. The check refetches both the recipe and the registry from raw.githubusercontent and
+    // compares the two GitHub-sourced values; sporo.dev's copy of the hash is never the authority.
+    const sealToggle = document.getElementById('seal-toggle');
+    const sealProof = document.getElementById('seal-proof');
+    if (sealToggle && sealProof) {
+      sealToggle.addEventListener('click', () => {
+        const willOpen = sealProof.hasAttribute('hidden');
+        if (willOpen) sealProof.removeAttribute('hidden');
+        else sealProof.setAttribute('hidden', '');
+        sealToggle.setAttribute('aria-expanded', String(willOpen));
+        sealToggle.classList.toggle('open', willOpen);
+      });
+    }
+
+    // Small copy buttons inside the panel (the shasum command).
+    document.querySelectorAll('.seal-copy').forEach((b) => {
+      b.addEventListener('click', async () => {
+        try {
+          if (navigator.clipboard) await navigator.clipboard.writeText(b.dataset.copy);
+          const t = b.textContent;
+          b.textContent = 'copied ✓';
+          setTimeout(() => { b.textContent = t; }, 1400);
+        } catch {}
+      });
+    });
+
+    const verifyBtn = document.getElementById('seal-verify');
+    const resultEl = document.getElementById('seal-result');
+    if (verifyBtn && resultEl && sealProof) {
+      verifyBtn.addEventListener('click', async () => {
+        resultEl.textContent = 'verifying…';
+        resultEl.className = 'seal-result pending';
+        try {
+          const [recRes, regRes] = await Promise.all([
+            fetch(sealProof.dataset.recipeUrl),
+            fetch(sealProof.dataset.registryUrl),
+          ]);
+          if (!recRes.ok || !regRes.ok) throw new Error('unreachable');
+          const buf = await recRes.arrayBuffer();
+          const regText = await regRes.text();
+          const esc = sealProof.dataset.slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const m = regText.match(new RegExp('\\n\\s+' + esc + ':\\s*\\n[\\s\\S]*?hash:\\s*(sha256:[0-9a-f]{64})'));
+          if (!m) throw new Error('no-seal');
+          const digest = await crypto.subtle.digest('SHA-256', buf);
+          const got = 'sha256:' + Array.from(new Uint8Array(digest)).map((x) => x.toString(16).padStart(2, '0')).join('');
+          if (got === m[1]) {
+            resultEl.textContent = '✓ matches — recomputed from GitHub just now';
+            resultEl.className = 'seal-result ok';
+          } else {
+            resultEl.textContent = '✗ does not match';
+            resultEl.className = 'seal-result bad';
+          }
+        } catch {
+          // A network hiccup or parse miss is not tampering — never render it as ✗.
+          resultEl.textContent = "couldn't verify in-browser — reproduce it with the command above";
+          resultEl.className = 'seal-result muted';
+        }
+      });
+    }
   </script>
 </Layout>
 
@@ -262,6 +369,153 @@ const head = {
   }
   @media (prefers-reduced-motion: reduce) {
     .rc-chev { transition: none; }
+  }
+  .seal-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+  }
+  .seal-caret {
+    color: var(--accent);
+    transition: transform 0.2s ease;
+    flex: none;
+  }
+  .seal-toggle.open .seal-caret {
+    transform: rotate(180deg);
+  }
+  .seal-proof {
+    margin-top: 1.2rem;
+    max-width: 64ch;
+    border: 1px solid var(--line);
+    border-radius: 0.85rem;
+    background: var(--card);
+    padding: 1.2rem 1.3rem;
+    display: grid;
+    gap: 1rem;
+  }
+  .seal-plain {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .seal-plain strong {
+    color: var(--ink);
+  }
+  .seal-block {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .seal-k {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .seal-cmd {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #0e120f;
+    border: 1px solid #ffffff14;
+    border-radius: 0.55rem;
+    padding: 0.6rem 0.7rem;
+    overflow-x: auto;
+  }
+  .seal-cmd code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    color: #d9e4da;
+    white-space: nowrap;
+    flex: 1;
+  }
+  .seal-copy {
+    flex: none;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: #8fd1a4;
+    background: none;
+    border: 1px solid #ffffff26;
+    border-radius: 0.4rem;
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+  }
+  .seal-copy:hover {
+    border-color: #8fd1a4;
+  }
+  .seal-muted {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .seal-hash {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 0.08em 0.35em;
+    border-radius: 0.3em;
+    word-break: break-all;
+  }
+  .seal-verify {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .seal-verify:hover {
+    opacity: 0.88;
+  }
+  .seal-result {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    margin-left: 0.6rem;
+  }
+  .seal-result.ok {
+    color: var(--accent);
+  }
+  .seal-result.bad {
+    color: #c8892f;
+  }
+  .seal-result.pending,
+  .seal-result.muted {
+    color: var(--muted);
+  }
+  .seal-links {
+    display: flex;
+    gap: 1.1rem;
+    flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.74rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.9rem;
+  }
+  .seal-links a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .seal-links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seal-caret {
+      transition: none;
+    }
   }
   .prose {
     color: var(--muted);

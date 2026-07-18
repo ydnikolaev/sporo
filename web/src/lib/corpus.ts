@@ -47,6 +47,13 @@ export function sealVerified(slug: string): boolean {
   return got === entry.hash;
 }
 
+// sealHash returns the sha256 the registry committed for a recipe (or null). It is the fingerprint
+// the trust panel SHOWS; the panel's actual verification recomputes independently against GitHub, so
+// this value is display, not the root of trust.
+export function sealHash(slug: string): string | null {
+  return registry[slug]?.hash ?? null;
+}
+
 // The source recipes carry a leading HTML-comment provenance banner (the SSOT marker). It is
 // not content; strip it before parsing or rendering.
 function stripBanner(t: string): string {
