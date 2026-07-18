@@ -48,10 +48,10 @@ This is easy to over-apply, and the genre draws the line carefully:
 
 A recipe isn't free-form prose. It's a fixed shape, checked by a gate, in this order:
 
-1. **Frontmatter** — name, title, the problem in one sentence, prerequisites (stated as
-   capabilities, never tool names), what it's derived from, the stack it was verified
-   on, and when. This is the one place a product may be named — it's provenance, not
-   instruction. `verified: {project, release, date}` exists to say out loud: this is a
+1. **Frontmatter** — a permanent id (a ULID, the recipe's identity across renames), name,
+   title, the problem in one sentence, prerequisites (stated as capabilities, never tool
+   names), what it's derived from, the stack it was verified on, and when. This is the one
+   place a product may be named — it's provenance, not instruction. `verified: {project, release, date}` exists to say out loud: this is a
    snapshot of one successful build, not maintained doctrine.
 2. **The problem** — what you don't have, what the output actually is, and how you'll
    know you have it. The acceptance criteria live here, at the top, in the reader's

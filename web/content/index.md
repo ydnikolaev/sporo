@@ -50,8 +50,9 @@ re-derives everything, deliberately, on the reader's own ground.
    files instead of roles fails here before it ships to anyone.
 4. `sporo seal` — version and content-hash the recipe in the registry, so it never
    silently mutates under a reader who trusted a specific version.
-5. `sporo export <slug>` — print one self-contained file, the adoption protocol
-   appended. This is what you hand over — never the source.
+5. `sporo export <slug>` — write one self-contained file (to `.sporo/exports/`), the
+   adoption protocol appended; `--stdout` pipes it instead. This is what you hand over —
+   never the source.
 
 **Reader side.** The exported file is the only thing a stranger's agent needs.
 

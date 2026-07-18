@@ -204,7 +204,7 @@ sporo seal <slug>
 sporo export <slug>
 ```
 
-The seal records (version, content hash, provenance) in the project's registry: from this
+The seal records (id, version, content hash, provenance) in the project's registry: from this
 moment the recipe never silently mutates — every later edit must bump `version:` and re-seal,
 and the gate enforces it. One class of edit is stricter: changing an **exact-bound contract**
 demands a MAJOR bump — that shape is somebody else's parser, and the seal refuses to let a
