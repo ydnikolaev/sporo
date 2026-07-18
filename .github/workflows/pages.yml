@@ -18,6 +18,11 @@ on:
   # create workflow runs at all", except workflow_dispatch/repository_dispatch). `workflow_run` fires
   # on the Release run's COMPLETION, whose provenance is the human tag push — the documented escape
   # hatch. `workflows:` must match release.yml's `name:` exactly; the deploy job guards on success.
+  # The download tally and changelog are resolved at BUILD time, so between pushes and releases
+  # they sit frozen. A daily rebuild refreshes them without a push and without any runtime network
+  # request (the non-negotiable): the count just re-fetches on the next scheduled build.
+  schedule:
+    - cron: "0 6 * * *" # daily 06:00 UTC
   workflow_run:
     workflows: ["Release"]
     types: [completed]
