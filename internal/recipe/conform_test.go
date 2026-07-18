@@ -30,8 +30,10 @@ func exactWithFixtures(valid, invalid string) string {
 	return strings.Replace(conformant, from, contracts, 1)
 }
 
-const goodFeed = `{ "schema": 2, "counted": 40, "source": "the nightly collector" }`
-const renamedFeed = `{ "schema": 2, "tallied": 40, "source": "the nightly collector" }`
+const (
+	goodFeed    = `{ "schema": 2, "counted": 40, "source": "the nightly collector" }`
+	renamedFeed = `{ "schema": 2, "tallied": 40, "source": "the nightly collector" }`
+)
 
 func TestFixturesAreRunAgainstTheirContract(t *testing.T) {
 	body := exactWithFixtures(goodFeed, renamedFeed)

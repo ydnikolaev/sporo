@@ -1,0 +1,11 @@
+# gitleaks config. sporo commits no secrets by design — the classify gate keeps harness/docs
+# out of the public repo, and this scans the product source + full history for accidents.
+title = "sporo gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known non-secrets"
+# The public GA4 measurement ID is not a secret (it ships in the site's HTML by design).
+regexes = ['''G-PLL27SX75X''']

@@ -113,9 +113,9 @@ func ExportBundle(corpus fs.FS, home, name string) (string, error) {
 
 	var sb strings.Builder
 	sb.WriteString("# " + strings.TrimSpace(b.Title) + "\n\n")
-	sb.WriteString(fmt.Sprintf("*This document composes %d recipes into one build, in the order they must be "+
+	fmt.Fprintf(&sb, "*This document composes %d recipes into one build, in the order they must be "+
 		"built. Each part carries the full genre — its own acceptance, contracts, scars. The adoption "+
-		"protocol at the very end applies to the whole.*\n", len(b.Members)))
+		"protocol at the very end applies to the whole.*\n", len(b.Members))
 	if g := strings.TrimSpace(b.Ground); g != "" {
 		sb.WriteString("\n## The shared ground\n\n" + g + "\n")
 	}
@@ -124,7 +124,7 @@ func ExportBundle(corpus fs.FS, home, name string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		sb.WriteString(fmt.Sprintf("\n---\n\n<!-- part %d of %d -->\n\n", i+1, len(b.Members)))
+		fmt.Fprintf(&sb, "\n---\n\n<!-- part %d of %d -->\n\n", i+1, len(b.Members))
 		sb.WriteString(strings.TrimRight(body, "\n") + "\n")
 	}
 	sb.WriteString(protocol)

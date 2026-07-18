@@ -49,10 +49,10 @@ func TestThePackIsSelfContained(t *testing.T) {
 	s := string(prompt)
 	for _, want := range []string{
 		recipeBegin, recipeEnd, // the recipe is inside, delimited
-		"## The problem",   // ...and it is the actual recipe text
-		"Adopt it here",    // the EXPORTED form — protocol appended, what a reader would score
-		"minLength",        // the schema is inline
-		"version `1.0.0`",  // the verdict is told which version it reviews
+		"## The problem",  // ...and it is the actual recipe text
+		"Adopt it here",   // the EXPORTED form — protocol appended, what a reader would score
+		"minLength",       // the schema is inline
+		"version `1.0.0`", // the verdict is told which version it reviews
 	} {
 		if !strings.Contains(s, want) {
 			t.Errorf("the pack must contain %q — an agent with no filesystem gets ONLY this file", want)

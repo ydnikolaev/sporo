@@ -97,7 +97,7 @@ func LoadConfig(root string) (Config, error) {
 	data, err := os.ReadFile(filepath.Join(root, ".sporo", "config.yaml"))
 	if err != nil {
 		c.Sources = probe(root, Sources{})
-		return c, nil
+		return c, nil //nolint:nilerr // absent config → documented defaults (malformed is the hard-error path below)
 	}
 	var cfg projectConfig
 	if err := yaml.Unmarshal(data, &cfg); err != nil {

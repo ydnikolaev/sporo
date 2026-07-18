@@ -311,7 +311,7 @@ func releases(root, since, until string) ([]Release, error) {
 	log, err := show(root, until, "CHANGELOG.md")
 	if err != nil {
 		// A project with no changelog is not a broken project. Absence is a state.
-		return nil, nil
+		return nil, nil //nolint:nilerr // absence is a state (see comment)
 	}
 	var out []Release
 	for _, t := range tags {

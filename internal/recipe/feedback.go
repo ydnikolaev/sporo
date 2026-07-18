@@ -114,7 +114,7 @@ func ListFeedback(root string, cfg Config) (map[string][]string, error) {
 	base := filepath.Join(root, ".sporo", "feedback")
 	slugs, err := os.ReadDir(base)
 	if err != nil {
-		return map[string][]string{}, nil // no feedback yet is a state, not an error
+		return map[string][]string{}, nil //nolint:nilerr // no feedback yet is a state, not an error
 	}
 	out := map[string][]string{}
 	for _, s := range slugs {
