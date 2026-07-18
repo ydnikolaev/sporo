@@ -1,0 +1,29 @@
+---
+// The recipe's publisher — an avatar + a link to the real GitHub profile. Today every corpus
+// recipe is published by the site owner, so the identity is fixed here; when recipes carry their
+// own author (post-`publish`), this reads it from the recipe instead. The "verified" half of the
+// story (a signed, attested identity) is backlog — for now this is an honest link, not a claim.
+interface Props {
+  size?: number;
+  prefix?: string; // e.g. "by" on the detail page; omitted on cards
+  link?: boolean; // false on cards — the card is itself an <a>, and an <a> inside an <a> is invalid
+}
+const { size = 20, prefix, link = true } = Astro.props;
+const login = 'ydnikolaev';
+const Tag = link ? 'a' : 'span';
+const attrs = link ? { href: `https://github.com/${login}`, rel: 'author' } : {};
+const style = `display:inline-flex;align-items:center;gap:.45rem;text-decoration:none;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;white-space:nowrap`;
+---
+
+<Tag {...attrs} style={style}>
+  {prefix && <span style="opacity:.8">{prefix}</span>}
+  <img
+    src={`https://github.com/${login}.png?size=48`}
+    alt={`${login} avatar`}
+    width={size}
+    height={size}
+    loading="lazy"
+    style={`width:${size}px;height:${size}px;border-radius:50%;border:1px solid var(--line);display:block`}
+  />
+  <span>{login}</span>
+</Tag>

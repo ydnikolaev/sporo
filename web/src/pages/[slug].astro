@@ -1,7 +1,10 @@
 ---
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
-import { readRecipe, listCorpus } from '../lib/corpus.ts';
+import AgentMarks from '../components/AgentMarks.astro';
+import SealBadge from '../components/SealBadge.astro';
+import Publisher from '../components/Publisher.astro';
+import { readRecipe, listCorpus, adoptionSections, formatDate } from '../lib/corpus.ts';
 
 // One detail page per corpus recipe, generated from the slugs listCorpus() enumerates. The
 // page IS the recipe, read straight from the embedded corpus at build — not a retyped copy.
@@ -16,6 +19,10 @@ const recipe = readRecipe(slug as string);
 const m = recipe.meta;
 const headline = (m.title ?? '').split(' — ')[0];
 const mdHref = `${slug}.md`;
+const date = formatDate(m.date);
+// The adoption protocol (Adopt it here / Report back) is what `sporo export` appends — the page
+// shows the recipe as a reader actually receives it, not the bare source.
+const adopt = adoptionSections();
 
 const head = {
   title: `${headline} — a sporo recipe`,
@@ -46,12 +53,25 @@ const head = {
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem"><a href="recipes.html" style="color:var(--muted);text-decoration:none">recipes</a> · v{m.version}</div>
       <h1 style="font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:760;max-width:26ch">{m.title}</h1>
       <p style="margin-top:1.4rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">{m.problem}</p>
+      <div style="margin-top:1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
+        <Publisher size={22} prefix="by" />
+        <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>
+        <SealBadge />
+        {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
+        {date && <span>published {date}</span>}
+      </div>
       <div style="margin-top:1.6rem;display:flex;flex-wrap:wrap;gap:.6rem">
         <button id="copy-recipe" class="hov-btn" data-md={mdHref} style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--accent);color:var(--accent);background:var(--accent-soft);border-radius:.5rem;padding:.55rem 1rem;cursor:pointer">copy the recipe</button>
         <a href={mdHref} download style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--line);color:var(--ink);border-radius:.5rem;padding:.55rem 1rem;text-decoration:none">download .md ↓</a>
       </div>
       <p style="margin-top:1.2rem;font-size:.85rem;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace;max-width:62ch;text-wrap:pretty">What a reader receives is the <a href="what-is-a-recipe.html" style="text-decoration:underline;text-underline-offset:3px">exported</a> form — this, with the adoption protocol appended. Every section below was distilled from one live implementation: its build record, its release history, its fix commits, and the scars only a real build leaves.</p>
     </div>
+
+    <section style="border-top:1px solid var(--line);background:var(--band)">
+      <div style="padding:1.7rem 0;display:flex;justify-content:center">
+        <AgentMarks label="Works with any agent" />
+      </div>
+    </section>
 
     <section style="border-top:1px solid var(--line)">
       <div style="padding:3rem 0" class="prose" set:html={recipe.introHtml}></div>
@@ -71,6 +91,19 @@ const head = {
             </details>
           ))}
         </div>
+      </div>
+    </section>
+
+    <section style="border-top:1px solid var(--line)">
+      <div style="padding:2.5rem 0">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:.4rem"><span style="color:var(--accent);font-weight:600">the handover protocol</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">appended on export</span></div>
+        <p style="color:var(--muted);font-size:.9rem;max-width:60ch;text-wrap:pretty">These two sections are the same in every recipe — `sporo export` appends them so the reader knows how to bring the capability into a repository the author never saw, and what to send back.</p>
+        {adopt.map((s) => (
+          <div style="margin-top:2.2rem">
+            <h2 style="font-size:1.15rem;font-weight:660;letter-spacing:-.01em;color:var(--ink)">{s.title}</h2>
+            <div class="prose" style="margin-top:.7rem" set:html={s.html}></div>
+          </div>
+        ))}
       </div>
     </section>
   </Frame>

@@ -21,14 +21,40 @@ function frontmatter(raw: string): { meta: Record<string, string>; body: string 
   if (!m) return { meta: {}, body: raw };
   const meta: Record<string, string> = {};
   for (const line of m[1].split('\n')) {
-    // Only the flat scalar fields (name, version, title, problem, effort). The nested
-    // stack/verified/derived_from objects are not needed by any page.
+    // Only the flat scalar fields (id, name, version, title, problem, effort). The nested
+    // stack/verified/derived_from objects are skipped here and mined below where a page needs them.
     const mm = line.match(/^([a-z_]+):\s+(.+)$/);
     if (mm && !mm[2].startsWith('{') && !mm[2].startsWith('[')) {
       meta[mm[1]] = mm[2].replace(/^["']|["']$/g, '');
     }
   }
+  // The publication date lives inside the nested `verified: { …, date: YYYY-MM-DD }` stamp — the
+  // date the build that PROVES the recipe was verified. Mine it out for the card/detail date line.
+  const vd = m[1].match(/^verified:\s*\{[^}]*\bdate:\s*"?(\d{4}-\d{2}-\d{2})"?/m);
+  if (vd) meta.date = vd[1];
   return { meta, body: m[2] };
+}
+
+// formatDate turns the corpus's ISO date (2026-07-16) into the site's DD.MM.YYYY. A missing or
+// malformed date returns '' so a card can just skip the line rather than print "NaN.NaN".
+export function formatDate(iso: string | undefined): string {
+  const m = (iso ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : '';
+}
+
+// adoptionSections renders the adoption protocol EXACTLY as `sporo export` appends it: the two
+// reader-facing sections of `_adoption.md` (Adopt it here, Report back), sliced from the first
+// `## ` heading so the note to the corpus's own authors above it — house business the reader is
+// not in — is dropped, matching export's `adoption()` step rather than a raw file dump.
+export function adoptionSections(): RecipeSection[] {
+  const raw = adoptionSpec();
+  const start = raw.search(/^## /m);
+  const body = start >= 0 ? raw.slice(start) : raw;
+  return body.split(/\n(?=## )/).map((p) => {
+    const title = (p.match(/^## (.+)/)?.[1] ?? '').trim();
+    const md = p.replace(/^## .+\n/, '');
+    return { title, html: marked.parse(md) as string, open: false };
+  });
 }
 
 export interface RecipeSection {

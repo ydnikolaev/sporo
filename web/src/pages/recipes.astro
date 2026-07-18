@@ -1,7 +1,9 @@
 ---
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
-import { listCorpus } from '../lib/corpus.ts';
+import SealBadge from '../components/SealBadge.astro';
+import Publisher from '../components/Publisher.astro';
+import { listCorpus, formatDate } from '../lib/corpus.ts';
 
 // The storefront. Every recipe in the corpus, as a card that links to its detail page. The list
 // is generated from the corpus at build, so publishing a recipe (a new `.md` under recipes/) adds
@@ -13,8 +15,7 @@ const recipes = listCorpus()
     title: meta.title ?? slug,
     headline: (meta.title ?? slug).split(' — ')[0],
     problem: meta.problem ?? '',
-    // The effort field opens with the size word (large / an evening / …); the rest is prose.
-    effort: (meta.effort ?? '').split(' — ')[0].trim(),
+    date: formatDate(meta.date),
   }))
   .sort((a, b) => a.title.localeCompare(b.title));
 
@@ -55,12 +56,15 @@ const head = {
             class="recipe-card"
             style="display:flex;flex-direction:column;border:1px solid var(--line);border-radius:1rem;background:var(--card);padding:1.5rem 1.5rem 1.3rem;text-decoration:none;color:inherit;transition:border-color .18s ease,transform .18s ease"
           >
-            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.9rem">v{r.version}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.9rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase">
+              <span style="color:var(--accent);font-weight:600">v{r.version}</span>
+              {r.date && <span style="color:var(--muted)">{r.date}</span>}
+            </div>
             <h2 title={r.title} style="font-size:1.25rem;line-height:1.18;letter-spacing:-.02em;font-weight:680;color:var(--ink)">{r.headline}</h2>
             <p style="margin-top:.7rem;color:var(--muted);font-size:.94rem;line-height:1.5;text-wrap:pretty;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">{r.problem}</p>
-            <div style="margin-top:1.3rem;padding-top:.9rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.04em;color:var(--muted)">
-              <span>{r.effort}</span>
-              <span class="recipe-arrow" style="color:var(--accent);font-weight:600">read →</span>
+            <div style="margin-top:1.3rem;padding-top:.9rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap">
+              <Publisher size={20} link={false} />
+              <SealBadge compact={true} />
             </div>
           </a>
         ))}
@@ -73,10 +77,6 @@ const head = {
   .recipe-card:hover {
     border-color: var(--accent);
     transform: translateY(-2px);
-  }
-  .recipe-card:hover .recipe-arrow {
-    text-decoration: underline;
-    text-underline-offset: 3px;
   }
   @media (prefers-reduced-motion: reduce) {
     .recipe-card {
