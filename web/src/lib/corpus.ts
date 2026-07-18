@@ -62,11 +62,32 @@ export interface RecipeSection {
   html: string;
   open: boolean;
 }
+// Counts derived straight from the recipe markdown — never hand-entered — so the preview panel
+// can never disagree with the recipe it previews. The genre fixes each signal: one `## ` per
+// gated section, one `### ` per scar (authoring §9), one shown contract per `**Binding:` marker
+// that carries a fenced block before the next marker (authoring §4/§6 — a summary sentence that
+// merely names the posture, with no fence under it, is not a shape and is not counted).
+export interface RecipeStats {
+  sections: number;
+  scars: number;
+  contracts: number;
+}
 export interface Recipe {
   meta: Record<string, string>;
   introHtml: string;
   sections: RecipeSection[];
+  stats: RecipeStats;
   raw: string;
+}
+
+function countContracts(sectionMd: string): number {
+  // Split at each `**Binding:` marker; a segment (marker → next marker) is a real contract only
+  // when a fenced block opens inside it. This reads the recipe as authored — no reserved token,
+  // a wrong count degrades a stat card, never the content.
+  return sectionMd
+    .split(/(?=\*\*Binding:)/)
+    .slice(1)
+    .filter((seg) => /^```/m.test(seg)).length;
 }
 
 export function readRecipe(slug: string): Recipe {
@@ -86,7 +107,14 @@ export function readRecipe(slug: string): Recipe {
   // line after the frontmatter fence, so the H1 is NOT at index 0; allow leading whitespace or it
   // survives the strip (the bug that printed the title twice).
   const intro = parts[0].replace(/^\s*#\s+.+\n+/, '');
-  return { meta, introHtml: marked.parse(intro) as string, sections, raw };
+  // Locate the scars and contracts sections by their heading, then count from their raw markdown.
+  const sectionMd = (rx: RegExp) => parts.find((p) => rx.test(p.split('\n')[0] ?? '')) ?? '';
+  const stats: RecipeStats = {
+    sections: sections.length,
+    scars: (sectionMd(/scar/i).match(/^### /gm) ?? []).length,
+    contracts: countContracts(sectionMd(/contract/i)),
+  };
+  return { meta, introHtml: marked.parse(intro) as string, sections, stats, raw };
 }
 
 export function genreSpec(): string {

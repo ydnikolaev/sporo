@@ -23,6 +23,20 @@ const date = formatDate(m.date);
 // The adoption protocol (Adopt it here / Report back) is what `sporo export` appends — the page
 // shows the recipe as a reader actually receives it, not the bare source.
 const adopt = adoptionSections();
+const stats = recipe.stats;
+// Preview rows: number + title for every gated section, plus a derived count-tag on the two
+// sections that carry one (contracts → N bound, scars → N scars). All from the recipe + stats —
+// nothing hand-entered, so the panel can never drift from the recipe it previews.
+const rows = recipe.sections.map((s, i) => {
+  const scar = /scar/i.test(s.title);
+  const contract = /contract/i.test(s.title);
+  return {
+    n: String(i + 1).padStart(2, '0'),
+    title: s.title,
+    scar,
+    tag: scar ? `${stats.scars} scars` : contract ? `${stats.contracts} bound` : '',
+  };
+});
 
 const head = {
   title: `${headline} — a sporo recipe`,
@@ -61,18 +75,56 @@ const head = {
       </div>
       <p style="margin-top:1.5rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">{m.problem}</p>
 
-      <div style="margin-top:2rem;display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;border:1px solid var(--line);border-radius:.85rem;background:var(--card);padding:.7rem .8rem .7rem 1rem">
-        <span style="display:inline-flex;align-items:center;gap:.55rem">
-          <svg width="20" height="20" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
-          <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)">sporo recipe</span>
-        </span>
-        <span style="margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap">
-          <button id="copy-recipe" data-md={mdHref} style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;font-weight:600;border:1px solid var(--accent);color:var(--bg);background:var(--accent);border-radius:.55rem;padding:.55rem 1.05rem;cursor:pointer;transition:opacity .15s ease">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-            copy the recipe
-          </button>
-          <a href={mdHref} download style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--line);color:var(--ink);background:var(--bg);border-radius:.55rem;padding:.55rem 1.05rem;text-decoration:none">download .md ↓</a>
-        </span>
+      <div id="recipe-bar" data-open="false" style="margin-top:2rem;position:relative;border:1px solid var(--line);border-radius:.85rem;background:var(--card);overflow:hidden">
+        <!-- A faint spore drifts behind the bar, like the home hero — the mark, slowed to a 90s
+             turn, at low opacity so it fills the bar's dead space without competing with the
+             controls. Decorative: aria-hidden, no pointer target. -->
+        <svg aria-hidden="true" viewBox="0 0 22 22" fill="none" style="position:absolute;top:50%;right:-1.5rem;transform:translateY(-50%);width:14rem;height:14rem;opacity:.12;pointer-events:none;animation:spin 90s linear infinite"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)"></circle></svg>
+        <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:1rem 1.2rem;flex-wrap:wrap;padding:.75rem .8rem">
+          <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;min-width:0">
+            <span style="display:inline-flex;align-items:center;gap:.5rem">
+              <svg width="18" height="18" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
+              <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85rem;font-weight:600;letter-spacing:-.01em;color:var(--accent)">sporo recipe</span>
+            </span>
+            <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;color:var(--muted);display:inline-flex;align-items:center;gap:.55rem"><span aria-hidden="true" style="width:1px;height:.9rem;background:var(--line)"></span>{stats.sections} sections · {stats.scars} scars · v{m.version}</span>
+          </div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button id="copy-recipe" data-md={mdHref} style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;font-weight:600;border:1px solid var(--accent);color:var(--bg);background:var(--accent);border-radius:.55rem;padding:.5rem 1rem;cursor:pointer;transition:opacity .15s ease">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+              <span id="copy-label">copy</span>
+            </button>
+            <a href={mdHref} download class="rc-ghost" style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem 1rem;text-decoration:none;transition:border-color .15s ease,color .15s ease">download .md ↓</a>
+            <button id="recipe-toggle" class="rc-ghost" aria-expanded="false" aria-controls="recipe-preview" title="preview the recipe" style="display:inline-flex;align-items:center;justify-content:center;gap:.45rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem .85rem;cursor:pointer;transition:border-color .15s ease,color .15s ease">
+              <span id="recipe-toggle-label" style="display:inline-block;min-width:3.2rem;text-align:left">preview</span>
+              <svg class="rc-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="recipe-preview" class="recipe-grid" style="position:relative;border-top:1px solid var(--line);grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)">
+          <div style="padding:1.1rem 1.2rem;min-width:0;border-right:1px solid var(--line)">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem">the {stats.sections} gated sections</div>
+            <div style="display:grid;gap:.32rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.78rem;text-transform:lowercase">
+              {rows.map((r) => (
+                <div style="display:flex;align-items:baseline;gap:.6rem">
+                  <span style="color:var(--accent);opacity:.55">{r.n}</span>
+                  <span style={`color:${r.scar ? '#c8892f' : 'var(--ink)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap`}>{r.title}</span>
+                  {r.tag && <span style={`margin-left:auto;flex:none;font-size:.68rem;color:${r.scar ? '#c8892f' : 'var(--accent)'}`}>{r.tag}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style="padding:1.1rem 1.2rem;display:flex;flex-direction:column">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem">what you'd hand an agent</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+              <div style="border-radius:.55rem;background:var(--accent-soft);padding:.8rem .9rem"><div style="font-size:1.5rem;font-weight:700;letter-spacing:-.02em;line-height:1">{stats.sections}</div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;margin-top:.25rem;font-size:.66rem;color:var(--muted)">gated sections</div></div>
+              <div style="border-radius:.55rem;background:var(--accent-soft);padding:.8rem .9rem"><div style="font-size:1.5rem;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--accent)">{stats.scars}</div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;margin-top:.25rem;font-size:.66rem;color:var(--muted)">earned scars</div></div>
+              <div style="border-radius:.55rem;background:var(--accent-soft);padding:.8rem .9rem"><div style="font-size:1.5rem;font-weight:700;letter-spacing:-.02em;line-height:1">{stats.contracts}</div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;margin-top:.25rem;font-size:.66rem;color:var(--muted)">bound contracts</div></div>
+              <div style="border-radius:.55rem;background:var(--accent-soft);padding:.8rem .9rem"><div style="font-size:1.5rem;font-weight:700;letter-spacing:-.02em;line-height:1">1</div><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;margin-top:.25rem;font-size:.66rem;color:var(--muted)">self-contained file</div></div>
+            </div>
+            <p style="margin-top:1rem;font-size:.8rem;line-height:1.5;color:var(--muted);text-wrap:pretty">Readable before it runs — audit the prose, then let an agent build it on your stack.</p>
+          </div>
+        </div>
       </div>
 
       <p style="margin-top:1.2rem;font-size:.85rem;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace;max-width:62ch;text-wrap:pretty">What a reader receives is the <a href="what-is-a-recipe.html" style="text-decoration:underline;text-underline-offset:3px">exported</a> form — this, with the adoption protocol appended. Every section below was distilled from one live implementation: its build record, its release history, its fix commits, and the scars only a real build leaves.</p>
@@ -122,21 +174,41 @@ const head = {
   </Frame>
 
   <script>
+    // Copy: swap only the label span so the icon survives (setting the button's textContent would
+    // wipe the SVG). Fetches the .md mirror and writes it to the clipboard.
     const btn = document.getElementById('copy-recipe');
+    const clabel = document.getElementById('copy-label');
     if (btn) {
       btn.addEventListener('click', async () => {
         try {
           const res = await fetch(btn.dataset.md);
           const text = await res.text();
           if (navigator.clipboard) await navigator.clipboard.writeText(text);
-          const original = btn.textContent;
-          btn.textContent = 'copied ✓';
-          setTimeout(() => {
-            btn.textContent = original;
-          }, 1600);
+          if (clabel) {
+            const original = clabel.textContent;
+            clabel.textContent = 'copied ✓';
+            setTimeout(() => {
+              clabel.textContent = original;
+            }, 1600);
+          }
         } catch {
           /* clipboard denied or offline — the download link still works */
         }
+      });
+    }
+
+    // Preview toggle: reveal the derived section-map / stat panel. Progressive enhancement — the
+    // recipe itself is fully rendered below; the panel is a summary, so no-JS just hides it.
+    const bar = document.getElementById('recipe-bar');
+    const toggle = document.getElementById('recipe-toggle');
+    const preview = document.getElementById('recipe-preview');
+    const tlabel = document.getElementById('recipe-toggle-label');
+    if (bar && toggle && preview) {
+      toggle.addEventListener('click', () => {
+        const next = bar.dataset.open !== 'true';
+        bar.dataset.open = String(next);
+        toggle.setAttribute('aria-expanded', String(next));
+        if (tlabel) tlabel.textContent = next ? 'hide' : 'preview';
       });
     }
   </script>
@@ -144,6 +216,25 @@ const head = {
 
 <style is:global>
   #copy-recipe:hover { opacity: 0.88; }
+  .rc-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .rc-chev { transition: transform 0.2s ease; }
+  #recipe-bar[data-open='true'] .rc-chev { transform: rotate(180deg); }
+  /* Visibility is driven by data-open, not the [hidden] attribute — an inline display would beat
+     the UA `[hidden]{display:none}` rule and leak the panel open on load. */
+  #recipe-preview { display: none; }
+  #recipe-bar[data-open='true'] #recipe-preview { display: grid; }
+  /* The preview is a two-column map on desktop; on a phone it stacks, and the divider between the
+     two panels moves from the right edge to the bottom of the first. */
+  @media (max-width: 600px) {
+    .recipe-grid { grid-template-columns: 1fr !important; }
+    .recipe-grid > div:first-child {
+      border-right: none !important;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rc-chev { transition: none; }
+  }
   .prose {
     color: var(--muted);
     max-width: 68ch;
