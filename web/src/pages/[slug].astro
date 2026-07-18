@@ -52,30 +52,43 @@ const head = {
     <div style="padding:0 0 3rem">
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem"><a href="recipes.html" style="color:var(--muted);text-decoration:none">recipes</a> · v{m.version}</div>
       <h1 style="font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:760;max-width:26ch">{m.title}</h1>
-      <p style="margin-top:1.4rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">{m.problem}</p>
-      <div style="margin-top:1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
+      <div style="margin-top:1.3rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
         <Publisher size={22} prefix="by" />
         <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>
         <GateBadge />
         {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
         {date && <span>verified {date}</span>}
       </div>
-      <div style="margin-top:1.6rem;display:flex;flex-wrap:wrap;gap:.6rem">
-        <button id="copy-recipe" class="hov-btn" data-md={mdHref} style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--accent);color:var(--accent);background:var(--accent-soft);border-radius:.5rem;padding:.55rem 1rem;cursor:pointer">copy the recipe</button>
-        <a href={mdHref} download style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--line);color:var(--ink);border-radius:.5rem;padding:.55rem 1rem;text-decoration:none">download .md ↓</a>
+      <p style="margin-top:1.5rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">{m.problem}</p>
+
+      <div style="margin-top:2rem;display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;border:1px solid var(--line);border-radius:.85rem;background:var(--card);padding:.7rem .8rem .7rem 1rem">
+        <span style="display:inline-flex;align-items:center;gap:.55rem">
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
+          <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.9rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)">sporo recipe</span>
+        </span>
+        <span style="margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap">
+          <button id="copy-recipe" data-md={mdHref} style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;font-weight:600;border:1px solid var(--accent);color:var(--bg);background:var(--accent);border-radius:.55rem;padding:.55rem 1.05rem;cursor:pointer;transition:opacity .15s ease">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            copy the recipe
+          </button>
+          <a href={mdHref} download style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--line);color:var(--ink);background:var(--bg);border-radius:.55rem;padding:.55rem 1.05rem;text-decoration:none">download .md ↓</a>
+        </span>
       </div>
+
       <p style="margin-top:1.2rem;font-size:.85rem;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace;max-width:62ch;text-wrap:pretty">What a reader receives is the <a href="what-is-a-recipe.html" style="text-decoration:underline;text-underline-offset:3px">exported</a> form — this, with the adoption protocol appended. Every section below was distilled from one live implementation: its build record, its release history, its fix commits, and the scars only a real build leaves.</p>
     </div>
 
-    <section style="border-top:1px solid var(--line);background:var(--band)">
-      <div style="padding:1.7rem 0;display:flex;justify-content:center">
+    <section style="border-top:1px solid var(--line)">
+      <div style="padding:1.7rem 0">
         <AgentMarks label="Works with any agent" />
       </div>
     </section>
 
-    <section style="border-top:1px solid var(--line)">
-      <div style="padding:3rem 0" class="prose" set:html={recipe.introHtml}></div>
-    </section>
+    {recipe.introHtml.trim() && (
+      <section style="border-top:1px solid var(--line)">
+        <div style="padding:3rem 0" class="prose" set:html={recipe.introHtml}></div>
+      </section>
+    )}
 
     <section style="border-top:1px solid var(--line)">
       <div style="padding:2.5rem 0">
@@ -130,6 +143,7 @@ const head = {
 </Layout>
 
 <style is:global>
+  #copy-recipe:hover { opacity: 0.88; }
   .prose {
     color: var(--muted);
     max-width: 68ch;

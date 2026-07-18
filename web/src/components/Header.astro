@@ -58,7 +58,9 @@ const links = NAV;
     position: relative;
     max-width: 76rem;
     margin: 0 auto;
-    padding: 0.95rem clamp(1.25rem, 3vw, 2.5rem);
+    /* No side padding: the bar's edges are the frame's edges, so the logo lands on the left rail
+       and the theme toggle on the right rail — the vertical lines Frame draws down the page. */
+    padding: 0.95rem 0;
     display: flex;
     align-items: center;
     gap: 1.5rem;
@@ -107,6 +109,11 @@ const links = NAV;
     display: none;
   }
   @media (max-width: 700px) {
+    .bar {
+      /* On a phone the rails hug the viewport edge, so flush-left would touch the screen —
+         restore the content inset there; the rail alignment is a desktop refinement. */
+      padding-inline: clamp(1.25rem, 3vw, 2.5rem);
+    }
     .nav-right {
       gap: 0.7rem;
     }
