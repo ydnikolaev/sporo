@@ -12,11 +12,11 @@
 export GOWORK := off
 
 .PHONY: check test lint fmt fmt-check tidy-check vulncheck coverage gen build clean \
-        mate-check classify classify-teeth harness-sync
+        workflow-lint mate-check classify classify-teeth harness-sync
 
 ## check — the COMPLETE quality gate; the ceiling CI and skills trust before "done".
 ## Not a middle rung: for a faster loop add check-fast BELOW this, never a fuller gate above.
-check: fmt-check tidy-check lint
+check: fmt-check tidy-check lint workflow-lint
 	go build ./...
 	$(MAKE) coverage
 	go run ./cmd/sporo lint
@@ -66,6 +66,14 @@ vulncheck:
 	new=""; for id in $$found; do grep -qxF "$$id" .govulncheck-allow.txt 2>/dev/null || new="$$new $$id"; done; \
 	if [ -n "$$new" ]; then printf '%s\n' "$$out"; echo; echo "❌ NEW vulnerabilities (not in .govulncheck-allow.txt):$$new"; exit 1; fi; \
 	if [ -n "$$found" ]; then echo "vulncheck: OK — only accepted vulns present:$$(printf '%s' "$$found" | tr '\n' ' ' | sed 's/^/ /')"; else echo "vulncheck: OK — no called vulnerabilities"; fi
+
+## workflow-lint — every GitHub Action must be SHA-pinned (defeats tag-hijack; Dependabot
+## still updates the pins) and the workflows must be syntactically valid. Runs in `check`.
+workflow-lint:
+	@bad=$$(grep -rnE 'uses: +[^ ]+@' .github/workflows 2>/dev/null | grep -vE '@[0-9a-f]{40}([ "#]|$$)' | grep -v 'uses: \./' || true); \
+	if [ -n "$$bad" ]; then echo "❌ unpinned action(s) — pin to a full commit SHA (# vX.Y.Z):"; echo "$$bad"; exit 1; fi; \
+	echo "workflow-lint: all actions SHA-pinned"
+	@command -v actionlint >/dev/null 2>&1 && actionlint || echo "workflow-lint: actionlint not installed locally (CI runs it) — go install github.com/rhysd/actionlint/cmd/actionlint@latest"
 
 ## gen — regenerate all derived artifacts (the surface snapshot).
 gen:

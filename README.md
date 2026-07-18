@@ -1,6 +1,10 @@
 # sporo
 
 [![recipes sealed & gated](https://img.shields.io/github/actions/workflow/status/ydnikolaev/sporo/ci.yml?branch=main&label=recipes%20sealed%20%26%20gated)](https://github.com/ydnikolaev/sporo/actions/workflows/ci.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/ydnikolaev/sporo/codeql.yml?branch=main&label=CodeQL)](https://github.com/ydnikolaev/sporo/actions/workflows/codeql.yml)
+[![latest release](https://img.shields.io/github/v/release/ydnikolaev/sporo?sort=semver&label=release)](https://github.com/ydnikolaev/sporo/releases/latest)
+[![Go version](https://img.shields.io/github/go-mod/go-version/ydnikolaev/sporo)](https://github.com/ydnikolaev/sporo/blob/main/go.mod)
+[![License](https://img.shields.io/github/license/ydnikolaev/sporo)](https://github.com/ydnikolaev/sporo/blob/main/LICENSE)
 
 A single self-installing CLI that turns a build you already did into a **recipe**: one
 self-contained file that teaches an agent in a repository that has never heard of yours how to
