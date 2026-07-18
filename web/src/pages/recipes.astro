@@ -1,7 +1,7 @@
 ---
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
-import SealBadge from '../components/SealBadge.astro';
+import GateBadge from '../components/GateBadge.astro';
 import Publisher from '../components/Publisher.astro';
 import { listCorpus, formatDate } from '../lib/corpus.ts';
 
@@ -22,13 +22,13 @@ const recipes = listCorpus()
 const head = {
   title: 'sporo — the recipe corpus',
   description:
-    'Every transferable build recipe in the sporo corpus: real, sealed, versioned recipes an AI agent can rebuild from in any repository. Read one in full, or hand it to an agent.',
+    'Every transferable build recipe in the sporo corpus: real, gate-checked, versioned recipes an AI agent can rebuild from in any repository. Read one in full, or hand it to an agent.',
   path: '/recipes.html',
   og: {
     type: 'website' as const,
     title: 'sporo recipes — the corpus',
     description:
-      'Real, sealed, versioned build recipes an AI agent can rebuild from in a repository that has never seen yours.',
+      'Real, gate-checked, versioned build recipes an AI agent can rebuild from in a repository that has never seen yours.',
   },
   twitter: {},
   jsonLd: {
@@ -64,7 +64,7 @@ const head = {
             <p style="margin-top:.7rem;color:var(--muted);font-size:.94rem;line-height:1.5;text-wrap:pretty;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">{r.problem}</p>
             <div style="margin-top:1.3rem;padding-top:.9rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap">
               <Publisher size={20} link={false} />
-              <SealBadge compact={true} />
+              <GateBadge compact={true} />
             </div>
           </a>
         ))}

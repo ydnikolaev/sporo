@@ -2,7 +2,7 @@
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import AgentMarks from '../components/AgentMarks.astro';
-import SealBadge from '../components/SealBadge.astro';
+import GateBadge from '../components/GateBadge.astro';
 import Publisher from '../components/Publisher.astro';
 import { readRecipe, listCorpus, adoptionSections, formatDate } from '../lib/corpus.ts';
 
@@ -56,9 +56,9 @@ const head = {
       <div style="margin-top:1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
         <Publisher size={22} prefix="by" />
         <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>
-        <SealBadge />
+        <GateBadge />
         {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
-        {date && <span>published {date}</span>}
+        {date && <span>verified {date}</span>}
       </div>
       <div style="margin-top:1.6rem;display:flex;flex-wrap:wrap;gap:.6rem">
         <button id="copy-recipe" class="hov-btn" data-md={mdHref} style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;border:1px solid var(--accent);color:var(--accent);background:var(--accent-soft);border-radius:.5rem;padding:.55rem 1rem;cursor:pointer">copy the recipe</button>

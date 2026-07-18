@@ -1,0 +1,24 @@
+---
+// The honest conformance badge. It claims ONLY what `sporo lint recipes` mechanically verifies
+// about the shipped corpus — the eleven sections in order, neutrality (no leaked paths or product
+// names), and earned scars. It does NOT claim "sealed" (the site's corpus carries no seal registry)
+// and does NOT claim "no prompt injection / secure" (no scan backs that yet). A decorative claim is
+// worse than none; when the publish scan and a corpus seal land, earned badges join this one — see
+// the publish-security backlog.
+interface Props {
+  compact?: boolean; // card form: just "gate-passed"; detail form spells out "· neutral"
+}
+const { compact = false } = Astro.props;
+const tip = 'Passes the genre gate: the eleven sections in order, neutrality (no leaked paths or product names), and earned scars. Not a seal and not a security scan.';
+---
+
+<span
+  title={tip}
+  style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:.24rem .6rem;white-space:nowrap"
+>
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 3l7 3v5c0 4.6-3.1 7.9-7 9-3.9-1.1-7-4.4-7-9V6z" />
+    <path d="M9 12l2 2 4-4" />
+  </svg>
+  {compact ? 'gate-passed' : 'gate-passed · neutral'}
+</span>
