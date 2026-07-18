@@ -25,9 +25,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
+
+// sealNow stamps the moment a seal is recorded. It is a var so tests can pin it; production reads
+// the wall clock in UTC (a ledger timestamp belongs in one zone, not the sealer's local one).
+var sealNow = func() string { return time.Now().UTC().Format(time.RFC3339) }
 
 // RegistrySchema names the current on-disk shape, so a future binary can migrate an old
 // registry instead of misreading it.
@@ -53,6 +58,11 @@ type RegistryEntry struct {
 	// from the public corpus), or `team:<name>` (a private workspace). It is the extension
 	// of the official/project split that Origin draws for the two corpora.
 	Provenance string `yaml:"provenance"`
+	// SealedAt is when this seal was recorded (RFC3339, UTC) — a machine-stamped fact, unlike
+	// the frontmatter's author-typed `verified.date`. Set on the first seal and on every re-seal
+	// after a version bump; preserved on an idempotent re-seal. `omitempty` keeps registries
+	// sealed before the field existed loadable — the next seal backfills them.
+	SealedAt string `yaml:"sealed_at,omitempty"`
 	// ExactContracts digests the exact-bound fence bodies at seal time (empty when the
 	// recipe has none). It is what lets seal enforce the fleet rule: an exact contract is
 	// somebody else's parser, and a change to it under a minor bump ships a break wearing a
@@ -169,16 +179,26 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	if sealed && entry.ID != "" && id != "" && id != entry.ID {
 		return RegistryEntry{}, fmt.Errorf("recipe %q was sealed with id %s but its frontmatter now says %s — the id is a permanent identity, minted once and never edited; restore it (a genuinely new recipe gets a new slug, not a rewritten id)", slug, entry.ID, id)
 	}
+	now := sealNow()
 	switch {
 	case !sealed:
-		entry = RegistryEntry{ID: id, Version: version, Hash: hash, Provenance: "local", ExactContracts: digest}
+		entry = RegistryEntry{ID: id, Version: version, Hash: hash, Provenance: "local", SealedAt: now, ExactContracts: digest}
 	case entry.Hash == hash && entry.Version == version && entry.ID == id:
-		return entry, nil // already sealed exactly so — idempotent by design
+		// Already sealed exactly so — idempotent by design. Backfill only a MISSING sealed_at (a
+		// seal made before the field existed): recording when is the ledger catching up, not a
+		// mutation, so it needs no version bump.
+		if entry.SealedAt != "" {
+			return entry, nil
+		}
+		entry.SealedAt = now
 	case entry.Hash == hash && entry.Version == version:
 		// Content and version match; only the id differs — an old seal being backfilled. Record
 		// it without demanding a version bump: adding the id to the registry is not a mutation
 		// of the recipe, it is the ledger catching up to a field the file already carries.
 		entry.ID = id
+		if entry.SealedAt == "" {
+			entry.SealedAt = now
+		}
 	case entry.Version == version:
 		return RegistryEntry{}, fmt.Errorf("recipe %q changed since it was sealed at %s, but `version:` still says %s — a sealed recipe never silently mutates; bump the version, then seal", slug, entry.Version, version)
 	default:
@@ -188,7 +208,8 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 		if entry.ExactContracts != "" && digest != entry.ExactContracts && semverMajor(version) <= semverMajor(entry.Version) {
 			return RegistryEntry{}, fmt.Errorf("recipe %q changes an exact-bound contract — every consumer in the fleet parses that shape, so this is a MAJOR version (%s → at least %d.0.0), not %s", slug, entry.Version, semverMajor(entry.Version)+1, version)
 		}
-		entry.ID, entry.Version, entry.Hash, entry.ExactContracts = id, version, hash, digest
+		// A re-seal after a version bump is a new seal event — restamp when.
+		entry.ID, entry.Version, entry.Hash, entry.ExactContracts, entry.SealedAt = id, version, hash, digest, now
 	}
 	reg.Recipes[slug] = entry
 	if err := reg.Save(root); err != nil {

@@ -5,9 +5,11 @@ recipes:
         version: 1.0.1
         hash: sha256:3e56659c0eba263efef352b71d5be9a3932655173100ec603a3cb1844667a7f5
         provenance: local
+        sealed_at: "2026-07-18T03:40:22Z"
         exact_contracts: sha256:57b699d0decb69de6997c79115bec707ee0d430d03eb6be1c6cc437de5aa7a70
     russian-personal-data-legal-and-consent-banner:
         id: 01KXS83W67BK5QB23TXSMZ073K
         version: 0.1.1
         hash: sha256:ec25a301cbbb8371296514803941c7f1a6082a7d24c04867b65d6272b0d98b46
         provenance: local
+        sealed_at: "2026-07-18T03:40:22Z"

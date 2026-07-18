@@ -313,6 +313,32 @@ func TestAnUnsealedDraftHasNoObligations(t *testing.T) {
 	}
 }
 
+func TestSealStampsSealedAtOnceAndKeepsIt(t *testing.T) {
+	root, cfg := sealFixture(t)
+	orig := sealNow
+	t.Cleanup(func() { sealNow = orig })
+
+	sealNow = func() string { return "2026-01-01T00:00:00Z" }
+	e1, err := Seal(root, cfg, "baseline")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e1.SealedAt != "2026-01-01T00:00:00Z" {
+		t.Fatalf("the first seal must stamp sealed_at; got %q", e1.SealedAt)
+	}
+
+	// An idempotent re-seal (same bytes, same version) is not a new seal event — sealed_at must
+	// not move, even though the clock has.
+	sealNow = func() string { return "2099-12-31T00:00:00Z" }
+	e2, err := Seal(root, cfg, "baseline")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e2.SealedAt != "2026-01-01T00:00:00Z" {
+		t.Fatalf("an idempotent re-seal must preserve sealed_at; got %q", e2.SealedAt)
+	}
+}
+
 func TestAFinishedRecipeMustBeSealed(t *testing.T) {
 	// A conformant (non-draft) recipe that was never sealed is published in intent but unwitnessed
 	// by the registry — the own-home gate must flag it, so "all recipes are sealed" stays true.
