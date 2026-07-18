@@ -64,17 +64,22 @@ changelog:
   # reachability to build release notes, which matters while the repo is private
   # and CI has nothing but the default GITHUB_TOKEN.
   sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^chore:"
-      - "^test:"
+  # Shorten the commit SHA in each line (the default is the full 40 chars, which reads as
+  # noise jammed against the message). The site further wraps it in a monospace chip.
+  abbrev: 7
+  # No `filters.exclude`: the earlier bare `^docs:`/`^chore:` never matched the SCOPED commits
+  # this repo writes (`docs(rules):`, `chore(mate):`), so they leaked into Other anyway — and
+  # the intent is to SHOW the small stuff under "Other changes", not to hide it.
   groups:
+    # GoReleaser matches these against the commit subject (`feat(cli): …`), which has no SHA
+    # prefix — the old `^[a-f0-9]+` anchor consumed the leading "fea"/"fi" and never matched,
+    # dumping every feat/fix into Other and leaving Features/Fixes empty. The optional
+    # `[0-9a-f]{7,40}` prefix now tolerates either form (hash-prefixed or bare subject).
     - title: Features
-      regexp: '^[a-f0-9]+:?\s*feat(\([[:word:]]+\))?!?:.+$'
+      regexp: '(?i)^([0-9a-f]{7,40}\s+)?feat(\([^)]+\))?!?:'
       order: 0
     - title: Fixes
-      regexp: '^[a-f0-9]+:?\s*fix(\([[:word:]]+\))?!?:.+$'
+      regexp: '(?i)^([0-9a-f]{7,40}\s+)?fix(\([^)]+\))?!?:'
       order: 1
     - title: Other changes
       order: 999
