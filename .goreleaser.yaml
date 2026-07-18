@@ -59,6 +59,35 @@ checksum:
   # name here would silently disable checksum validation for every future self-update.
   name_template: "checksums.txt"
 
+# cosign KEYLESS (Sigstore OIDC) signing. We sign ONLY checksums.txt — that file lists the
+# SHA256 of every archive/binary, so the one signature transitively covers the whole release.
+# One `.sigstore.json` bundle instead of N, and it keeps the Release page clean. Keyless means
+# there is no long-lived key to manage; the CI OIDC identity is the signer, recorded in Rekor.
+# `--yes` is modern GA keyless (the old COSIGN_EXPERIMENTAL=1 is obsolete). Requires cosign on
+# the runner (release.yml installs it via sigstore/cosign-installer) and `id-token: write`.
+# Users verify with:
+#   cosign verify-blob --bundle checksums.txt.sigstore.json \
+#     --certificate-identity-regexp '^https://github.com/ydnikolaev/sporo/.github/workflows/release.yml@refs/tags/v.*$' \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com checksums.txt
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sigstore.json"
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum
+    output: true
+
+# syft SBOMs. The defaults (cmd: syft, spdx-json output, one document per archive named
+# {{ .ArtifactName }}.sbom.json) are what we want, so the archive entry needs no fields.
+# Only `artifacts: archive` — a `source` entry would need `source.enabled: true` (a source
+# tarball we don't publish today), so it's deliberately omitted rather than left to no-op.
+# Requires syft on the runner (release.yml installs it via anchore/sbom-action/download-syft).
+sboms:
+  - artifacts: archive
+
 changelog:
   # `use: git` (the default) — not `use: github` — so this doesn't need GitHub API
   # reachability to build release notes, which matters while the repo is private
