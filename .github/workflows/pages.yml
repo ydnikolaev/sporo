@@ -8,6 +8,13 @@ on:
   push:
     branches: [main]
     paths: ["web/**", "recipes/**", ".sporo/**", "scripts/install.sh", ".github/workflows/pages.yml"]
+  # A published release MUST redeploy the site. The landing's version badge and the changelog are
+  # both resolved at BUILD time (`gh release view` / the Releases API), but the release is created
+  # by the tag-triggered Release workflow AFTER the main push that already deployed the site — so
+  # without this trigger the site sits one release behind forever (v0.9.0 shipped; the site still
+  # showed v0.8.0). This closes the loop: goreleaser publishes → Pages rebuilds → both pick it up.
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
