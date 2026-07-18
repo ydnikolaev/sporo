@@ -55,9 +55,13 @@ type Fixture struct {
 	Body  string
 }
 
+// These markers are shared with recipekit's Lint (which reads the same fences); the two
+// copies must stay byte-identical, or seal and lint disagree about which fence is which.
 var (
 	reFenceOpen = regexp.MustCompile("^\\s*```(\\w*)\\s*$")
 	reFixture   = regexp.MustCompile(`\*\*Fixture: (valid|invalid)\*\*`)
+	reFence     = regexp.MustCompile("^\\s*```")
+	reBinding   = regexp.MustCompile(`\*\*Binding: (exact|adapt)\*\*`)
 )
 
 // ExactContracts parses the exact-bound shapes (and their fixtures) out of a recipe's
@@ -217,20 +221,20 @@ func fixtureFindings(name string, src []byte) []Finding {
 	var out []Finding
 	for _, c := range ExactContracts(src) {
 		if _, err := parseShape(c.Lang, []byte(c.Body)); err != nil {
-			out = append(out, Finding{name, 0, fmt.Sprintf("exact contract #%d does not parse as %s — `exact` means a machine on the other side, and a shape no machine can read is a promise no machine can hold: %v", c.Index, langName(c.Lang), err)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("exact contract #%d does not parse as %s — `exact` means a machine on the other side, and a shape no machine can read is a promise no machine can hold: %v", c.Index, langName(c.Lang), err)})
 			continue
 		}
 		for i, f := range c.Fixtures {
 			violations, err := Conform(c, []byte(f.Body))
 			if err != nil {
-				out = append(out, Finding{name, 0, fmt.Sprintf("fixture %d of exact contract #%d does not parse: %v", i+1, c.Index, err)})
+				out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("fixture %d of exact contract #%d does not parse: %v", i+1, c.Index, err)})
 				continue
 			}
 			switch {
 			case f.Valid && len(violations) > 0:
-				out = append(out, Finding{name, 0, fmt.Sprintf("a fixture stamped VALID fails its own contract (#%d) — the contract cannot mean what its author thinks it means: %s", c.Index, violations[0])})
+				out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("a fixture stamped VALID fails its own contract (#%d) — the contract cannot mean what its author thinks it means: %s", c.Index, violations[0])})
 			case !f.Valid && len(violations) == 0:
-				out = append(out, Finding{name, 0, fmt.Sprintf("a fixture stamped INVALID conforms to contract #%d — it defends against nothing; make it violate the shape, or say why it should not exist", c.Index)})
+				out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("a fixture stamped INVALID conforms to contract #%d — it defends against nothing; make it violate the shape, or say why it should not exist", c.Index)})
 			}
 		}
 	}

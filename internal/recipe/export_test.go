@@ -1,7 +1,6 @@
 package recipe
 
 import (
-	"os"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -47,22 +46,6 @@ func TestAnExportWithNoProtocolIsAnError(t *testing.T) {
 	}
 }
 
-// The protocol ships to strangers BY DEFINITION — it is the one text in the corpus that every
-// exported recipe carries — so it is held to the same neutrality as any recipe body. A
-// coordinate here would leak into every recipe at once, which is the whole reason it is worth
-// a test of its own: the blast radius is the corpus.
-func TestTheAdoptionProtocolIsNeutral(t *testing.T) {
-	src, err := os.ReadFile("../../recipes/" + AdoptionDoc)
-	if err != nil {
-		t.Fatal(err)
-	}
-	lines := strings.Split(string(src), "\n")
-	if f := neutrality(AdoptionDoc, lines, 0, []string{"sporo"}); len(f) != 0 {
-		t.Fatalf("the adoption protocol names a coordinate — and it rides on EVERY exported recipe:\n  %v", f)
-	}
-	for _, want := range []string{"## Adopt it here", "## Report back"} {
-		if !strings.Contains(string(src), want) {
-			t.Fatalf("the protocol is missing %q", want)
-		}
-	}
-}
+// The adoption protocol's neutrality is checked in pkg/recipekit (that is where the
+// neutrality scan lives); its section presence is asserted there too, against the same
+// corpus file this test used to read.

@@ -20,7 +20,6 @@ package recipe
 // what sporo wrote, sporo may rewrite; what the author wrote, sporo may only guard.
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -28,6 +27,8 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v3"
+
+	"sporo.dev/sporo/pkg/recipekit"
 )
 
 // sealNow stamps the moment a seal is recorded. It is a var so tests can pin it; production reads
@@ -232,17 +233,17 @@ func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
 		name := slug + ".md"
 		src, err := os.ReadFile(filepath.Join(root, cfg.Home, name))
 		if err != nil {
-			out = append(out, Finding{name, 0, fmt.Sprintf("sealed at %s but missing from the recipes home — a sealed recipe that vanished is a broken promise, not a cleanup; unseal it deliberately (remove its registry entry) or restore it", entry.Version)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("sealed at %s but missing from the recipes home — a sealed recipe that vanished is a broken promise, not a cleanup; unseal it deliberately (remove its registry entry) or restore it", entry.Version)})
 			continue
 		}
 		version := fmValue(src, "version")
 		switch {
 		case entry.ID != "" && fmValue(src, "id") != entry.ID:
-			out = append(out, Finding{name, 0, fmt.Sprintf("frontmatter id %s does not match the sealed id %s — the id is a permanent identity, never edited; restore it (a genuinely different recipe gets its own slug, not a rewritten id)", fmValue(src, "id"), entry.ID)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("frontmatter id %s does not match the sealed id %s — the id is a permanent identity, never edited; restore it (a genuinely different recipe gets its own slug, not a rewritten id)", fmValue(src, "id"), entry.ID)})
 		case version != entry.Version:
-			out = append(out, Finding{name, 0, fmt.Sprintf("frontmatter says version %s but the seal says %s — re-seal (`sporo seal %s`) so the registry witnesses the version the document declares", version, entry.Version, slug)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("frontmatter says version %s but the seal says %s — re-seal (`sporo seal %s`) so the registry witnesses the version the document declares", version, entry.Version, slug)})
 		case ContentHash(src) != entry.Hash:
-			out = append(out, Finding{name, 0, fmt.Sprintf("content drifted from its seal without a version bump (still %s) — a sealed recipe never silently mutates; bump `version:`, then `sporo seal %s`", entry.Version, slug)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("content drifted from its seal without a version bump (still %s) — a sealed recipe never silently mutates; bump `version:`, then `sporo seal %s`", entry.Version, slug)})
 		}
 	}
 	// The other direction: every FINISHED recipe in the project's own home must be sealed. A
@@ -267,89 +268,22 @@ func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
 		if err != nil || IsDraft(src) {
 			continue
 		}
-		out = append(out, Finding{e.Name(), 0, fmt.Sprintf("finished but not sealed — a non-draft recipe promises a version; `sporo seal %s` to record it, or mark it `draft: true` while it is still in flux", slug)})
+		out = append(out, Finding{File: e.Name(), Line: 0, Msg: fmt.Sprintf("finished but not sealed — a non-draft recipe promises a version; `sporo seal %s` to record it, or mark it `draft: true` while it is still in flux", slug)})
 	}
 	return out, nil
 }
 
-// exactContractsDigest hashes the bodies of the exact-bound fences in the contracts
-// section, in order. Only the fence CONTENTS count: prose around a shape can be reworded
-// freely, field names and structure cannot. An empty digest means the recipe promises
-// nothing exact, and the seal imposes nothing.
-func exactContractsDigest(src []byte) string {
-	con := sectionBody(strings.Split(string(src), "\n"), "## The contracts")
-	var buf strings.Builder
-	exact, inFence, capture := false, false, false
-	for _, l := range con {
-		switch {
-		case reFence.MatchString(l):
-			if !inFence {
-				inFence, capture = true, exact
-			} else {
-				inFence, capture = false, false
-			}
-			exact = false
-		case !inFence && reBinding.MatchString(l):
-			exact = strings.Contains(l, "**Binding: exact**")
-		default:
-			if capture {
-				buf.WriteString(l)
-				buf.WriteByte('\n')
-			}
-		}
-	}
-	if buf.Len() == 0 {
-		return ""
-	}
-	return ContentHash([]byte(buf.String()))
-}
+// exactContractsDigest forwards to recipekit — the digest is a pure function of the source,
+// and the registry shares it with a future server via the extracted package.
+func exactContractsDigest(src []byte) string { return recipekit.ExactContractsDigest(src) }
 
-// semverMajor reads the MAJOR of a semver triple; a malformed version reads as 0, and the
-// lint gate (which requires a real triple) is where malformedness is reported.
-func semverMajor(v string) int {
-	n := 0
-	for _, r := range v {
-		if r < '0' || r > '9' {
-			break
-		}
-		n = n*10 + int(r-'0')
-	}
-	return n
-}
+// semverMajor reads the MAJOR of a semver triple; a malformed version reads as 0.
+func semverMajor(v string) int { return recipekit.SemverMajor(v) }
 
-// fmValue extracts one scalar from a recipe's frontmatter, tolerant of quotes. It reads the
-// first `---` pair — scanning from line 0, not line 1, because it serves TWO document
-// shapes: a source file (banner on line 0, frontmatter after) and an EXPORTED file (banner
-// stripped, frontmatter IS line 0). A scan that assumed the banner missed every export's
-// frontmatter entirely — `adopt` found that the hard way. Safe for sources too: a banner
-// line is an HTML comment and never trims to `---`.
-func fmValue(src []byte, key string) string {
-	lines := strings.Split(string(src), "\n")
-	start, end := -1, -1
-	for i := 0; i < len(lines); i++ {
-		if strings.TrimSpace(lines[i]) == "---" {
-			if start < 0 {
-				start = i
-			} else {
-				end = i
-				break
-			}
-		}
-	}
-	if start < 0 || end < 0 {
-		return ""
-	}
-	line := keyLine(lines[start+1:end], key)
-	if line == "" {
-		return ""
-	}
-	v := strings.TrimSpace(strings.TrimPrefix(line, key+":"))
-	return strings.Trim(v, `"'`)
-}
+// fmValue extracts one scalar from a recipe's frontmatter, tolerant of quotes.
+func fmValue(src []byte, key string) string { return recipekit.FrontmatterValue(src, key) }
 
 // ContentHash is the registry's currency: `sha256:<hex>` over exact bytes. Exported because
 // the install layer prices its managed files in the same currency — one hash discipline,
 // not two.
-func ContentHash(b []byte) string {
-	return fmt.Sprintf("sha256:%x", sha256.Sum256(b))
-}
+func ContentHash(b []byte) string { return recipekit.ContentHash(b) }

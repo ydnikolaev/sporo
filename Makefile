@@ -22,7 +22,9 @@ check: fmt-check tidy-check lint workflow-lint
 	go run ./cmd/sporo lint
 	go generate ./...
 	git diff --exit-code -- web/src/data/surface.json
+	$(MAKE) vulncheck
 	$(MAKE) classify
+	$(MAKE) classify-teeth
 
 ## test — tests only (no lint/coverage gate).
 test:
@@ -57,8 +59,8 @@ tidy-check:
 
 ## vulncheck — official Go vulnerability scanner, gated by .govulncheck-allow.txt: fails on
 ## any CALLED vuln not on the accepted list, so a NEW vuln is loud but an unfixable one
-## doesn't hold the gate red forever. Kept OUT of `check` (daily CI + PR cadence — vulns
-## appear over time, not per-commit, and the scan needs the network); run by hand anytime.
+## doesn't hold the gate red forever. Part of `check` (needs the network), and also runs on
+## a daily CI schedule + on PR, since disclosures appear over time, not only per-commit.
 vulncheck:
 	@command -v govulncheck >/dev/null 2>&1 || { echo "govulncheck missing: go install golang.org/x/vuln/cmd/govulncheck@latest"; exit 1; }
 	@out=$$(govulncheck ./... 2>&1) || true; \

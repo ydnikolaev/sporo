@@ -31,9 +31,10 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
+
+	"sporo.dev/sporo/pkg/recipekit"
 )
 
 // AdoptedEntry is one handed-over recipe this repository built from.
@@ -253,42 +254,7 @@ func fetchSource(source string) ([]byte, error) {
 	return b, nil
 }
 
-// semverNewer: a deliberate small duplicate of the compare in the upgrade package. The
-// recipe engine must not import the binary's own distribution machinery for three lines of
-// integer comparison — the seam between "the tool updates itself" and "a recipe has
-// versions" is worth more than the deduplication.
-func semverNewer(candidate, current string) bool {
-	a, okA := semverTriple(candidate)
-	b, okB := semverTriple(current)
-	if !okA || !okB {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return a[i] > b[i]
-		}
-	}
-	return false
-}
-
-func semverTriple(v string) ([3]int, bool) {
-	v = strings.TrimPrefix(strings.TrimSpace(v), "v")
-	parts := strings.SplitN(v, ".", 3)
-	if len(parts) != 3 {
-		return [3]int{}, false
-	}
-	var out [3]int
-	for i, p := range parts {
-		if i == 2 {
-			if j := strings.IndexAny(p, "-+"); j >= 0 {
-				p = p[:j]
-			}
-		}
-		n, err := strconv.Atoi(p)
-		if err != nil {
-			return [3]int{}, false
-		}
-		out[i] = n
-	}
-	return out, true
-}
+// semverNewer forwards to recipekit — a recipe's version compare is pure, and the seam
+// between "the tool updates itself" and "a recipe has versions" is preserved by keeping it
+// out of the binary's own upgrade machinery.
+func semverNewer(candidate, current string) bool { return recipekit.SemverNewer(candidate, current) }

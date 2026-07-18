@@ -58,9 +58,11 @@ func TestTheScaffoldMinusTheDraftMarkIsGenreGreen(t *testing.T) {
 		t.Fatalf("the scaffold is the first conformant document the author reads — it may not fail its own gate:\n%v", f)
 	}
 	// The id is minted, not typed — so it must be present and a real ULID the moment the draft
-	// is born, or the author hits a gate on a field they were never meant to touch.
-	if id := fmValue(src, "id"); !reULID.MatchString("id: " + id) {
-		t.Fatalf("the scaffold must mint a valid ULID id, got %q", id)
+	// is born, or the author hits a gate on a field they were never meant to touch. Lint above
+	// already enforces the ULID grammar (a bad id would red it); here we assert it is minted
+	// and of ULID length.
+	if id := fmValue(src, "id"); len(id) != 26 {
+		t.Fatalf("the scaffold must mint a 26-char ULID id, got %q", id)
 	}
 }
 
@@ -104,10 +106,16 @@ func TestAHarvestSeedsTheScarsAsJudgeableCandidates(t *testing.T) {
 		}
 	}
 	scars := sectionBody(strings.Split(s, "\n"), "## The scars")
-	if n := count(scars, reHeading); n != 2 {
-		t.Fatalf("each scar candidate gets its own heading (got %d)", n)
+	headings := 0
+	for _, l := range scars {
+		if strings.HasPrefix(l, "### ") {
+			headings++
+		}
 	}
-	for _, m := range scarMarkers {
+	if headings != 2 {
+		t.Fatalf("each scar candidate gets its own heading (got %d)", headings)
+	}
+	for _, m := range []string{"Symptom", "Root cause", "Fix"} {
 		if n := strings.Count(strings.Join(scars, "\n"), "**"+m+":**"); n != 2 {
 			t.Fatalf("every candidate carries the three markers as stubs (%s: %d)", m, n)
 		}

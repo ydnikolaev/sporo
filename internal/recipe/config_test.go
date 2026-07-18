@@ -3,6 +3,7 @@ package recipe
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -29,9 +30,12 @@ func TestTheDefaultProductVocabularyIsNeverPunctuation(t *testing.T) {
 				t.Fatalf("root %q derived %q as a product name — a vocabulary of punctuation reds on every number in every recipe", root, p)
 			}
 		}
-		// And prove it end-to-end: the default vocabulary must not fire on a decimal.
-		f := neutrality("x.md", []string{"An estimate of 2.5 days is a guess wearing a suit."}, -1, cfg.Products)
-		if len(f) != 0 {
+		// And prove it end-to-end through the public gate: the default vocabulary must not fire
+		// on a decimal. (The neutrality scan itself now lives in pkg/recipekit; Lint is the seam
+		// this package still owns, so the check rides through it.)
+		body := strings.Replace(conformant, "Derive, never restate.",
+			"An estimate of 2.5 days is a guess wearing a suit.", 1)
+		if f := Lint("x.md", []byte(body), cfg.Products); len(f) != 0 {
 			t.Fatalf("root %q: the default vocabulary reds on a plain number: %v", root, f)
 		}
 	}
@@ -47,9 +51,17 @@ func TestTheProjectsOwnNameIsBannedByDefault(t *testing.T) {
 		t.Fatal(err)
 	}
 	// A recipe written by someone standing in the repo leaks the repo's own name first —
-	// so with no config at all, that is the one name the gate must already know.
-	f := neutrality("x.md", []string{"Wire it the way payments-api does."}, -1, cfg.Products)
-	if len(f) == 0 {
+	// so with no config at all, that is the one name the gate must already know. Routed
+	// through the public Lint (the neutrality scan lives in pkg/recipekit now).
+	body := strings.Replace(conformant, "Derive, never restate.",
+		"Wire it the way payments-api does.", 1)
+	red := false
+	for _, x := range Lint("x.md", []byte(body), cfg.Products) {
+		if strings.Contains(x.Msg, "product") {
+			red = true
+		}
+	}
+	if !red {
 		t.Fatal("a project with no config must still ban its OWN name — it is the one most likely to leak")
 	}
 }

@@ -58,20 +58,20 @@ func LintBundle(corpus fs.FS, home, name string, b Bundle) []Finding {
 	var out []Finding
 	file := name + bundleSuffix
 	if strings.TrimSpace(b.Title) == "" {
-		out = append(out, Finding{file, 0, "bundle has no title — the composed document opens with it, and an untitled handover reads as a fragment"})
+		out = append(out, Finding{File: file, Line: 0, Msg: "bundle has no title — the composed document opens with it, and an untitled handover reads as a fragment"})
 	}
 	if len(b.Members) == 0 {
-		out = append(out, Finding{file, 0, "bundle has no members — a composition of nothing is a manifest for a document that cannot exist"})
+		out = append(out, Finding{File: file, Line: 0, Msg: "bundle has no members — a composition of nothing is a manifest for a document that cannot exist"})
 	}
 	seen := map[string]bool{}
 	for _, m := range b.Members {
 		if seen[m] {
-			out = append(out, Finding{file, 0, fmt.Sprintf("member %q is listed twice — the build order must say each thing once", m)})
+			out = append(out, Finding{File: file, Line: 0, Msg: fmt.Sprintf("member %q is listed twice — the build order must say each thing once", m)})
 			continue
 		}
 		seen[m] = true
 		if !memberExists(corpus, home, m) {
-			out = append(out, Finding{file, 0, fmt.Sprintf("member %q resolves to no recipe here or in the official corpus — a build order with a hole in it transfers the hole", m)})
+			out = append(out, Finding{File: file, Line: 0, Msg: fmt.Sprintf("member %q resolves to no recipe here or in the official corpus — a build order with a hole in it transfers the hole", m)})
 		}
 	}
 	return out

@@ -32,6 +32,7 @@ var Thresholds = map[string]float64{
 	"internal/recipe":  75,
 	"internal/upgrade": 60,
 	"cmd/sporo":        20, // CLI wiring — low unit-test value; the e2e suite covers the real loop
+	"pkg/recipekit":    90, // the shared validation/hashing SSOT (a registry will import it) — keep it high
 }
 
 // Excluded packages are exempt from BOTH the per-package and the Global gate (they carry
