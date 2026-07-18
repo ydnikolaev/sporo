@@ -149,7 +149,7 @@ const head = {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
               <span id="copy-label">copy</span>
             </button>
-            <a href={mdHref} download class="rc-ghost" style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem 1rem;text-decoration:none;transition:border-color .15s ease,color .15s ease">download .md ↓</a>
+            <a href={mdHref} download id="download-recipe" data-slug={slug} class="rc-ghost" style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem 1rem;text-decoration:none;transition:border-color .15s ease,color .15s ease">download .md ↓</a>
             <button id="recipe-toggle" class="rc-ghost" aria-expanded="false" aria-controls="recipe-preview" title="preview the recipe" style="display:inline-flex;align-items:center;justify-content:center;gap:.45rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem .85rem;cursor:pointer;transition:border-color .15s ease,color .15s ease">
               <span id="recipe-toggle-label" style="display:inline-block;min-width:3.2rem;text-align:left">preview</span>
               <svg class="rc-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
@@ -240,6 +240,7 @@ const head = {
           const res = await fetch(btn.dataset.md);
           const text = await res.text();
           if (navigator.clipboard) await navigator.clipboard.writeText(text);
+          if (window.gtag) window.gtag('event', 'copy_recipe', { recipe: (btn.dataset.md || '').replace(/\.md$/, '') });
           if (clabel) {
             const original = clabel.textContent;
             clabel.textContent = 'copied ✓';
@@ -250,6 +251,14 @@ const head = {
         } catch {
           /* clipboard denied or offline — the download link still works */
         }
+      });
+    }
+
+    // Download: the anchor does the work; we only record the intent.
+    const dl = document.getElementById('download-recipe');
+    if (dl) {
+      dl.addEventListener('click', () => {
+        if (window.gtag) window.gtag('event', 'download_recipe', { recipe: dl.dataset.slug });
       });
     }
 

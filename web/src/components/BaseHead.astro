@@ -41,6 +41,18 @@ const ogImageUrl = new URL(ogImage, Astro.site).href;
     } catch (e) {}
   })();
 </script>
+<!-- Google Analytics (GA4). `is:inline` keeps Astro from bundling/deferring it — gtag must define
+     window.gtag synchronously so event handlers elsewhere can queue into dataLayer before gtag.js
+     finishes loading (async). The loader is async, so it never blocks parse or first paint. -->
+<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-PLL27SX75X"></script>
+<script is:inline>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag('js', new Date());
+  gtag('config', 'G-PLL27SX75X');
+</script>
 <title>{title}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={url} />
