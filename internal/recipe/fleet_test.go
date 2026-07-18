@@ -1,7 +1,9 @@
 package recipe
 
 import (
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -68,5 +70,49 @@ func TestFleetRecipesSkipsAdoptedAndMissingRoots(t *testing.T) {
 func TestFleetRecipesEmptyInputIsEmpty(t *testing.T) {
 	if rows := FleetRecipes(nil); len(rows) != 0 {
 		t.Fatalf("no roots means no rows, got %+v", rows)
+	}
+}
+
+func TestFleetAllMarksSealedUnsealedAndDraft(t *testing.T) {
+	root := t.TempDir()
+	home := filepath.Join(root, ".sporo", "recipes") // the default home LoadConfig resolves
+	if err := os.MkdirAll(home, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	write := func(name, body string) {
+		if err := os.WriteFile(filepath.Join(home, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("sealed-one.md", conformant)   // in the registry below → sealed
+	write("unsealed-one.md", conformant) // finished, absent from the registry → unsealed
+	write("draft-one.md", strings.Replace(conformant, "effort: reference", "effort: reference\ndraft: true", 1))
+	seedRegistry(t, root, map[string]RegistryEntry{
+		"sealed-one": {ID: "01ARZ3NDEKTSV4RRFFQ69G5FAV", Version: "1.0.0", Provenance: "local"},
+	})
+
+	status := map[string]string{}
+	for _, r := range FleetAll([]string{root}) {
+		status[r.Slug] = r.Status
+	}
+	if status["sealed-one"] != "sealed" || status["unsealed-one"] != "unsealed" || status["draft-one"] != "draft" {
+		t.Fatalf("--all must mark each recipe's seal status; got %+v", status)
+	}
+}
+
+func TestFleetAdoptedReadsTheReaderSideOnly(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "consumer-repo")
+	reg := Registry{
+		Recipes: map[string]RegistryEntry{"authored-here": {Version: "1.0.0"}},
+		Adopted: map[string]AdoptedEntry{
+			"pulled-in": {Version: "2.3.0", Source: "https://example.test/x.md", Date: "2026-07-18"},
+		},
+	}
+	if err := reg.Save(root); err != nil {
+		t.Fatal(err)
+	}
+	rows := FleetAdopted([]string{root})
+	if len(rows) != 1 || rows[0].Slug != "pulled-in" || rows[0].Version != "2.3.0" || rows[0].Source != "https://example.test/x.md" {
+		t.Fatalf("--adopted must surface the reader side only (no authored recipe): %+v", rows)
 	}
 }

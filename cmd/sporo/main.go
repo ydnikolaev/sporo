@@ -828,11 +828,14 @@ func projectsCmd() *cobra.Command {
 // across cases and for batch actions via `--json`. It needs no repo underfoot: the binary plus the
 // global home is enough.
 func recipesCmd() *cobra.Command {
-	var asJSON bool
+	var asJSON, all, adopted bool
 	cmd := &cobra.Command{
 		Use:   "recipes",
 		Short: "List every sealed recipe across the repos on this machine — id, version, and where",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if all && adopted {
+				return fmt.Errorf("sporo recipes: --all and --adopted are different ledgers (what you authored vs what you pulled in) — pass one, not both")
+			}
 			ps, err := install.Projects(install.GlobalHome())
 			if err != nil {
 				return err
@@ -841,18 +844,50 @@ func recipesCmd() *cobra.Command {
 			for _, p := range ps {
 				roots = append(roots, p.Root)
 			}
-			rows := recipe.FleetRecipes(roots)
-
-			if asJSON {
-				b, err := json.MarshalIndent(rows, "", "  ")
+			out := cmd.OutOrStdout()
+			emit := func(v any) error {
+				b, err := json.MarshalIndent(v, "", "  ")
 				if err != nil {
 					return err
 				}
-				fmt.Fprintln(cmd.OutOrStdout(), string(b))
+				fmt.Fprintln(out, string(b))
 				return nil
 			}
+
+			// The reader-side ledger: recipes pulled IN, with the source `pull` re-checks.
+			if adopted {
+				rows := recipe.FleetAdopted(roots)
+				if asJSON {
+					return emit(rows)
+				}
+				if len(rows) == 0 {
+					fmt.Fprintln(out, "sporo: no recipes adopted across your projects yet — `sporo adopt <file>` records one here")
+					return nil
+				}
+				repoW, slugW, srcW := len("REPO"), len("SLUG"), len("SOURCE")
+				for _, r := range rows {
+					repoW, slugW, srcW = max(repoW, len(r.Repo)), max(slugW, len(r.Slug)), max(srcW, len(r.Source))
+				}
+				fmt.Fprintf(out, "%-*s  %-*s  %-7s  %-*s  %s\n", repoW, "REPO", slugW, "SLUG", "VER", srcW, "SOURCE", "DATE")
+				for _, r := range rows {
+					fmt.Fprintf(out, "%-*s  %-*s  %-7s  %-*s  %s\n", repoW, r.Repo, slugW, r.Slug, r.Version, srcW, r.Source, r.Date)
+				}
+				return nil
+			}
+
+			// The author side. Default reads the registry (sealed only); --all scans each home too,
+			// so unsealed and draft recipes show with a STATUS column.
+			rows := recipe.FleetRecipes(roots)
+			empty := "sporo: no recipes sealed across your projects yet — `sporo seal <slug>` in a repo records one here"
+			if all {
+				rows = recipe.FleetAll(roots)
+				empty = "sporo: no recipes in any project's home yet — `sporo new <slug>` scaffolds one"
+			}
+			if asJSON {
+				return emit(rows)
+			}
 			if len(rows) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "sporo: no recipes sealed across your projects yet — `sporo seal <slug>` in a repo records one here")
+				fmt.Fprintln(out, empty)
 				return nil
 			}
 			// Repo and slug vary widely (a jurisdiction recipe's slug dwarfs a repo name), so the
@@ -861,21 +896,25 @@ func recipesCmd() *cobra.Command {
 			// lands, which is exactly the recipe this tool is built to carry.
 			repoW, slugW := len("REPO"), len("SLUG")
 			for _, r := range rows {
-				if len(r.Repo) > repoW {
-					repoW = len(r.Repo)
-				}
-				if len(r.Slug) > slugW {
-					slugW = len(r.Slug)
-				}
+				repoW, slugW = max(repoW, len(r.Repo)), max(slugW, len(r.Slug))
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "%-*s  %-*s  %-26s  %-7s  %s\n", repoW, "REPO", slugW, "SLUG", "ID", "VER", "PROV")
+			if all {
+				fmt.Fprintf(out, "%-*s  %-*s  %-26s  %-7s  %s\n", repoW, "REPO", slugW, "SLUG", "ID", "VER", "STATUS")
+				for _, r := range rows {
+					fmt.Fprintf(out, "%-*s  %-*s  %-26s  %-7s  %s\n", repoW, r.Repo, slugW, r.Slug, r.ID, r.Version, r.Status)
+				}
+				return nil
+			}
+			fmt.Fprintf(out, "%-*s  %-*s  %-26s  %-7s  %s\n", repoW, "REPO", slugW, "SLUG", "ID", "VER", "PROV")
 			for _, r := range rows {
-				fmt.Fprintf(cmd.OutOrStdout(), "%-*s  %-*s  %-26s  %-7s  %s\n", repoW, r.Repo, slugW, r.Slug, r.ID, r.Version, r.Provenance)
+				fmt.Fprintf(out, "%-*s  %-*s  %-26s  %-7s  %s\n", repoW, r.Repo, slugW, r.Slug, r.ID, r.Version, r.Provenance)
 			}
 			return nil
 		},
 	}
 	cmd.Flags().BoolVar(&asJSON, "json", false, "emit the fleet index as JSON for scripting")
+	cmd.Flags().BoolVar(&all, "all", false, "include unsealed and draft recipes (scans each project's home, not just its registry)")
+	cmd.Flags().BoolVar(&adopted, "adopted", false, "list recipes this machine pulled IN (the reader-side ledger), not the ones it authored")
 	return cmd
 }
 

@@ -233,6 +233,16 @@
       "group": "surface",
       "flags": [
         {
+          "name": "adopted",
+          "default": "false",
+          "usage": "list recipes this machine pulled IN (the reader-side ledger), not the ones it authored"
+        },
+        {
+          "name": "all",
+          "default": "false",
+          "usage": "include unsealed and draft recipes (scans each project's home, not just its registry)"
+        },
+        {
           "name": "json",
           "default": "false",
           "usage": "emit the fleet index as JSON for scripting"
