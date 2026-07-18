@@ -400,6 +400,12 @@ const head = {
     display: grid;
     gap: 1rem;
   }
+  /* `display:grid` above outranks the UA `[hidden]{display:none}`, so the panel would sit open
+     regardless of the attribute — the same trap the preview panel hit. Re-assert none, at higher
+     specificity, when hidden. */
+  .seal-proof[hidden] {
+    display: none;
+  }
   .seal-plain {
     font-size: 0.92rem;
     line-height: 1.6;
