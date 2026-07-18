@@ -50,7 +50,7 @@ func root() *cobra.Command {
 	}
 	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd(), sealCmd(),
 		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd(), newCmd(),
-		conformCmd(), upgradeCmd(), adoptCmd(), pullCmd(), docsCmd())
+		conformCmd(), upgradeCmd(), adoptCmd(), pullCmd(), docsCmd(), recipesCmd())
 
 	// The passive freshness hint: one line on stderr when a newer release is known, refreshed
 	// through the network at most once a day (the cache answers in between), silent on any
@@ -820,6 +820,63 @@ func projectsCmd() *cobra.Command {
 			return nil
 		},
 	}
+}
+
+// recipes is the fleet index: every sealed recipe across the repos this machine installed sporo
+// into, derived live from `~/.sporo/projects.yaml` + each repo's registry (never a stored copy).
+// It answers "which recipes did I author locally, where, and at what id/version" — for navigation
+// across cases and for batch actions via `--json`. It needs no repo underfoot: the binary plus the
+// global home is enough.
+func recipesCmd() *cobra.Command {
+	var asJSON bool
+	cmd := &cobra.Command{
+		Use:   "recipes",
+		Short: "List every sealed recipe across the repos on this machine — id, version, and where",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ps, err := install.Projects(install.GlobalHome())
+			if err != nil {
+				return err
+			}
+			roots := make([]string, 0, len(ps))
+			for _, p := range ps {
+				roots = append(roots, p.Root)
+			}
+			rows := recipe.FleetRecipes(roots)
+
+			if asJSON {
+				b, err := json.MarshalIndent(rows, "", "  ")
+				if err != nil {
+					return err
+				}
+				fmt.Fprintln(cmd.OutOrStdout(), string(b))
+				return nil
+			}
+			if len(rows) == 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "sporo: no recipes sealed across your projects yet — `sporo seal <slug>` in a repo records one here")
+				return nil
+			}
+			// Repo and slug vary widely (a jurisdiction recipe's slug dwarfs a repo name), so the
+			// two variable columns are sized to their content and the fixed ULID/version columns
+			// stay aligned — a fixed-width table would ragged-right the ids the moment a long slug
+			// lands, which is exactly the recipe this tool is built to carry.
+			repoW, slugW := len("REPO"), len("SLUG")
+			for _, r := range rows {
+				if len(r.Repo) > repoW {
+					repoW = len(r.Repo)
+				}
+				if len(r.Slug) > slugW {
+					slugW = len(r.Slug)
+				}
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "%-*s  %-*s  %-26s  %-7s  %s\n", repoW, "REPO", slugW, "SLUG", "ID", "VER", "PROV")
+			for _, r := range rows {
+				fmt.Fprintf(cmd.OutOrStdout(), "%-*s  %-*s  %-26s  %-7s  %s\n", repoW, r.Repo, slugW, r.Slug, r.ID, r.Version, r.Provenance)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&asJSON, "json", false, "emit the fleet index as JSON for scripting")
+	return cmd
 }
 
 // readArg reads a file argument, honoring `-` as stdin — a report-back often arrives as a

@@ -227,6 +227,19 @@
       ]
     },
     {
+      "use": "recipes",
+      "name": "recipes",
+      "short": "List every sealed recipe across the repos on this machine — id, version, and where",
+      "group": "surface",
+      "flags": [
+        {
+          "name": "json",
+          "default": "false",
+          "usage": "emit the fleet index as JSON for scripting"
+        }
+      ]
+    },
+    {
       "use": "review <slug>",
       "name": "review",
       "short": "Build a self-contained review pack for any agent, and verify the verdicts it returns",

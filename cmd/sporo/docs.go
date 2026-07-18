@@ -70,7 +70,7 @@ var docGroups = []struct {
 }{
 	{"authoring", "Authoring", []string{"harvest", "new", "lint", "seal", "export", "list", "feedback", "review"}},
 	{"handover", "Handover", []string{"adopt", "pull", "conform"}},
-	{"surface", "Install surface", []string{"init", "update", "genre", "projects", "docs"}},
+	{"surface", "Install surface", []string{"init", "update", "genre", "projects", "recipes", "docs"}},
 	{"binary", "Binary", []string{"upgrade"}},
 }
 
