@@ -37,6 +37,18 @@ jobs:
 
       - run: go vet ./...
 
+      - name: recipes sealed, coherent & gate-passed
+        # The shipped corpus rides its own gate on every push. `sporo lint` with no argument runs
+        # the genre check AND the registry coherence gate over recipes/ (the home named in
+        # .sporo/config.yaml): it reds if a recipe drifted from its seal without a version bump, or
+        # a finished recipe was never sealed. This is the automated, public proof that every recipe
+        # is sealed and gate-passed — the committed .sporo/registry.yaml is the auditable ledger a
+        # third party can recompute against. Runs on any push that touches recipes/ or .sporo/
+        # (web/** is path-ignored above, but a recipe edit is a Go-job trigger).
+        run: go run ./cmd/sporo lint
+        env:
+          GOWORK: "off"
+
       - name: docs surface is in sync
         # web/src/data/surface.json is the committed snapshot of the command surface the
         # site's docs page renders from. Regenerate it from the live cobra tree and fail on
