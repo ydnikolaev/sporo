@@ -72,6 +72,38 @@ const head = {
         ))}
       </div>
     </section>
+
+    <section style="padding:0 clamp(1.25rem,3vw,2.5rem) clamp(4rem,9vh,6rem)">
+      <div style="border-top:1px solid var(--line);padding-top:clamp(2.5rem,5vh,3.5rem)">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:1.4rem"><span style="color:var(--accent);font-weight:600">how these are verified</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span></div>
+        <h2 style="font-size:clamp(1.7rem,4vw,2.6rem);line-height:1.06;letter-spacing:-.035em;font-weight:730;max-width:20ch">Trust you can recompute — and honesty about the rest.</h2>
+        <p style="margin-top:1.2rem;max-width:60ch;color:var(--muted);font-size:clamp(1rem,1.6vw,1.12rem);text-wrap:pretty">Two claims on every recipe are mechanical and public. A third that isn't real yet gets no badge — a decorative trust mark is worse than none.</p>
+
+        <div style="margin-top:2.8rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem">
+          <div style="border:1px solid var(--line);border-radius:1rem;background:var(--card);padding:1.5rem">
+            <div style="display:inline-flex;align-items:center;gap:.5rem;color:var(--accent)">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+              <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600">sealed</span>
+            </div>
+            <p style="margin-top:.9rem;color:var(--muted);font-size:.92rem;line-height:1.55;text-wrap:pretty">Each recipe's exact bytes hash (SHA-256) to a fingerprint committed in the public registry. Open any recipe and click the seal — your browser refetches the source <em>and</em> the registry from GitHub and recomputes the hash. Nothing to trust from this site.</p>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:1rem;background:var(--card);padding:1.5rem">
+            <div style="display:inline-flex;align-items:center;gap:.5rem;color:var(--accent)">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3.1 7.9-7 9-3.9-1.1-7-4.4-7-9V6z" /><path d="M9 12l2 2 4-4" /></svg>
+              <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600">gate-passed</span>
+            </div>
+            <p style="margin-top:.9rem;color:var(--muted);font-size:.92rem;line-height:1.55;text-wrap:pretty"><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.86em;background:var(--accent-soft);color:var(--ink);padding:.05em .35em;border-radius:.3em">sporo lint</code> checks every recipe against the genre — the eleven sections in order, neutrality (no leaked paths or product names), and earned scars — on every push. The <a href="https://github.com/ydnikolaev/sporo/actions/workflows/ci.yml" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px">green run ↗</a> is the proof.</p>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:1rem;background:var(--card);padding:1.5rem">
+            <div style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted)">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3" /></svg>
+              <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600">not claimed yet</span>
+            </div>
+            <p style="margin-top:.9rem;color:var(--muted);font-size:.92rem;line-height:1.55;text-wrap:pretty">No "scanned for prompt injection" or "verified publisher" mark — those need a real scan and cryptographic attestation we haven't built. When they exist they'll be earned, not decorative. A recipe is still text an agent reads: audit the prose before you run it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </Frame>
 </Layout>
 
