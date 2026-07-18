@@ -134,8 +134,8 @@ const head = {
           <div aria-hidden="true" class="core-arrow" style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:1.5rem;font-weight:700;min-width:2rem">→</div>
 
           <div class="core-col core-boundary" style="flex:1 1 240px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem .5rem;min-height:16rem">
-            <div aria-hidden="true" style="position:absolute;top:0;bottom:0;left:50%;border-left:2px dashed var(--line)"></div>
-            <div aria-hidden="true" style="position:absolute;top:.4rem;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;background:var(--band);padding:0 .5rem">the boundary code can't cross</div>
+            <div aria-hidden="true" class="core-barrier"></div>
+            <div aria-hidden="true" class="core-label" style="position:absolute;left:50%;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;background:var(--band);padding:0 .5rem">the boundary code can't cross</div>
             <div style="position:relative;background:#0e120f;border:1px solid #ffffff1f;border-radius:1rem;padding:1.5rem 1.3rem;text-align:center;box-shadow:0 24px 60px -34px rgba(0,0,0,.6);max-width:15rem">
               <svg aria-hidden="true" viewBox="0 0 22 22" fill="none" width="46" height="46" style="animation:spin 44s linear infinite"><circle cx="11" cy="11" r="4.2" fill="#6cc98d"></circle><circle cx="11" cy="2.6" r="1.5" fill="#6cc98d" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="#6cc98d" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="#6cc98d" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="#6cc98d" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="#6cc98d" opacity=".75"></circle></svg>
               <div style="margin-top:.7rem;color:#e8ebe6;font-weight:650;letter-spacing:-.01em">one recipe</div>
@@ -364,9 +364,21 @@ const head = {
   </Frame>
 
   <style>
-    /* The core "package → recipe → rebuild" flow is a horizontal row on desktop. On narrow
-       screens it stacks vertically, so the → connectors rotate to point DOWN and the columns
-       go full-width — a clean vertical flow instead of arrows floating off to the side. */
+    /* The core "package → recipe → rebuild" flow. DESKTOP: a horizontal row — data flows left to
+       right, and the "boundary code can't cross" is a VERTICAL dashed rule the flow crosses. */
+    .core-barrier {
+      position: absolute;
+      inset: 0 auto 0 50%; /* top:0 right:auto bottom:0 left:50% — a vertical rule */
+      border-left: 2px dashed var(--line);
+    }
+    .core-label {
+      top: 0.4rem;
+      transform: translateX(-50%);
+    }
+
+    /* MOBILE (≤820px): the flow stacks and runs top-to-bottom, so it all inverts — the → arrows
+       rotate to ↓, and the boundary becomes a HORIZONTAL rule the vertical flow crosses, with the
+       label centred on it. */
     @media (max-width: 820px) {
       .core-flow {
         flex-direction: column;
@@ -382,8 +394,18 @@ const head = {
       }
       .core-boundary {
         min-height: 0;
-        padding-top: 2rem;
-        padding-bottom: 1rem;
+        justify-content: flex-start;
+        padding-top: 3.5rem;
+        padding-bottom: 0.75rem;
+      }
+      .core-barrier {
+        inset: 1.75rem 0 auto 0; /* top:1.75rem right:0 bottom:auto left:0 — a horizontal rule */
+        border-left: 0;
+        border-top: 2px dashed var(--line);
+      }
+      .core-label {
+        top: 1.75rem;
+        transform: translate(-50%, -50%);
       }
     }
   </style>
