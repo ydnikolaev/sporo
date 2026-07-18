@@ -25,6 +25,7 @@ go.work.sum
 .mate/
 docs/
 AGENTS.md
+CLAUDE.md
 Makefile
 scripts/*
 !scripts/install.sh
