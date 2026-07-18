@@ -21,6 +21,7 @@ const registryPath = path.resolve(process.cwd(), '../.sporo/registry.yaml');
 
 interface SealEntry {
   hash?: string;
+  sealed_at?: string;
 }
 function loadRegistry(): Record<string, SealEntry> {
   try {
@@ -54,6 +55,12 @@ export function sealHash(slug: string): string | null {
   return registry[slug]?.hash ?? null;
 }
 
+// sealedAt returns the machine-recorded seal timestamp (RFC3339) the registry committed, or null.
+// Unlike the frontmatter's author-typed `verified.date`, this is stamped by `sporo seal` itself.
+export function sealedAt(slug: string): string | null {
+  return registry[slug]?.sealed_at ?? null;
+}
+
 // The source recipes carry a leading HTML-comment provenance banner (the SSOT marker). It is
 // not content; strip it before parsing or rendering.
 function stripBanner(t: string): string {
@@ -76,6 +83,10 @@ function frontmatter(raw: string): { meta: Record<string, string>; body: string 
   // date the build that PROVES the recipe was verified. Mine it out for the card/detail date line.
   const vd = m[1].match(/^verified:\s*\{[^}]*\bdate:\s*"?(\d{4}-\d{2}-\d{2})"?/m);
   if (vd) meta.date = vd[1];
+  // The project the recipe's build was verified in — its provenance/lineage (`ag-web@axon`,
+  // `internal-harness`). Mined from the same `verified` stamp.
+  const vp = m[1].match(/^verified:\s*\{[^}]*?\bproject:\s*([^,}]+)/m);
+  if (vp) meta.project = vp[1].replace(/^["']|["']$/g, '').trim();
   return { meta, body: m[2] };
 }
 

@@ -4,7 +4,7 @@ import Frame from '../components/Frame.astro';
 import AgentMarks from '../components/AgentMarks.astro';
 import GateBadge from '../components/GateBadge.astro';
 import Publisher from '../components/Publisher.astro';
-import { readRecipe, listCorpus, adoptionSections, formatDate, sealHash } from '../lib/corpus.ts';
+import { readRecipe, listCorpus, adoptionSections, formatDate, sealHash, sealedAt } from '../lib/corpus.ts';
 
 // One detail page per corpus recipe, generated from the slugs listCorpus() enumerates. The
 // page IS the recipe, read straight from the embedded corpus at build — not a retyped copy.
@@ -20,6 +20,10 @@ const m = recipe.meta;
 const headline = (m.title ?? '').split(' — ')[0];
 const mdHref = `${slug}.md`;
 const date = formatDate(m.date);
+// Provenance (the project the build was verified in) and the machine-recorded seal date — the
+// lineage half of the trust story, both real and already in the corpus.
+const project = m.project;
+const sealedDate = formatDate((sealedAt(slug) ?? '').slice(0, 10));
 // The adoption protocol (Adopt it here / Report back) is what `sporo export` appends — the page
 // shows the recipe as a reader actually receives it, not the bare source.
 const adopt = adoptionSections();
@@ -91,11 +95,15 @@ const head = {
         )}
         {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
         {date && <span>verified {date}</span>}
+        {project && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
+        {project && <span>from <span style="color:var(--ink)">{project}</span></span>}
       </div>
 
       {recipe.sealed && (
         <div id="seal-proof" class="seal-proof" hidden data-slug={slug} data-recipe-url={seal.recipeRawUrl} data-registry-url={seal.registryRawUrl}>
           <p class="seal-plain">This recipe is <strong>sealed</strong>: these exact bytes have not changed since it was published. A SHA-256 fingerprint of the source is committed to a public registry — change one character and it no longer matches, and this badge is gone. You don't have to take our word for it.</p>
+
+          {sealedDate && <div class="seal-k">Sealed {sealedDate}{project && <> · distilled from a real build in <span style="color:var(--ink)">{project}</span></>} — the date is stamped by <code class="seal-hash">sporo seal</code>, not typed by hand.</div>}
 
           <div class="seal-block">
             <div class="seal-k">Reproduce it yourself — the recipe and its fingerprint both live on GitHub, not here:</div>
