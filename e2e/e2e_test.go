@@ -208,13 +208,17 @@ func TestEndToEnd(t *testing.T) {
 		// genre-green by construction, so that one removal is all it takes here.
 		src := w.read(t, ".sporo/recipes/half-baked.md")
 		w.write(t, ".sporo/recipes/half-baked.md", strings.Replace(src, "draft: true\n", "", 1))
-		w.mustRun(t, "lint")
+		// The authoring gate is `lint <home>` — genre only. No-arg `lint` is the SHIPPED gate and
+		// would now red on a finished-but-unsealed recipe (the all-sealed sweep); a recipe must be
+		// genre-clean BEFORE it is sealed, so the pre-seal check cannot be the one that demands a seal.
+		w.mustRun(t, "lint", ".sporo/recipes/")
 		w.mustRun(t, "seal", "half-baked")
 	})
 
 	t.Run("author, lint, seal", func(t *testing.T) {
 		w.write(t, ".sporo/recipes/nightly-digest.md", recipeV1)
-		out := w.mustRun(t, "lint")
+		// Genre check before sealing (see the note above): `lint <home>`, not the no-arg shipped gate.
+		out := w.mustRun(t, "lint", ".sporo/recipes/")
 		if !strings.Contains(out, "conformant") {
 			t.Fatalf("lint did not report a green corpus: %s", out)
 		}
@@ -344,7 +348,8 @@ func TestEndToEnd(t *testing.T) {
 		if !(strings.Index(out, "name: nightly-digest") < strings.Index(out, "name: weekly-rollup")) {
 			t.Fatal("members must compose in build order")
 		}
-		w.mustRun(t, "lint") // the manifest rides the same gate, and a valid one stays green
+		w.mustRun(t, "seal", "weekly-rollup") // seal the new member so the shipped corpus is whole
+		w.mustRun(t, "lint")                  // the manifest rides the same gate, and a valid one stays green
 	})
 
 	t.Run("adopt records the handover, pull is loud when an exact contract moves", func(t *testing.T) {

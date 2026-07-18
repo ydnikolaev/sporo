@@ -1,0 +1,8 @@
+# This repo dogfoods its own corpus. The shipped recipes live at recipes/ (not the default
+# .sporo/recipes/), and sealing them here is what makes the site's "sealed" claim real and
+# CI-verifiable: `home` points seal / lint / the registry at that corpus, and `sporo lint`
+# with no argument runs the seal-coherence gate over it.
+home: recipes/
+# The neutrality vocabulary — this project's own name, the word most likely to leak into a
+# recipe written by someone standing in this repo.
+project: sporo

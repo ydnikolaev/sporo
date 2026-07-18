@@ -4,7 +4,7 @@
 mkdir .claude
 exec sporo init
 
-exec sporo lint
+exec sporo lint .sporo/recipes/
 stdout 'conformant and neutral'
 
 exec sporo seal nightly-digest

@@ -292,13 +292,37 @@ func TestVerifyFindsASealedRecipeThatVanished(t *testing.T) {
 }
 
 func TestAnUnsealedDraftHasNoObligations(t *testing.T) {
-	root, cfg := sealFixture(t)
+	root := t.TempDir()
+	cfg := Config{Home: ".sporo/recipes/"}
+	home := filepath.Join(root, cfg.Home)
+	if err := os.MkdirAll(home, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// A draft is not sealed and owes the registry nothing — the all-sealed sweep exempts it by
+	// design, because a draft has no version to promise yet.
+	draft := strings.Replace(conformant, "effort: reference", "effort: reference\ndraft: true", 1)
+	if err := os.WriteFile(filepath.Join(home, "baseline.md"), []byte(draft), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	f, err := VerifyRegistry(root, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(f) != 0 {
 		t.Fatalf("a draft is not sealed and owes the registry nothing; got: %v", f)
+	}
+}
+
+func TestAFinishedRecipeMustBeSealed(t *testing.T) {
+	// A conformant (non-draft) recipe that was never sealed is published in intent but unwitnessed
+	// by the registry — the own-home gate must flag it, so "all recipes are sealed" stays true.
+	root, cfg := sealFixture(t)
+	f, err := VerifyRegistry(root, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f) != 1 || !strings.Contains(f[0].String(), "not sealed") {
+		t.Fatalf("a finished, unsealed recipe must be flagged by the own-home gate; got: %v", f)
 	}
 }
 

@@ -224,6 +224,30 @@ func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
 			out = append(out, Finding{name, 0, fmt.Sprintf("content drifted from its seal without a version bump (still %s) — a sealed recipe never silently mutates; bump `version:`, then `sporo seal %s`", entry.Version, slug)})
 		}
 	}
+	// The other direction: every FINISHED recipe in the project's own home must be sealed. A
+	// non-draft recipe declares itself done, and done means it promises a version; an unsealed
+	// one is published in intent but unwitnessed by the registry, so "all recipes are sealed"
+	// cannot be claimed. Drafts are exempt — they have no version to promise yet. (This runs
+	// only in the own-home gate, alongside the coherence check above, never against a borrowed
+	// corpus an explicit `sporo lint <dir>` might point at.)
+	ents, err := os.ReadDir(filepath.Join(root, cfg.Home))
+	if err != nil {
+		return out, nil // no home to sweep — lint reports a missing corpus on its own
+	}
+	for _, e := range ents {
+		if !IsRecipe(e.Name(), e.IsDir()) {
+			continue
+		}
+		slug := strings.TrimSuffix(e.Name(), ".md")
+		if _, sealed := reg.Recipes[slug]; sealed {
+			continue
+		}
+		src, err := os.ReadFile(filepath.Join(root, cfg.Home, e.Name()))
+		if err != nil || IsDraft(src) {
+			continue
+		}
+		out = append(out, Finding{e.Name(), 0, fmt.Sprintf("finished but not sealed — a non-draft recipe promises a version; `sporo seal %s` to record it, or mark it `draft: true` while it is still in flux", slug)})
+	}
 	return out, nil
 }
 

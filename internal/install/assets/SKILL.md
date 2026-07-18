@@ -185,12 +185,15 @@ principles, the sequence and the scars.
 ### 5. Gate it, then read it as a stranger
 
 ```
-sporo lint
+sporo lint .sporo/recipes/
 ```
 
-The gate runs on this project's own recipes home and knows this project's forbidden names. It
-checks the shape, the per-step acceptance, the scar markers, the neutrality of every line —
-and the registry: a sealed recipe whose content drifted without a version bump is a finding.
+Pointed at the recipes home, the gate checks the shape, the per-step acceptance, the scar
+markers, and the neutrality of every line (it still knows this project's forbidden names). This
+is the authoring check — genre only — so it stays green on a finished recipe you have not sealed
+yet. No-arg `sporo lint` adds the registry gate on top: a sealed recipe whose content drifted
+without a version bump, and any finished recipe never sealed, are both findings. Run *that* one
+after you seal (step 6) — it is the shipped-corpus gate, and the one CI runs on every push.
 
 Then re-read the body **as an agent in a repository on a different stack that has never heard
 of this one**. Every step you could not follow from there is a step still written for someone
