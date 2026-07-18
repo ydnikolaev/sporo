@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"sporo.dev/sporo/pkg/recipekit"
 )
 
 // Origin says which corpus a recipe came from — and it is not decoration. An OFFICIAL recipe
@@ -176,10 +178,6 @@ func recipeSlug(name string, isDir bool) (string, bool) {
 	return strings.TrimSuffix(name, ".md"), true
 }
 
-func strip(s string) string {
-	lines := strings.Split(s, "\n")
-	for len(lines) > 0 && (strings.HasPrefix(lines[0], "<!-- SSOT SOURCE") || strings.TrimSpace(lines[0]) == "") {
-		lines = lines[1:]
-	}
-	return strings.Join(lines, "\n")
-}
+// strip drops the provenance banner on the way out. Kept as an unexported forwarder because
+// Export, Genre and bundle.go all compose exported files with it.
+func strip(s string) string { return recipekit.StripBanner(s) }
