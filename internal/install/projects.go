@@ -97,7 +97,7 @@ func readProjects(globalHome string) (projectsFile, error) {
 	}
 	data, err := os.ReadFile(filepath.Join(globalHome, "projects.yaml"))
 	if err != nil {
-		return pf, nil
+		return pf, nil //nolint:nilerr // no projects file on a fresh machine is empty, not an error
 	}
 	if err := yaml.Unmarshal(data, &pf); err != nil {
 		return pf, fmt.Errorf("the global projects registry is malformed — fix the YAML (degrading to an empty list would silently forget every repo this machine installed into): %w", err)

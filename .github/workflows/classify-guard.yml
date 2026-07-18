@@ -18,7 +18,7 @@ jobs:
       - name: assert no private path is tracked
         run: |
           set -euo pipefail
-          priv=$(git ls-files | grep -E '^(\.agents|\.claude|\.codex|\.mate|docs)/|^(AGENTS\.md|CLAUDE\.md|Makefile)$' || true)
+          priv=$(git ls-files | grep -E '^(\.agents|\.claude|\.codex|\.mate|docs)/|^(AGENTS\.md|CLAUDE\.md)$' || true)
           # scripts/ is private except the public installer.
           scripts_priv=$(git ls-files 'scripts/*' | grep -vx 'scripts/install.sh' || true)
           leaked=$(printf '%s\n%s\n' "$priv" "$scripts_priv" | sed '/^$/d')

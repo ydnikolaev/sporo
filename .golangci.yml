@@ -1,0 +1,63 @@
+# golangci-lint v2 config for the sporo Go module. Adapted from axon's set, trimmed to
+# a single-module CLI (no pg/prometheus/DB linters). `make lint` and CI both run this.
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck        # unchecked errors
+    - govet           # the vet suite (enable-all below)
+    - ineffassign     # ineffectual assignments
+    - staticcheck     # the big correctness/simplification suite
+    - asciicheck      # no non-ASCII identifiers
+    - bodyclose       # HTTP response bodies closed (sporo hits GitHub/selfupdate)
+    - copyloopvar     # Go 1.22+ loop-var semantics
+    - errorlint       # correct error wrapping / comparison
+    - gocheckcompilerdirectives  # valid //go: directives (we use //go:embed, //go:generate)
+    - gochecknoinits  # no hidden init() side effects
+    - gocritic        # opinionated correctness/style/perf checks
+    - gomoddirectives # no stray replace/exclude in go.mod
+    - goprintffuncname # printf-like funcs named correctly
+    - gosec           # the security linter (subsumes a standalone gosec step)
+    - makezero        # no append to a non-zero-len make() slice
+    - nakedret        # no naked returns in long funcs
+    - nilerr          # don't return nil on a non-nil err
+    - nolintlint      # //nolint must be specific and explained
+  settings:
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment   # struct field ordering — noise, not correctness
+        - shadow           # `err :=` shadowing in inner blocks is idiomatic Go, not a bug
+    errcheck:
+      exclude-functions:
+        - (io.Writer).Write
+        - (io.Closer).Close
+        - (*os.File).Close
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - os.Setenv
+        - os.Unsetenv
+        - os.RemoveAll
+        - (*encoding/json.Encoder).Encode
+    gosec:
+      excludes:
+        - G304   # file path from a variable — sporo reads recipes/registry by computed path by design
+        - G204   # subprocess with variable — the self-update/exec paths are intentional
+        - G301   # 0755 dirs — sporo writes user-facing, world-readable output (recipes, registry), not secrets
+        - G306   # 0644 files — same: these are meant to be readable, 0600 would be wrong
+        - G703   # path traversal via taint — sporo writes to a repo root the user chose; not a web-input threat model
+    nakedret:
+      max-func-lines: 30
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

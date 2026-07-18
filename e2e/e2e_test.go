@@ -13,6 +13,7 @@ package e2e
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,6 +24,11 @@ import (
 var bin string
 
 func TestMain(m *testing.M) {
+	// Wrapped so the temp-dir cleanup defer actually runs — os.Exit skips defers.
+	os.Exit(run(m))
+}
+
+func run(m *testing.M) int {
 	dir, err := os.MkdirTemp("", "sporo-e2e-*")
 	if err != nil {
 		panic(err)
@@ -34,7 +40,7 @@ func TestMain(m *testing.M) {
 	if out, err := build.CombinedOutput(); err != nil {
 		panic("GOWORK=off build failed — a fresh checkout would not build either:\n" + string(out))
 	}
-	os.Exit(m.Run())
+	return m.Run()
 }
 
 // world is the isolated universe one end-to-end run lives in.
@@ -54,7 +60,8 @@ func (w world) run(t *testing.T, args ...string) (stdout, stderr string, code in
 	cmd.Stdout, cmd.Stderr = &out, &errb
 	err := cmd.Run()
 	code = 0
-	if ee, ok := err.(*exec.ExitError); ok {
+	ee := &exec.ExitError{}
+	if errors.As(err, &ee) {
 		code = ee.ExitCode()
 	} else if err != nil {
 		t.Fatalf("sporo %v did not run at all: %v", args, err)
@@ -345,7 +352,7 @@ func TestEndToEnd(t *testing.T) {
 		if n := strings.Count(out, "## Adopt it here"); n != 1 {
 			t.Fatalf("one composition, one protocol; got %d", n)
 		}
-		if !(strings.Index(out, "name: nightly-digest") < strings.Index(out, "name: weekly-rollup")) {
+		if strings.Index(out, "name: nightly-digest") >= strings.Index(out, "name: weekly-rollup") {
 			t.Fatal("members must compose in build order")
 		}
 		w.mustRun(t, "seal", "weekly-rollup") // seal the new member so the shipped corpus is whole

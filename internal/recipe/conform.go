@@ -67,9 +67,9 @@ func ExactContracts(src []byte) []Contract {
 	con := sectionBody(strings.Split(string(src), "\n"), "## The contracts")
 	var out []Contract
 	var fenceBody []string
-	binding := ""            // the marker most recently seen outside a fence
+	binding := ""              // the marker most recently seen outside a fence
 	fixture := (*Fixture)(nil) // pending fixture marker, if any
-	role := ""               // what the OPEN fence is: "exact" | "fixture" | ""
+	role := ""                 // what the OPEN fence is: "exact" | "fixture" | ""
 	lang := ""
 	inFence := false
 	for _, l := range con {

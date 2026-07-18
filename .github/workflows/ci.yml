@@ -1,6 +1,7 @@
-# Builds and tests the Go CLI on every push and PR. Path-filtered so a future
-# web/ (Nuxt) change doesn't burn Go CI minutes on a diff that never touches Go —
-# see the commented `web` job stub below for where that lands.
+# The Go CLI's fast gate on every push and PR — the same gates `make check` runs locally,
+# split into a lint job and a test job. Path-filtered so a web/-only change doesn't burn Go
+# CI minutes. GOWORK=off everywhere: a green build under a workspace proves nothing about the
+# fresh checkout a stranger installs (this repo's e2e contract).
 name: CI
 
 on:
@@ -12,53 +13,63 @@ on:
     paths-ignore:
       - "web/**"
 
+permissions:
+  contents: read
+
+env:
+  GOWORK: "off"
+
 jobs:
-  go:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
       - uses: actions/setup-go@v6
         with:
-          # Reads the toolchain version straight from go.mod instead of duplicating
-          # it here — one fewer place to forget to bump.
+          go-version-file: go.mod
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12
+      - name: gofumpt formatting
+        run: |
+          go install mvdan.cc/gofumpt@latest
+          make fmt-check
+      - name: go.mod / go.sum tidy
+        run: make tidy-check
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          # Reads the toolchain (incl. the toolchain directive) straight from go.mod.
           go-version-file: go.mod
 
-      - run: go build ./...
-
       - name: build without a workspace
-        # Guards against a stray go.work leaking module replacements into the build
-        # that wouldn't be there for a consumer running `go install`.
+        # A stray go.work must never leak module replacements a consumer's `go install`
+        # wouldn't see — GOWORK=off (env above) is the gate.
         run: go build ./...
-        env:
-          GOWORK: "off"
 
-      - run: go test ./...
-
-      - run: go vet ./...
+      - name: tests + coverage gate
+        # `make coverage` runs the suite with a profile, then enforces the coveragepolicy SSOT
+        # (per-package + global floor).
+        run: make coverage
 
       - name: recipes sealed, coherent & gate-passed
-        # The shipped corpus rides its own gate on every push. `sporo lint` with no argument runs
-        # the genre check AND the registry coherence gate over recipes/ (the home named in
-        # .sporo/config.yaml): it reds if a recipe drifted from its seal without a version bump, or
-        # a finished recipe was never sealed. This is the automated, public proof that every recipe
-        # is sealed and gate-passed — the committed .sporo/registry.yaml is the auditable ledger a
-        # third party can recompute against. Runs on any push that touches recipes/ or .sporo/
-        # (web/** is path-ignored above, but a recipe edit is a Go-job trigger).
+        # `sporo lint` runs the genre check AND the registry coherence gate over recipes/: it
+        # reds if a recipe drifted from its seal without a version bump, or a finished recipe
+        # was never sealed. The committed .sporo/registry.yaml is the auditable ledger.
         run: go run ./cmd/sporo lint
-        env:
-          GOWORK: "off"
 
       - name: docs surface is in sync
-        # web/src/data/surface.json is the committed snapshot of the command surface the
-        # site's docs page renders from. Regenerate it from the live cobra tree and fail on
-        # any diff — a changed Short:, a new flag, or a new verb can never silently outdate
-        # the docs. (A Go change triggers this job even though web/ is path-ignored, because
-        # the source of the drift is always a Go edit, never the generated file.)
+        # web/src/data/surface.json is the committed snapshot the site's docs page renders
+        # from — regenerate from the live cobra tree and fail on any diff.
         run: |
           go generate ./...
           git diff --exit-code -- web/src/data/surface.json
 
   # web:
-  #   Nuxt CI (lint/build) once web/ has content worth gating. Trigger on paths: web/**
-  #   (the inverse filter of the `go` job above), runs independently on its own runtime.
+  #   Nuxt/Astro CI (lint/build) once web/ has content worth gating. Trigger on paths: web/**
+  #   (the inverse filter of the jobs above), runs independently on its own runtime.

@@ -115,7 +115,7 @@ func LoadRegistry(root string) (Registry, error) {
 	r := Registry{Schema: RegistrySchema, Recipes: map[string]RegistryEntry{}}
 	data, err := os.ReadFile(registryPath(root))
 	if err != nil {
-		return r, nil
+		return r, nil //nolint:nilerr // absent registry → empty (malformed is the hard error below)
 	}
 	if err := yaml.Unmarshal(data, &r); err != nil {
 		return r, fmt.Errorf(".sporo/registry.yaml is malformed — fix the YAML (a broken registry never degrades to an empty one, or every sealed recipe in this project is silently unsealed): %w", err)
@@ -253,7 +253,7 @@ func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
 	// corpus an explicit `sporo lint <dir>` might point at.)
 	ents, err := os.ReadDir(filepath.Join(root, cfg.Home))
 	if err != nil {
-		return out, nil // no home to sweep — lint reports a missing corpus on its own
+		return out, nil //nolint:nilerr // no home to sweep — lint reports a missing corpus on its own
 	}
 	for _, e := range ents {
 		if !IsRecipe(e.Name(), e.IsDir()) {

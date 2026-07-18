@@ -45,7 +45,7 @@ func TestABundleComposesMembersInOrderUnderOneProtocol(t *testing.T) {
 	iSecond := strings.Index(out, "name: second")
 	iBase := strings.Index(out, "name: baseline")
 	iOfficial := strings.Index(out, "name: official")
-	if iSecond < 0 || iBase < 0 || iOfficial < 0 || !(iSecond < iBase && iBase < iOfficial) {
+	if iSecond < 0 || iBase < 0 || iOfficial < 0 || (iSecond >= iBase || iBase >= iOfficial) {
 		t.Fatalf("members must appear in the manifest's build order (got positions %d, %d, %d)", iSecond, iBase, iOfficial)
 	}
 	if n := strings.Count(out, "## Adopt it here"); n != 1 {

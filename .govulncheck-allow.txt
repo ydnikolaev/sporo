@@ -1,0 +1,11 @@
+# Accepted govulncheck findings. Each bare GO-ID line is a CALLED vulnerability we have
+# consciously accepted, with the reason above it. `make vulncheck` (and the CI scan) fail on
+# any called vuln NOT listed here — so a NEW vulnerability is always loud, while an unfixable
+# one doesn't hold the gate permanently red. Review on every dependency bump; delete an entry
+# the moment its vuln becomes fixable.
+
+# GO-2026-5932 — golang.org/x/crypto/openpgp is unmaintained (Fixed in: N/A). Reached only via
+# github.com/creativeprojects/go-selfupdate's init() chain (its optional PGP signature check);
+# no patched version exists and v1.6.0 is the latest go-selfupdate, so removing it means
+# replacing the self-update mechanism. Tracked in docs/backlog. Accepted until then.
+GO-2026-5932

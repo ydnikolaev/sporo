@@ -937,7 +937,7 @@ func homeOrNone(root string) (string, error) {
 	}
 	home := filepath.Join(root, cfg.Home)
 	if _, err := os.Stat(home); err != nil {
-		return "", nil
+		return "", nil //nolint:nilerr // no home dir is "none", not an error (see func name)
 	}
 	return home, nil
 }

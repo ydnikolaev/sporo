@@ -231,7 +231,7 @@ func fetchSource(source string) ([]byte, error) {
 		client := &http.Client{Timeout: 10 * time.Second}
 		resp, err := client.Get(source)
 		if err != nil {
-			return nil, fmt.Errorf("source unreachable: %v", err)
+			return nil, fmt.Errorf("source unreachable: %w", err)
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
@@ -239,7 +239,7 @@ func fetchSource(source string) ([]byte, error) {
 		}
 		body, err := io.ReadAll(io.LimitReader(resp.Body, maxPullBody+1))
 		if err != nil {
-			return nil, fmt.Errorf("source read failed: %v", err)
+			return nil, fmt.Errorf("source read failed: %w", err)
 		}
 		if len(body) > maxPullBody {
 			return nil, fmt.Errorf("source exceeds the %dMB cap — a recipe is prose, and this is not one", maxPullBody>>20)
@@ -248,7 +248,7 @@ func fetchSource(source string) ([]byte, error) {
 	}
 	b, err := os.ReadFile(source)
 	if err != nil {
-		return nil, fmt.Errorf("source unreachable: %v", err)
+		return nil, fmt.Errorf("source unreachable: %w", err)
 	}
 	return b, nil
 }
