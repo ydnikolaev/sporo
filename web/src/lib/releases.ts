@@ -59,6 +59,33 @@ function formatReleaseBody(html: string): string {
   return group('Features', feats) + group('Fixes', fixes) + group('Other changes', other) || chipped;
 }
 
+// fetchDownloadCount sums how many times a release binary has been downloaded from GitHub, over
+// every asset of every release. It is GitHub's own count (the assets ARE the CLI binaries), so it
+// needs no analytics and the site cannot inflate it. Returns null on a failed fetch, so the caller
+// omits the line rather than printing a wrong zero. (Counts every asset — per-platform binaries and
+// the checksums file — so it is "asset downloads", a ceiling on installs, not an install count.)
+export async function fetchDownloadCount(): Promise<number | null> {
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'sporo-site-build',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  try {
+    const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=100`, { headers });
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+    const raw = (await res.json()) as Array<{ assets?: Array<{ download_count?: number }> }>;
+    return raw.reduce(
+      (sum, r) => sum + (r.assets ?? []).reduce((s, a) => s + (a.download_count ?? 0), 0),
+      0,
+    );
+  } catch (e) {
+    console.warn(`[home] download count fetch failed: ${(e as Error).message}`);
+    return null;
+  }
+}
+
 export async function fetchReleases(): Promise<{ releases: Release[]; ok: boolean }> {
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
   const headers: Record<string, string> = {
