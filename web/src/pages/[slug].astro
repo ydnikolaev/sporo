@@ -308,6 +308,7 @@ const head = {
     const resultEl = document.getElementById('seal-result');
     if (verifyBtn && resultEl && sealProof) {
       verifyBtn.addEventListener('click', async () => {
+        if (window.gtag) window.gtag('event', 'verify_seal', { recipe: sealProof.dataset.slug });
         resultEl.textContent = 'verifying…';
         resultEl.className = 'seal-result pending';
         try {
