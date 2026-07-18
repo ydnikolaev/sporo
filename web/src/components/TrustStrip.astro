@@ -1,0 +1,87 @@
+---
+// A row of EARNED, verifiable trust chips — the same discipline as GateBadge: every chip
+// states only what the release pipeline mechanically produces, and (where it can) links to
+// the proof. No decorative claims. As of v0.12.0 every release is cosign-signed (keyless),
+// carries a SLSA build-provenance attestation, and ships a per-artifact SBOM — so these are
+// facts a stranger can recompute, not marketing.
+//
+// `compact` renders the tighter hero variant (fewer words). The chips are the same set.
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+
+type Chip = { icon: 'lock' | 'shield' | 'cube' | 'hash' | 'scan' | 'code'; label: string; short: string; tip: string; href?: string };
+
+const chips: Chip[] = [
+  {
+    icon: 'lock',
+    label: 'cosign-signed',
+    short: 'signed',
+    tip: 'Every release ships checksums.txt.sigstore.json — the checksums file signed with cosign, keyless (Sigstore OIDC, no long-lived key to trust). It covers every artifact digest. Verify with `cosign verify-blob`.',
+    href: 'https://github.com/ydnikolaev/sporo/releases/latest',
+  },
+  {
+    icon: 'shield',
+    label: 'build provenance',
+    short: 'provenance',
+    tip: 'Each release carries a SLSA build-provenance attestation binding the binary to this repo’s release workflow at its tag. Verify with `gh attestation verify <file> -R ydnikolaev/sporo`.',
+    href: 'https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/verifying-attestations-offline',
+  },
+  {
+    icon: 'cube',
+    label: 'SBOM',
+    short: 'SBOM',
+    tip: 'A syft SBOM (spdx-json) is published for every release archive — the full dependency inventory of what you install.',
+    href: 'https://github.com/ydnikolaev/sporo/releases/latest',
+  },
+  {
+    icon: 'hash',
+    label: 'checksums',
+    short: 'checksums',
+    tip: 'SHA-256 checksums.txt is published with every release; the install script and go install both resolve to the same artifacts.',
+    href: 'https://github.com/ydnikolaev/sporo/releases/latest',
+  },
+  {
+    icon: 'code',
+    label: 'Apache-2.0, source on GitHub',
+    short: 'open source',
+    tip: 'Apache-2.0 licensed; the entire tool, its gates, and the recipe corpus are public and auditable.',
+    href: 'https://github.com/ydnikolaev/sporo',
+  },
+];
+
+const icons: Record<Chip['icon'], string> = {
+  lock: '<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  shield: '<path d="M12 3l7 3v5c0 4.6-3.1 7.9-7 9-3.9-1.1-7-4.4-7-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  cube: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/>',
+  hash: '<path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/>',
+  scan: '<path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M4 12h16"/>',
+  code: '<path d="M8 6l-6 6 6 6M16 6l6 6-6 6"/>',
+};
+
+const chipStyle =
+  "display:inline-flex;align-items:center;gap:.42rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;font-weight:600;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:.32rem .7rem;white-space:nowrap;text-decoration:none;transition:border-color .15s ease,color .15s ease";
+---
+
+<div style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:center" class="trust-strip">
+  {
+    chips.map((c) => {
+      const Tag = c.href ? 'a' : 'span';
+      const attrs = c.href ? { href: c.href, rel: 'noopener' } : {};
+      return (
+        <Tag {...attrs} title={c.tip} style={chipStyle} class="trust-chip">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--accent)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[c.icon]} />
+          <span>{compact ? c.short : c.label}</span>
+        </Tag>
+      );
+    })
+  }
+</div>
+
+<style>
+  .trust-chip:hover {
+    border-color: var(--accent);
+    color: var(--ink);
+  }
+</style>
