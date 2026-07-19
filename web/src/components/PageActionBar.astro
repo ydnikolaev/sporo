@@ -1,0 +1,48 @@
+---
+// The shared first row for every content page. Context stays in the flexible left column while
+// the page action owns a fixed right column, so a long breadcrumb can never move the button.
+import AskAgent from './AskAgent.astro';
+
+interface Props {
+  title: string;
+  path: string;
+  mdUrl: string;
+  contentType?: 'page' | 'recipe';
+  contentId?: string;
+}
+
+const { title, path, mdUrl, contentType = 'page', contentId = path } = Astro.props;
+---
+
+<div class="page-action-bar">
+  <div class="page-action-context"><slot /></div>
+  <AskAgent
+    title={title}
+    path={path}
+    mdUrl={mdUrl}
+    contentType={contentType}
+    contentId={contentId}
+  />
+</div>
+
+<style>
+  .page-action-bar {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    min-height: 2.45rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .page-action-context {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  @media (max-width: 420px) {
+    .page-action-bar { gap: 0.7rem; }
+  }
+</style>

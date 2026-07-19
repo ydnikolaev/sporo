@@ -2,7 +2,7 @@
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import { SITE_DATE, ORG_ID, WEBSITE_ID } from '../lib/site.ts';
-import AskAgent from '../components/AskAgent.astro';
+import PageActionBar from '../components/PageActionBar.astro';
 import { adoptionVersion, genreChangelogHtml, genreVersion } from '../lib/corpus.ts';
 
 const currentGenreVersion = genreVersion();
@@ -44,8 +44,9 @@ const head = {
 
 <Layout head={head} active="genre">
   <Frame layout="reading">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:1.25rem"><AskAgent title="What is a recipe" path="/what-is-a-recipe.html" mdUrl="what-is-a-recipe.md" /></div>
-    <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">the genre</div>
+    <PageActionBar title="What is a recipe" path="/what-is-a-recipe.html" mdUrl="what-is-a-recipe.md">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600">the genre</div>
+    </PageActionBar>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">What is a recipe</h1>
     <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;text-wrap:pretty">You've read the pitch. Here's the actual genre — the fixed shape every recipe has to take, and why each part of it exists. If you're the senior engineer who's going to decide whether to let an agent act on one of these, this is the page that earns that.</p>
     <div style="margin-top:1.2rem;display:flex;gap:.55rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">

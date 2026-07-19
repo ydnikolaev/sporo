@@ -3,7 +3,7 @@ import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import VerifyBlock from '../components/VerifyBlock.astro';
 import { ORG_ID, WEBSITE_ID } from '../lib/site.ts';
-import AskAgent from '../components/AskAgent.astro';
+import PageActionBar from '../components/PageActionBar.astro';
 
 // The trust destination: how to verify what you install, how the source is guarded, and how to
 // report a vulnerability. Every claim mirrors what the release pipeline mechanically produces and
@@ -43,9 +43,10 @@ const link = 'color:var(--accent);text-decoration:underline;text-underline-offse
 
 <Layout head={head} active="">
   <Frame layout="reading">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:1.25rem"><AskAgent title="sporo security & provenance" path="/security.html" mdUrl="security.md" /></div>
+    <PageActionBar title="sporo security & provenance" path="/security.html" mdUrl="security.md">
+      <div style={`${eyebrow};margin-bottom:0`}>trust &amp; provenance</div>
+    </PageActionBar>
     <div style="padding:0 0 3rem">
-      <div style={eyebrow}>trust &amp; provenance</div>
       <h1 style="font-size:clamp(2.4rem,6vw,4rem);line-height:1.02;letter-spacing:-.045em;font-weight:760;max-width:16ch">Every release, <em style="font-style:italic;color:var(--accent)">signed and provable</em>.</h1>
       <p style="margin-top:1.6rem;font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--muted);max-width:62ch;text-wrap:pretty">You run a binary you downloaded from the internet — so you should be able to prove it's really ours before you trust it. Every <span style="color:var(--ink);font-weight:600">sporo</span> release is signed, attested, and inventoried, and the source it's built from is continuously scanned. None of this needs an account, a key, or our servers.</p>
     </div>
