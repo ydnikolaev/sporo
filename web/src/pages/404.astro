@@ -1,0 +1,38 @@
+---
+import Layout from '../components/Layout.astro';
+import Frame from '../components/Frame.astro';
+
+// GitHub Pages serves this as dist/404.html with a 404 status on any unknown path — so it needs
+// no noindex (the status code keeps it out of the index). It uses the shared chrome (nav + footer)
+// so a reader or crawler that hit a stale URL has a way back in, instead of GitHub's dead-end
+// default. No page-specific JSON-LD; BaseHead's sitewide Organization + WebSite still ride along.
+const head = {
+  title: 'sporo — page not found',
+  description: 'That page does not exist. Head back to the sporo landing, the recipe corpus, or the command reference.',
+  path: '/404.html',
+  og: {
+    type: 'website' as const,
+    title: 'sporo — page not found',
+    description: 'That page does not exist — find your way back to sporo.',
+  },
+  twitter: {},
+};
+
+const link =
+  'text-decoration:underline;text-underline-offset:3px;color:var(--accent);font-weight:600';
+---
+
+<Layout head={head}>
+  <Frame layout="reading">
+    <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">404</div>
+    <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">This page never grew here.</h1>
+    <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;max-width:52ch;text-wrap:pretty">The link is broken or the page has moved. Here is the way back:</p>
+    <ul style="margin-top:1.8rem;display:grid;gap:.9rem;list-style:none;padding:0;font-size:1.08rem">
+      <li><a href="/" style={link}>The landing</a> — what sporo is, in one screen</li>
+      <li><a href="/recipes.html" style={link}>The recipe corpus</a> — every recipe, as a card</li>
+      <li><a href="/docs.html" style={link}>Command reference</a> — every verb the CLI carries</li>
+      <li><a href="/what-is-a-recipe.html" style={link}>What is a recipe</a> — the genre, in full</li>
+      <li><a href="/llms.txt" style={link}>/llms.txt</a> — the machine index, if you are an agent</li>
+    </ul>
+  </Frame>
+</Layout>

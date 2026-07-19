@@ -32,9 +32,12 @@ reference, the genre and adoption specs, and a complete recipe — see
 - [Command reference](https://sporo.dev/docs.md): every verb the CLI carries, grouped and
   generated from the binary itself, plus the sporo-recipe skill's harvest → draft → lint →
   seal → export cycle
-- [Recipe vs skill vs prompt vs MCP](https://sporo.dev/compare.html): where a recipe sits
-  among the ways capability moves — the deciding table (portability, scars, sealing, what
-  each needs to run) and the FAQ
+- [Recipe vs skill vs prompt vs MCP vs fine-tune](https://sporo.dev/compare.md): where a
+  recipe sits among the ways capability moves — the deciding table (portability, scars,
+  sealing, what each needs to run) and the FAQ
+- [Security & release trust](https://sporo.dev/security.html): how releases are made
+  verifiable — signed binaries, build provenance, SBOM, and the commands to check them
+  yourself (distinct from a recipe's own seal / conform / report-back trust)
 - [Changelog](https://sporo.dev/changelog.html): every release, newest first, from the
   GitHub Releases feed
 - [Recipes — the corpus](https://sporo.dev/recipes.html): every recipe in the corpus as a

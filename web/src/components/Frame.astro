@@ -15,7 +15,7 @@ interface Props {
 }
 const { layout = 'wide' } = Astro.props;
 ---
-<main class="frame">
+<main id="main" class="frame">
   {layout === 'reading' ? <div class="reading"><slot /></div> : <slot />}
 </main>
 

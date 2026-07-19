@@ -5,6 +5,7 @@ import AgentMarks from '../components/AgentMarks.astro';
 import GateBadge from '../components/GateBadge.astro';
 import Publisher from '../components/Publisher.astro';
 import { readRecipe, listCorpus, adoptionSections, formatDate, sealHash, sealedAt } from '../lib/corpus.ts';
+import { SITE_DATE, ORG_ID } from '../lib/site.ts';
 
 // One detail page per corpus recipe, generated from the slugs listCorpus() enumerates. The
 // page IS the recipe, read straight from the embedded corpus at build — not a retyped copy.
@@ -24,6 +25,14 @@ const date = formatDate(m.date);
 // lineage half of the trust story, both real and already in the corpus.
 const project = m.project;
 const sealedDate = formatDate((sealedAt(slug) ?? '').slice(0, 10));
+// JSON-LD dates, in ISO. datePublished is the recipe's verified date; dateModified is the seal
+// timestamp — but a seal must never predate publication in the markup, so clamp modified ≥
+// published (an inverted pair is a structured-data error). Both fall back to the site date if a
+// recipe carries no date yet.
+const publishedISO = /^\d{4}-\d{2}-\d{2}$/.test(m.date ?? '') ? (m.date as string) : SITE_DATE;
+const sealedISO = (sealedAt(slug) ?? '').slice(0, 10);
+const modifiedISO =
+  /^\d{4}-\d{2}-\d{2}$/.test(sealedISO) && sealedISO >= publishedISO ? sealedISO : publishedISO;
 // The adoption protocol (Adopt it here / Report back) is what `sporo export` appends — the page
 // shows the recipe as a reader actually receives it, not the bare source.
 const adopt = adoptionSections();
@@ -64,16 +73,36 @@ const head = {
     type: 'article' as const,
     title: `${headline} — a sporo recipe`,
     description: m.problem ?? 'A real sporo recipe in full — gated sections, earned scars, and the export an agent rebuilds from.',
+    publishedTime: publishedISO,
+    modifiedTime: modifiedISO,
   },
   twitter: {},
-  jsonLd: {
-    '@context': 'https://schema.org',
-    '@type': 'TechArticle',
-    headline: m.title || 'A sporo recipe',
-    author: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
-    publisher: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
-    mainEntityOfPage: `https://sporo.dev/${slug}.html`,
-  },
+  // Two nodes: the recipe itself (TechArticle — a transferable build document, authored by the
+  // human whose byline the page shows, published by the org) and the breadcrumb that mirrors the
+  // visible Recipes › <headline> trail (the one node here that earns a visible SERP result).
+  jsonLd: [
+    {
+      '@type': 'TechArticle',
+      '@id': `https://sporo.dev/${slug}.html#recipe`,
+      headline: m.title || 'A sporo recipe',
+      ...(m.problem ? { description: m.problem } : {}),
+      author: { '@type': 'Person', name: 'ydnikolaev', url: 'https://github.com/ydnikolaev' },
+      publisher: { '@id': ORG_ID },
+      datePublished: publishedISO,
+      dateModified: modifiedISO,
+      ...(m.version ? { version: m.version } : {}),
+      inLanguage: 'en',
+      image: 'https://sporo.dev/og-example.png',
+      mainEntityOfPage: `https://sporo.dev/${slug}.html`,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Recipes', item: 'https://sporo.dev/recipes.html' },
+        { '@type': 'ListItem', position: 2, name: headline, item: `https://sporo.dev/${slug}.html` },
+      ],
+    },
+  ],
 };
 ---
 

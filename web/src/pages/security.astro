@@ -2,6 +2,7 @@
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import VerifyBlock from '../components/VerifyBlock.astro';
+import { ORG_ID, WEBSITE_ID } from '../lib/site.ts';
 
 // The trust destination: how to verify what you install, how the source is guarded, and how to
 // report a vulnerability. Every claim mirrors what the release pipeline mechanically produces and
@@ -9,7 +10,7 @@ import VerifyBlock from '../components/VerifyBlock.astro';
 const head = {
   title: 'sporo — security & provenance',
   description:
-    'Every sporo release is cosign-signed (keyless), carries a SLSA build-provenance attestation, and ships an SBOM. Verify your download in two commands; report a vulnerability privately.',
+    'Every sporo release is cosign-signed (keyless), carries a SLSA build-provenance attestation, and ships an SBOM — verify your download in two commands.',
   path: '/security.html',
   ogImage: 'og.png',
   og: {
@@ -20,11 +21,13 @@ const head = {
   },
   twitter: {},
   jsonLd: {
-    '@context': 'https://schema.org',
     '@type': 'TechArticle',
     headline: 'sporo security & provenance',
-    author: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
-    publisher: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+    author: { '@id': ORG_ID },
+    publisher: { '@id': ORG_ID },
+    isPartOf: { '@id': WEBSITE_ID },
+    inLanguage: 'en',
+    image: 'https://sporo.dev/og.png',
     mainEntityOfPage: 'https://sporo.dev/security.html',
   },
 };
@@ -46,7 +49,7 @@ const link = 'color:var(--accent);text-decoration:underline;text-underline-offse
 
     <section style="position:relative;border-top:1px solid var(--line)">
       <div style="padding:3rem 0">
-        <VerifyBlock divider={false} />
+        <VerifyBlock divider={false} heading="h2" />
       </div>
     </section>
 

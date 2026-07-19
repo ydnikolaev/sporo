@@ -2,7 +2,7 @@
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import VerifyBlock from '../components/VerifyBlock.astro';
-import { surface, SPORO_VERSION } from '../lib/site.ts';
+import { surface, SPORO_VERSION, ORG_ID, WEBSITE_ID } from '../lib/site.ts';
 
 // The docs page renders from surface.json — the snapshot `sporo docs --json` emits and CI keeps
 // in sync with the binary. So this page cannot claim a verb the CLI lacks, nor miss one it
@@ -41,7 +41,7 @@ const byGroup = (key: string) =>
   verbs.filter((v) => v.group === key).sort((a, b) => a.name.localeCompare(b.name));
 
 const head = {
-  title: 'sporo — docs',
+  title: 'sporo — CLI command reference',
   description:
     'The sporo command surface: every verb, its purpose and flags, generated from the binary itself — plus the sporo-recipe skill that drives an agent through authoring a recipe.',
   path: '/docs.html',
@@ -55,11 +55,13 @@ const head = {
   },
   twitter: {},
   jsonLd: {
-    '@context': 'https://schema.org',
     '@type': 'TechArticle',
     headline: 'sporo command reference',
-    author: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
-    publisher: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+    author: { '@id': ORG_ID },
+    publisher: { '@id': ORG_ID },
+    isPartOf: { '@id': WEBSITE_ID },
+    inLanguage: 'en',
+    image: 'https://sporo.dev/og-docs.png',
     mainEntityOfPage: 'https://sporo.dev/docs.html',
   },
 };

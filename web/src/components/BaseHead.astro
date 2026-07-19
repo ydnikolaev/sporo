@@ -2,13 +2,22 @@
 // The whole <head>, parameterised. The split between what every page shares (charset, fonts,
 // theme-color, the design tokens + utility classes) and what each page sets (title, canonical,
 // the OG/Twitter richness, the JSON-LD shape) is deliberate: the home page carries a fuller
-// OG/Twitter set and a 3-type @graph, the article pages a trimmed set and a single Article —
-// so those are props, not baked-in. Do NOT normalise them.
+// OG/Twitter set, the article pages a trimmed set — so those are props, not baked-in. Do NOT
+// normalise the OG/Twitter richness split.
+//
+// JSON-LD: BaseHead owns the SITE entity graph (Organization + WebSite, under stable @ids) and
+// injects it on every page, then appends each page's own node(s). So a page passes only its
+// page-specific node(s) via `jsonLd` — a bare object or an array, WITHOUT `@context` (BaseHead
+// adds it) — and references the shared entities by @id (ORG_ID / WEBSITE_ID). One @graph per page,
+// one entity definition sitewide, every @id reference resolving locally.
+import { ORG_ID, WEBSITE_ID, SITE_ORIGIN } from '../lib/site.ts';
 interface OG {
   type: 'website' | 'article';
   title: string;
   description: string;
   rich?: boolean; // home only: adds image width/height + locale
+  publishedTime?: string; // article only → article:published_time
+  modifiedTime?: string; // article only → article:modified_time
 }
 interface Twitter {
   title?: string; // present → home; absent → article omits title+description
@@ -22,11 +31,33 @@ interface Props {
   ogImage?: string; // 'og-docs.png' — per-page 1b card; defaults to the product card
   og: OG;
   twitter: Twitter;
-  jsonLd: unknown;
+  jsonLd?: unknown; // page-specific node(s), no @context; a noindex page may omit it
 }
 const { title, description, path, mdMirror, ogImage = 'og.png', og, twitter, jsonLd } = Astro.props;
 const url = new URL(path, Astro.site).href;
 const ogImageUrl = new URL(ogImage, Astro.site).href;
+
+// The sitewide entity graph: one Organization and one WebSite, defined once and referenced
+// everywhere by @id. Google resolves @id references most reliably when the referenced node is on
+// the same page, so these ride every page rather than living only on the home page.
+const org = {
+  '@type': 'Organization',
+  '@id': ORG_ID,
+  name: 'sporo',
+  url: `${SITE_ORIGIN}/`,
+  logo: { '@type': 'ImageObject', url: `${SITE_ORIGIN}/favicon.svg` },
+  sameAs: ['https://github.com/ydnikolaev/sporo'],
+};
+const website = {
+  '@type': 'WebSite',
+  '@id': WEBSITE_ID,
+  name: 'sporo',
+  url: `${SITE_ORIGIN}/`,
+  publisher: { '@id': ORG_ID },
+  inLanguage: 'en',
+};
+const pageNodes = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const graph = { '@context': 'https://schema.org', '@graph': [org, website, ...pageNodes] };
 ---
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -68,6 +99,7 @@ const ogImageUrl = new URL(ogImage, Astro.site).href;
 <meta property="og:title" content={og.title} />
 <meta property="og:description" content={og.description} />
 <meta property="og:image" content={ogImageUrl} />
+<meta property="og:image:alt" content={og.title} />
 {og.rich && (
   <>
     <meta property="og:image:width" content="1200" />
@@ -75,11 +107,14 @@ const ogImageUrl = new URL(ogImage, Astro.site).href;
     <meta property="og:locale" content="en_US" />
   </>
 )}
+{og.type === 'article' && og.publishedTime && <meta property="article:published_time" content={og.publishedTime} />}
+{og.type === 'article' && og.modifiedTime && <meta property="article:modified_time" content={og.modifiedTime} />}
 <meta name="twitter:card" content="summary_large_image" />
 {twitter.title && <meta name="twitter:title" content={twitter.title} />}
 {twitter.description && <meta name="twitter:description" content={twitter.description} />}
 <meta name="twitter:image" content={ogImageUrl} />
-<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+<meta name="twitter:image:alt" content={og.title} />
+<script type="application/ld+json" set:html={JSON.stringify(graph)} />
 <link rel="preload" href="/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/plexmono-400.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/fonts.css" />
@@ -87,6 +122,10 @@ const ogImageUrl = new URL(ogImage, Astro.site).href;
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg)}
+/* Skip link: off-screen until focused, so a keyboard user can jump past the nav to the main
+   content — the first Tab stop on every page. */
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100}
+.skip-link:focus{left:0;background:var(--accent);color:var(--bg);padding:.6rem 1rem;border-radius:0 0 .5rem 0;font-weight:600}
 /* --band: a full-bleed section tint. It must sit *under* --card in both themes — the cards on
    it lift, the band recedes — so dark is an opaque green-black, not --accent-soft over --bg
    (that composites to a lighter, murkier green than the body it's meant to sit beneath). */

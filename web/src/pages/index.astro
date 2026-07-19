@@ -4,46 +4,40 @@ import Frame from '../components/Frame.astro';
 import AgentMarks from '../components/AgentMarks.astro';
 import TrustStrip from '../components/TrustStrip.astro';
 import VerifyBlock from '../components/VerifyBlock.astro';
-import { SPORO_VERSION, VERB_COUNT } from '../lib/site.ts';
+import { SPORO_VERSION, VERB_COUNT, ORG_ID } from '../lib/site.ts';
 import { fetchDownloadCount } from '../lib/releases.ts';
 
 // The real GitHub release-asset download tally, fetched at build (null if the API call fails, so
 // the line is simply omitted — never a wrong zero).
 const downloads = await fetchDownloadCount();
 
+// The home page's own node is the product itself. The Organization + WebSite entities are shared
+// sitewide by BaseHead (referenced here by @id), so this is only the SoftwareApplication.
 // softwareVersion and the "N CLI verbs" stat come from surface.json (via site.ts), never a
 // hand-typed number — the drift that left the badge saying 0.5.0 while the binary was 0.6.0.
 const jsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'SoftwareApplication',
-      name: 'sporo',
-      url: 'https://sporo.dev/',
-      applicationCategory: 'DeveloperApplication',
-      operatingSystem: 'macOS, Linux, Windows',
-      softwareVersion: SPORO_VERSION,
-      downloadUrl: 'https://github.com/ydnikolaev/sporo/releases/latest',
-      license: 'https://www.apache.org/licenses/LICENSE-2.0',
-      description:
-        'A CLI that turns a build you already did into a transferable recipe an AI agent can rebuild in any repository, on any stack.',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-    },
-    {
-      '@type': 'Organization',
-      name: 'sporo',
-      url: 'https://sporo.dev/',
-      logo: 'https://sporo.dev/favicon.svg',
-      sameAs: ['https://github.com/ydnikolaev/sporo'],
-    },
-    { '@type': 'WebSite', name: 'sporo', url: 'https://sporo.dev/' },
-  ],
+  '@type': 'SoftwareApplication',
+  '@id': 'https://sporo.dev/#software',
+  name: 'sporo',
+  url: 'https://sporo.dev/',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'macOS, Linux, Windows',
+  softwareVersion: SPORO_VERSION,
+  downloadUrl: 'https://github.com/ydnikolaev/sporo/releases/latest',
+  license: 'https://www.apache.org/licenses/LICENSE-2.0',
+  image: 'https://sporo.dev/og.png',
+  sameAs: ['https://github.com/ydnikolaev/sporo'],
+  author: { '@id': ORG_ID },
+  publisher: { '@id': ORG_ID },
+  description:
+    'A CLI that turns a build you already did into a transferable recipe an AI agent can rebuild in any repository, on any stack.',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
 };
 
 const head = {
   title: 'sporo — capability moves by teaching',
   description:
-    'sporo turns a build you already did into a recipe: one self-contained file that teaches an AI agent in a repository that has never seen yours how to build the same capability — on its own stack, without repeating your scars.',
+    'sporo turns a build you already did into a recipe: a self-contained file that teaches an AI agent in a repo that has never seen yours to rebuild the capability on its own stack.',
   path: '/',
   mdMirror: 'index.md',
   og: {

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { surface, SPORO_VERSION } from '../lib/site.ts';
 import { genreSpec, adoptionSpec, rawRecipe } from '../lib/corpus.ts';
+import { compareMarkdown } from '../lib/compare.ts';
 
 // llms-full.txt — the whole corpus an agent needs, expanded into one fetch (the companion to
 // llms.txt, which only links). Everything here is read at build from its single source: the
@@ -60,9 +61,12 @@ export const GET: APIRoute = () => {
 > capability — on its own stack, in its own harness, without repeating your scars. A skill
 > runs in your harness; a recipe rebuilds the capability in any harness.
 
-This file concatenates the entire corpus — the prose, the command reference, the recipe
-genre and adoption specs, and one complete recipe — so an agent has everything in a single
-fetch. Canonical version: sporo ${SPORO_VERSION}. Source: https://github.com/ydnikolaev/sporo`,
+This file concatenates the entire corpus — the product overview, the positioning against the
+alternatives, the prose, the command reference, the recipe genre and adoption specs, and one
+complete recipe — so an agent has everything in a single fetch. Canonical version: sporo
+${SPORO_VERSION}. Source: https://github.com/ydnikolaev/sporo`,
+    prose('index.md'),
+    `# Recipe vs skill vs prompt vs MCP vs fine-tune\n\n${compareMarkdown()}`,
     prose('manifesto.md'),
     prose('what-is-a-recipe.md'),
     commandReference(),

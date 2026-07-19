@@ -2,59 +2,20 @@
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import AgentMarks from '../components/AgentMarks.astro';
-import { SITE_DATE } from '../lib/site.ts';
+import { columns, rows, faqs } from '../lib/compare.ts';
+import { WEBSITE_ID } from '../lib/site.ts';
 
-// The positioning page: where a recipe sits among the other ways capability "moves" — a
-// pasted prompt, an installed skill, a running MCP server. The table rows are the dimensions
-// that actually decide it; the Recipe column is the one this product owns. The FAQ doubles as
-// FAQPage structured data (same Q/A drives the visible list and the JSON-LD mainEntity).
-
-const columns = ['Prompt', 'Skill', 'MCP server', 'Recipe'];
-type Row = { dim: string; cells: string[] }; // cells align to columns above
-const rows: Row[] = [
-  { dim: 'What it is', cells: ['An instruction you paste', 'A capability installed into your agent', 'A running service your agent calls', 'A self-contained file that teaches the build'] },
-  { dim: 'Where it runs', cells: ['Wherever you paste it', 'The harness it is installed in', 'Your (or a vendor’s) server', 'Any harness, on the reader’s own stack'] },
-  { dim: 'Crosses to a repo that has never seen yours', cells: ['No — assumes your context', 'No — tied to your harness', 'Only while the server is reachable', 'Yes — that is the whole point'] },
-  { dim: 'Carries your scars', cells: ['No', 'Sometimes, implicitly', 'No', 'Yes — symptom → root cause → fix'] },
-  { dim: 'Versioned & sealed', cells: ['No', 'Depends', 'Depends', 'Yes — id, version + content hash'] },
-  { dim: 'Improves over time', cells: ['No', 'By editing in place', 'By redeploying', 'By report-backs → next version'] },
-  { dim: 'Needs an account / server / runtime', cells: ['No', 'No', 'Yes', 'No'] },
-];
-
-const faqs = [
-  {
-    q: 'What is the difference between a recipe and a skill?',
-    a: 'A skill runs inside your harness — it is installed into your agent and acts where it lives. A recipe is a file that rebuilds the capability in a harness that has never seen yours. sporo init installs the sporo-recipe skill, which is the thing that authors recipes.',
-  },
-  {
-    q: 'Can’t I just share a prompt or a doc?',
-    a: 'A prompt assumes your context and drifts the moment it leaves it. A recipe is a machine-gated genre: a neutrality rule (roles, never your paths or product names), a literal acceptance check on every build step, and scars recorded as symptom → root cause → fix — so an agent in another repository can actually act on it.',
-  },
-  {
-    q: 'Do I need an account, a server, or a runtime?',
-    a: 'No. sporo is one static binary and a recipe is one markdown file. Zero accounts, zero servers, zero runtimes — install with curl -fsSL sporo.dev/install.sh | sh.',
-  },
-  {
-    q: 'What stacks does a recipe work on?',
-    a: 'Any. A recipe names roles — “the facts file”, “the collector” — never your files, commands, or product, so the reader’s agent maps those roles onto its own stack and harness.',
-  },
-  {
-    q: 'How does a recipe improve?',
-    a: 'Through report-backs. A reader hits a new scar, records it, and it becomes the recipe’s next sealed version. The report-back loop, not the file format, is what compounds.',
-  },
-  {
-    q: 'When should I not use a recipe?',
-    a: 'When the capability is trivial, genuinely one-off, or so tied to your private infrastructure that nothing about it transfers. Then a prompt or an in-house skill is enough — recipes earn their gating when the capability is worth rebuilding elsewhere.',
-  },
-  {
-    q: 'Is sporo open source?',
-    a: 'Yes, Apache-2.0. One static binary for macOS, Linux and Windows, with checksummed release archives for six platforms.',
-  },
-];
+// The positioning page: where a recipe sits among the other ways capability "moves" — a pasted
+// prompt, an installed skill, a running MCP server, a fine-tuned model. The table + FAQ are the
+// SSOT in ../lib/compare.ts, read by three consumers (this page, compare.md, llms-full.txt) so the
+// agent corpus carries the same positioning a human reads. The Recipe column is the one this
+// product owns. The FAQ doubles as FAQPage structured data (same Q/A drives the list and the
+// JSON-LD mainEntity).
 
 const jsonLd = {
-  '@context': 'https://schema.org',
   '@type': 'FAQPage',
+  isPartOf: { '@id': WEBSITE_ID },
+  inLanguage: 'en',
   mainEntity: faqs.map((f) => ({
     '@type': 'Question',
     name: f.q,
@@ -65,7 +26,7 @@ const jsonLd = {
 const head = {
   title: 'sporo — recipe vs skill vs prompt vs MCP',
   description:
-    'Where a recipe sits among the ways capability moves: a pasted prompt, an installed skill, a running MCP server, or a self-contained recipe that rebuilds the capability in any harness. Plus answers to the common questions.',
+    'How a recipe compares with a prompt, a skill, an MCP server, and a fine-tune — the deciding table across portability, scars, sealing, and what each needs to run, plus the FAQ.',
   path: '/compare.html',
   ogImage: 'og.png',
   og: {
@@ -83,11 +44,12 @@ const head = {
   <Frame layout="reading">
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">the comparison</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">Recipe, skill, prompt, or&nbsp;MCP?</h1>
-    <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;max-width:52ch;text-wrap:pretty">All four move capability between agents. Only one is a self-contained artifact that rebuilds it in a repository that has never seen yours. Here is where each one actually fits.</p>
+    <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;max-width:52ch;text-wrap:pretty">A prompt, a skill, an MCP server, a fine-tune — each moves capability between agents. Only one is a self-contained artifact that rebuilds it in a repository that has never seen yours. Here is where each one actually fits.</p>
     <div style="margin-top:2.2rem"><AgentMarks label="Rebuilt by any agent" /></div>
 
     <div class="breakout" style="margin-top:3.5rem;overflow-x:auto;border:1px solid var(--line);border-radius:.9rem">
       <table style="border-collapse:collapse;width:100%;min-width:44rem;font-size:.92rem">
+          <caption style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">How a recipe compares with a prompt, a skill, an MCP server, and a fine-tuned model across portability, scars, sealing, and what each needs to run.</caption>
           <thead>
             <tr>
               <th style="text-align:left;padding:1rem 1.1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);vertical-align:bottom"></th>

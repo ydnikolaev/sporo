@@ -16,4 +16,12 @@ export const VERB_COUNT: number = surface.verbs.length;
 // never disagree the way the hand-written files did (07-15 vs 07-16).
 export const SITE_DATE = '2026-07-16';
 
+// The stable JSON-LD entity ids. BaseHead injects the Organization and WebSite nodes under these
+// @ids on EVERY page, so a page-level node's author/publisher/isPartOf can reference them by @id
+// and the reference always resolves on the same page (what Google recommends). Defining them once
+// here means a page and BaseHead can never disagree on the id string.
+export const SITE_ORIGIN = 'https://sporo.dev';
+export const ORG_ID = `${SITE_ORIGIN}/#organization`;
+export const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
+
 export { surface };

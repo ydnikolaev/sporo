@@ -17,6 +17,7 @@ const { head, active } = Astro.props;
     <BaseHead {...head} />
   </head>
   <body>
+    <a href="#main" class="skip-link">Skip to content</a>
     <div style="background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;font-family:'Archivo',-apple-system,'Helvetica Neue',sans-serif;font-size:1.04rem;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:clip">
       <Header active={active} />
       <slot />

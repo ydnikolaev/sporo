@@ -9,8 +9,12 @@ import TrustStrip from './TrustStrip.astro';
 interface Props {
   divider?: boolean; // draw the top rule + spacing (true inside a section, false when standalone)
   posture?: boolean; // show the "continuously scanned" source-side row
+  heading?: 'h2' | 'h3'; // the block's own heading level — h3 when it nests under an h2 (home,
+  // docs), h2 when it is itself a top-level section (security), so the page's heading order
+  // never skips a level.
 }
-const { divider = true, posture = true } = Astro.props;
+const { divider = true, posture = true, heading = 'h3' } = Astro.props;
+const Heading = heading;
 
 const term =
   "margin:0;background:#0e120f;color:#d9e4da;border:1px solid #ffffff14;border-radius:.9rem;padding:1.1rem 1.2rem;overflow-x:auto;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;line-height:1.75";
@@ -29,7 +33,7 @@ const scans = [
 
 <div style={divider ? 'margin-top:3.4rem;border-top:1px solid var(--line);padding-top:2.9rem' : ''}>
   <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:1.3rem"><span style="color:var(--accent);font-weight:600">signed · provable · auditable</span><span style="flex:1;height:1px;background:var(--line)"></span></div>
-  <h3 style="font-size:clamp(1.45rem,2.9vw,2.1rem);letter-spacing:-.03em;line-height:1.1;font-weight:720;max-width:26ch">Don't take our word for it — <em style="font-style:italic;color:var(--accent)">verify the binary</em>.</h3>
+  <Heading style="font-size:clamp(1.45rem,2.9vw,2.1rem);letter-spacing:-.03em;line-height:1.1;font-weight:720;max-width:26ch">Don't take our word for it — <em style="font-style:italic;color:var(--accent)">verify the binary</em>.</Heading>
   <p style="margin-top:1rem;max-width:66ch;color:var(--muted);text-wrap:pretty">Every release is signed with <strong style="color:var(--ink)">cosign</strong> — keyless, so there's no signing key you have to trust — and carries a <strong style="color:var(--ink)">SLSA build-provenance attestation</strong> binding the binary to this repository's release workflow, plus a full <strong style="color:var(--ink)">SBOM</strong>. Confirm what you downloaded is really ours, offline, in two commands:</p>
 
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:1.2rem;margin-top:1.9rem">

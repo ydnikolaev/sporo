@@ -1,22 +1,25 @@
 ---
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
-import { SITE_DATE } from '../lib/site.ts';
+import { SITE_DATE, ORG_ID, WEBSITE_ID } from '../lib/site.ts';
 
 const jsonLd = {
-  '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'What is a recipe',
-  author: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
-  publisher: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+  author: { '@id': ORG_ID },
+  publisher: { '@id': ORG_ID },
+  isPartOf: { '@id': WEBSITE_ID },
   datePublished: SITE_DATE,
+  dateModified: SITE_DATE,
+  inLanguage: 'en',
+  image: 'https://sporo.dev/og-genre.png',
   mainEntityOfPage: 'https://sporo.dev/what-is-a-recipe.html',
 };
 
 const head = {
-  title: 'sporo — what is a recipe',
+  title: 'sporo — what is a recipe: the transferable-build genre',
   description:
-    'The recipe genre, for a skeptical senior engineer: the eleven gated sections, the neutrality rule (roles, never coordinates), why the ground is a ladder, and why scars are the highest-value section.',
+    'The recipe genre, for a skeptical senior engineer: the eleven gated sections, the neutrality rule, the ground ladder, and why scars are the highest-value section.',
   path: '/what-is-a-recipe.html',
   mdMirror: 'what-is-a-recipe.md',
   ogImage: 'og-genre.png',
@@ -25,6 +28,8 @@ const head = {
     title: 'What is a recipe',
     description:
       'The fixed genre every recipe takes, and why each part exists — for the engineer deciding whether to let an agent act on one.',
+    publishedTime: SITE_DATE,
+    modifiedTime: SITE_DATE,
   },
   twitter: {},
   jsonLd,

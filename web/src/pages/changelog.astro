@@ -2,6 +2,7 @@
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import { fetchReleases } from '../lib/releases.ts';
+import { WEBSITE_ID } from '../lib/site.ts';
 
 // Build-time only: the release feed is fetched during `astro build` and baked into static
 // HTML. fetchReleases never throws — on any failure it returns an empty list and we render the
@@ -10,7 +11,7 @@ const { releases, ok } = await fetchReleases();
 const empty = releases.length === 0;
 
 const head = {
-  title: 'sporo — changelog',
+  title: 'sporo — changelog & releases',
   description:
     'Every sporo release, from the GitHub Releases feed: what shipped in each version, newest first. One static binary, checksummed archives for six platforms.',
   path: '/changelog.html',
@@ -22,11 +23,11 @@ const head = {
   },
   twitter: {},
   jsonLd: {
-    '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'sporo changelog',
     url: 'https://sporo.dev/changelog.html',
-    isPartOf: { '@type': 'WebSite', name: 'sporo', url: 'https://sporo.dev/' },
+    isPartOf: { '@id': WEBSITE_ID },
+    inLanguage: 'en',
   },
 };
 ---

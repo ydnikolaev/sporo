@@ -4,6 +4,7 @@ import Frame from '../components/Frame.astro';
 import GateBadge from '../components/GateBadge.astro';
 import Publisher from '../components/Publisher.astro';
 import { listCorpus, formatDate } from '../lib/corpus.ts';
+import { WEBSITE_ID } from '../lib/site.ts';
 
 // The storefront. Every recipe in the corpus, as a card that links to its detail page. The list
 // is generated from the corpus at build, so publishing a recipe (a new `.md` under recipes/) adds
@@ -23,7 +24,7 @@ const recipes = listCorpus()
 const head = {
   title: 'sporo — the recipe corpus',
   description:
-    'Every transferable build recipe in the sporo corpus: real, gate-checked, versioned recipes an AI agent can rebuild from in any repository. Read one in full, or hand it to an agent.',
+    'Every transferable build recipe in the sporo corpus: real, gate-checked, versioned recipes an AI agent can rebuild from in a repository that has never seen yours.',
   path: '/recipes.html',
   og: {
     type: 'website' as const,
@@ -33,11 +34,21 @@ const head = {
   },
   twitter: {},
   jsonLd: {
-    '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'sporo recipes',
     url: 'https://sporo.dev/recipes.html',
     description: 'The sporo recipe corpus — transferable build recipes for AI agents.',
+    isPartOf: { '@id': WEBSITE_ID },
+    inLanguage: 'en',
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: recipes.map((r, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `https://sporo.dev/${r.slug}.html`,
+        name: r.headline,
+      })),
+    },
   },
 };
 ---

@@ -1,20 +1,23 @@
 ---
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
-import { SITE_DATE } from '../lib/site.ts';
+import { SITE_DATE, ORG_ID, WEBSITE_ID } from '../lib/site.ts';
 
 const jsonLd = {
-  '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'The sporo manifesto',
-  author: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
-  publisher: { '@type': 'Organization', name: 'sporo', url: 'https://sporo.dev/' },
+  author: { '@id': ORG_ID },
+  publisher: { '@id': ORG_ID },
+  isPartOf: { '@id': WEBSITE_ID },
   datePublished: SITE_DATE,
+  dateModified: SITE_DATE,
+  inLanguage: 'en',
+  image: 'https://sporo.dev/og-manifesto.png',
   mainEntityOfPage: 'https://sporo.dev/manifesto.html',
 };
 
 const head = {
-  title: 'sporo — manifesto',
+  title: 'sporo — manifesto: capability moves by teaching',
   description:
     "Capability doesn't move the way code does. Code moves by copying. Capability moves by teaching — and a recipe is transferable intent with a memory of what breaks.",
   path: '/manifesto.html',
@@ -24,6 +27,8 @@ const head = {
     type: 'article' as const,
     title: 'The sporo manifesto',
     description: 'Code moves by copying. Capability moves by teaching.',
+    publishedTime: SITE_DATE,
+    modifiedTime: SITE_DATE,
   },
   twitter: {},
   jsonLd,

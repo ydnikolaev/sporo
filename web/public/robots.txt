@@ -1,5 +1,6 @@
 # Everyone is welcome, AI crawlers explicitly included — the whole site exists to be read.
-# Agents: /llms.txt carries the LLM-friendly summary; every page has a markdown twin (.md).
+# Agents: start at /llms.txt (the machine index) or /llms-full.txt (the whole corpus in one
+# fetch). Most content pages also have a markdown twin at the same path with a .md extension.
 
 User-agent: *
 Allow: /
