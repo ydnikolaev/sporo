@@ -237,9 +237,21 @@ const head = {
     if (btn) {
       btn.addEventListener('click', async () => {
         try {
-          const res = await fetch(btn.dataset.md);
-          const text = await res.text();
-          if (navigator.clipboard) await navigator.clipboard.writeText(text);
+          // Safari (and some Firefox) consume the click's transient user activation across an
+          // `await`, so fetching the text FIRST and then calling writeText rejects with
+          // NotAllowedError — the reject then landed in a silent catch, so nothing at all happened
+          // (no copy, no event, no label). The fix: hand the clipboard a Promise of the text via a
+          // Promise-valued ClipboardItem — WebKit reserves the write synchronously inside the
+          // gesture and resolves the data later. `write()` MUST be the first async call in this
+          // handler: any await ahead of it reintroduces the bug. (Chrome is lenient, which is why it
+          // only broke on Safari.) Old browsers without ClipboardItem take the writeText fallback.
+          if (navigator.clipboard && window.ClipboardItem) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'text/plain': fetch(btn.dataset.md).then((r) => r.text()) }),
+            ]);
+          } else if (navigator.clipboard) {
+            await navigator.clipboard.writeText(await (await fetch(btn.dataset.md)).text());
+          }
           if (window.gtag) window.gtag('event', 'copy_recipe', { recipe: (btn.dataset.md || '').replace(/\.md$/, '') });
           if (clabel) {
             const original = clabel.textContent;
@@ -248,8 +260,10 @@ const head = {
               clabel.textContent = original;
             }, 1600);
           }
-        } catch {
-          /* clipboard denied or offline — the download link still works */
+        } catch (e) {
+          // A swallowed reject is exactly why this looked like "nothing happens" — log it. The
+          // download link remains the working fallback.
+          console.warn('copy recipe failed:', e);
         }
       });
     }
