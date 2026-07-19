@@ -87,10 +87,15 @@ func groupOf(verb string) string {
 
 // buildSurface walks a FRESH command tree (not the running one) so cobra's auto-added `help`
 // and `completion` verbs — attached only during Execute — never leak into the snapshot. The
-// walk is deterministic: cobra returns children sorted, and flags are sorted by name.
+// walk is deterministic: cobra returns children sorted, and flags are sorted by name. Hidden
+// commands are skipped: they are build tools (e.g. `web-mirror`, run only by `go generate`), not
+// part of the user-facing surface the docs page documents.
 func buildSurface() Surface {
 	s := Surface{Version: version}
 	for _, c := range root().Commands() {
+		if c.Hidden {
+			continue
+		}
 		s.Verbs = append(s.Verbs, verbDoc(c))
 	}
 	return s
@@ -106,6 +111,9 @@ func verbDoc(c *cobra.Command) VerbDoc {
 		Flags: flagsOf(c),
 	}
 	for _, sub := range c.Commands() {
+		if sub.Hidden {
+			continue
+		}
 		d.Subcommands = append(d.Subcommands, verbDoc(sub))
 	}
 	return d

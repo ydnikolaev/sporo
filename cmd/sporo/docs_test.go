@@ -21,9 +21,16 @@ func TestEveryVerbIsGrouped(t *testing.T) {
 // The surface must name exactly the commands the binary actually registers — no more (a stale
 // hand list), no fewer (a walk that dropped one). This is the check the old hand-maintained
 // verb map in internal/install could not make: it compares against the live cobra tree.
+// The surface documents exactly the VISIBLE command tree: every registered non-hidden verb, and
+// nothing else. Hidden verbs are build tools (`web-mirror`, run only by `go generate`) and must
+// stay OUT — this is the bidirectional guard that a hidden command never leaks into the docs page,
+// and that no visible verb is dropped.
 func TestSurfaceCoversTheWholeCommandTree(t *testing.T) {
 	inTree := map[string]bool{}
 	for _, c := range root().Commands() {
+		if c.Hidden {
+			continue
+		}
 		inTree[c.Name()] = true
 	}
 	inSurface := map[string]bool{}

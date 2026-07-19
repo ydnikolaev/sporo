@@ -22,6 +22,13 @@ check: fmt-check tidy-check lint workflow-lint
 	go run ./cmd/sporo lint
 	go generate ./...
 	git diff --exit-code -- web/src/data/surface.json
+	@# The recipe .md mirror the site serves must equal a fresh `sporo export` for every recipe.
+	@# --porcelain (not `git diff`) so a NEW recipe's untracked form reds too, not just an edit.
+	@if [ -n "$$(git status --porcelain -- web/src/data/exports)" ]; then \
+		echo "recipe export mirror drifted from the binary — run: go generate ./... && git add web/src/data/exports"; \
+		git status --porcelain -- web/src/data/exports; \
+		exit 1; \
+	fi
 	$(MAKE) vulncheck
 	$(MAKE) classify
 	$(MAKE) classify-teeth

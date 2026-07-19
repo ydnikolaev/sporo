@@ -195,17 +195,23 @@ export function rawRecipe(slug: string): string {
   return stripBanner(fs.readFileSync(path.join(recipesDir, `${slug}.md`), 'utf-8'));
 }
 
-// exportedRecipe composes the SAME file `sporo export <slug>` prints: the banner-stripped recipe,
-// then a `---` break, then the adoption protocol. This is the artifact the detail page's copy and
-// download actions hand over — a recipe without the protocol has no consumption path, which is the
-// bug this repairs (the download used to stop at the recipe's last section). Verified byte-for-byte
-// against the Go Export() output for the whole corpus; the drift gate keeps it that way.
+// exportedRecipe returns the file `sporo export <slug>` prints: the banner-stripped recipe, a
+// `---` break, then the adoption protocol. This is the artifact the detail page's copy and download
+// actions hand over — a recipe without the protocol has no consumption path (the bug this repairs:
+// the download used to stop at the recipe's last section).
+//
+// It READS the committed form (web/src/data/exports/<slug>.md, written by `go generate` from
+// recipe.Export) rather than recomposing it here — so the composition lives in exactly ONE place,
+// the Go binary, and `make check` reds if this mirror ever drifts from a fresh `sporo export`. The
+// site can never disagree with the binary because the site does not re-derive; it serves the
+// binary's own output.
 //
 // Note: this form intentionally does NOT re-hash to the seal. The seal covers the RAW source bytes
 // (banner included); the trust panel re-verifies against GitHub raw source, never this artifact —
 // so a shasum of a downloaded export not matching the seal is expected, not a tamper signal.
+const exportsDir = path.resolve(process.cwd(), 'src/data/exports');
 export function exportedRecipe(slug: string): string {
-  return rawRecipe(slug) + '\n---\n\n' + adoptionProtocol();
+  return fs.readFileSync(path.join(exportsDir, `${slug}.md`), 'utf-8');
 }
 
 export interface CorpusEntry {
