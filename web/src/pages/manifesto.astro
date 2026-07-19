@@ -2,6 +2,7 @@
 import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import { SITE_DATE, ORG_ID, WEBSITE_ID } from '../lib/site.ts';
+import AskAgent from '../components/AskAgent.astro';
 
 const jsonLd = {
   '@type': 'Article',
@@ -37,6 +38,7 @@ const head = {
 
 <Layout head={head} active="manifesto">
   <Frame layout="reading">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1.25rem"><AskAgent title="The sporo manifesto" path="/manifesto.html" mdUrl="manifesto.md" /></div>
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">manifesto</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">Capability doesn't move the way code does.</h1>
 

@@ -3,6 +3,7 @@ import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import { fetchReleases } from '../lib/releases.ts';
 import { WEBSITE_ID } from '../lib/site.ts';
+import AskAgent from '../components/AskAgent.astro';
 
 // Build-time only: the release feed is fetched during `astro build` and baked into static
 // HTML. fetchReleases never throws — on any failure it returns an empty list and we render the
@@ -15,6 +16,7 @@ const head = {
   description:
     'Every sporo release, from the GitHub Releases feed: what shipped in each version, newest first. One static binary, checksummed archives for six platforms.',
   path: '/changelog.html',
+  mdMirror: 'changelog.md',
   ogImage: 'og.png',
   og: {
     type: 'website' as const,
@@ -34,6 +36,7 @@ const head = {
 
 <Layout head={head} active="changelog">
   <Frame layout="reading">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1.25rem"><AskAgent title="sporo changelog" path="/changelog.html" mdUrl="changelog.md" /></div>
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">changelog</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">What shipped, and when.</h1>
     <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;max-width:52ch;text-wrap:pretty">Straight from the GitHub Releases feed — newest first. Each version is one static binary with checksummed archives for six platforms.</p>

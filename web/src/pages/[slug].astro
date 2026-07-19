@@ -6,6 +6,7 @@ import GateBadge from '../components/GateBadge.astro';
 import Publisher from '../components/Publisher.astro';
 import { readRecipe, listCorpus, adoptionSections, formatDate, sealHash, sealedAt } from '../lib/corpus.ts';
 import { SITE_DATE, ORG_ID } from '../lib/site.ts';
+import AskAgent from '../components/AskAgent.astro';
 
 // One detail page per corpus recipe, generated from the slugs listCorpus() enumerates. The
 // page IS the recipe, read straight from the embedded corpus at build — not a retyped copy.
@@ -109,7 +110,10 @@ const head = {
 <Layout head={head} active="recipes">
   <Frame layout="reading">
     <div style="padding:0 0 3rem">
-      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem"><a href="recipes.html" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px">recipes</a> · v{m.version}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem">
+        <nav aria-label="Breadcrumb" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.06em;font-weight:600;display:flex;align-items:center;gap:.5em;flex-wrap:wrap"><a href="recipes.html" class="hov-ink-nou" style="color:var(--accent)">Recipes</a><span aria-hidden="true" style="color:var(--line)">›</span><span style="color:var(--muted);font-weight:500">{headline}</span></nav>
+        <AskAgent menuOnly title={headline} path={`/${slug}.html`} mdUrl={mdHref} label="Ask an agent" />
+      </div>
       <h1 style="font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:760;max-width:26ch">{m.title}</h1>
       <div style="margin-top:1.3rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
         <Publisher size={22} prefix="by" />

@@ -3,6 +3,7 @@ import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import VerifyBlock from '../components/VerifyBlock.astro';
 import { ORG_ID, WEBSITE_ID } from '../lib/site.ts';
+import AskAgent from '../components/AskAgent.astro';
 
 // The trust destination: how to verify what you install, how the source is guarded, and how to
 // report a vulnerability. Every claim mirrors what the release pipeline mechanically produces and
@@ -12,6 +13,7 @@ const head = {
   description:
     'Every sporo release is cosign-signed (keyless), carries a SLSA build-provenance attestation, and ships an SBOM — verify your download in two commands.',
   path: '/security.html',
+  mdMirror: 'security.md',
   ogImage: 'og.png',
   og: {
     type: 'website' as const,
@@ -41,6 +43,7 @@ const link = 'color:var(--accent);text-decoration:underline;text-underline-offse
 
 <Layout head={head} active="">
   <Frame layout="reading">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1.25rem"><AskAgent title="sporo security & provenance" path="/security.html" mdUrl="security.md" /></div>
     <div style="padding:0 0 3rem">
       <div style={eyebrow}>trust &amp; provenance</div>
       <h1 style="font-size:clamp(2.4rem,6vw,4rem);line-height:1.02;letter-spacing:-.045em;font-weight:760;max-width:16ch">Every release, <em style="font-style:italic;color:var(--accent)">signed and provable</em>.</h1>

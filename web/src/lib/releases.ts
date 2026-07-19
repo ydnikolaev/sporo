@@ -12,6 +12,7 @@ export interface Release {
   url: string;
   prerelease: boolean;
   bodyHtml: string;
+  body: string; // the raw release-note markdown (the .md changelog twin renders this)
 }
 
 const REPO = 'ydnikolaev/sporo';
@@ -117,6 +118,7 @@ export async function fetchReleases(): Promise<{ releases: Release[]; ok: boolea
         url: r.html_url,
         prerelease: r.prerelease,
         bodyHtml: formatReleaseBody(marked.parse((r.body || '').trim() || '_No release notes._') as string),
+        body: (r.body || '').trim(),
       }));
     return { releases, ok: true };
   } catch (e) {

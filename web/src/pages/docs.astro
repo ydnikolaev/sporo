@@ -3,6 +3,7 @@ import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import VerifyBlock from '../components/VerifyBlock.astro';
 import { surface, SPORO_VERSION, ORG_ID, WEBSITE_ID } from '../lib/site.ts';
+import AskAgent from '../components/AskAgent.astro';
 
 // The docs page renders from surface.json — the snapshot `sporo docs --json` emits and CI keeps
 // in sync with the binary. So this page cannot claim a verb the CLI lacks, nor miss one it
@@ -69,6 +70,7 @@ const head = {
 
 <Layout head={head} active="docs">
   <Frame layout="reading">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1.25rem"><AskAgent title="sporo — command reference" path="/docs.html" mdUrl="docs.md" /></div>
     <div style="padding:0 0 3rem">
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.2rem">documentation</div>
       <h1 style="font-size:clamp(2.4rem,6vw,4rem);line-height:1.02;letter-spacing:-.045em;font-weight:760;max-width:18ch">Every verb the binary carries.</h1>
