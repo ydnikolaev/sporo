@@ -44,15 +44,13 @@ This is easy to over-apply, and the genre draws the line carefully:
   one sentence — and it doesn't name a single file. A recipe with no specific failure in
   it isn't neutral. It's empty.
 
-## The eleven sections, and what each one is actually for
+## The summary and eleven gated sections
 
-A recipe isn't free-form prose. It's a fixed shape, checked by a gate, in this order:
+A recipe isn't free-form prose. Frontmatter carries identity, version and provenance; its
+body is a fixed shape, checked by a gate, in this order:
 
-1. **Frontmatter** — a permanent id (a ULID, the recipe's identity across renames), name,
-   title, the problem in one sentence, prerequisites (stated as capabilities, never tool
-   names), what it's derived from, the stack it was verified on, and when. This is the one
-   place a product may be named — it's provenance, not instruction. `verified: {project, release, date}` exists to say out loud: this is a
-   snapshot of one successful build, not maintained doctrine.
+1. **Summary** — a 2–4 sentence orientation: what gets built, why the design transfers,
+   and what result to expect. It is body text, so neutrality applies in full.
 2. **The problem** — what you don't have, what the output actually is, and how you'll
    know you have it. The acceptance criteria live here, at the top, in the reader's
    terms — not buried at the end where a vague success condition becomes obvious only
@@ -84,11 +82,11 @@ A recipe isn't free-form prose. It's a fixed shape, checked by a gate, in this o
     that says it actually works. Not a promise. A test.
 11. **The trade-offs** — what the design costs, what it refuses, and when not to build
     it at all. A recipe that only advocates is marketing wearing a build sequence.
+12. **For the human** — what gets built in plain language, which original stack choices
+    are essential or incidental, and what that stack bought and cost.
 
-Two more things happen around the eleven sections, and neither is authored per-recipe:
-the closing section written for a human (below), and an appendix — the only place
-concrete names and paths are allowed, explicitly marked as illustration, and everything
-above it has to stand without it.
+An optional appendix is the only place concrete names and paths are allowed, explicitly
+marked as illustration; everything above it has to stand without it.
 
 ## Why the ground is a ladder, not a statement
 

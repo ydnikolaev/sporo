@@ -31,6 +31,10 @@ effort: reference
 
 # Baseline
 
+## Summary
+This capability builds a small, mechanically checked record so the rest of the fixture can prove
+the genre gate accepts one complete transferable capability before each isolated failure.
+
 ## The problem
 You do not have the thing. You have it when the check passes.
 
@@ -97,6 +101,14 @@ func TestAMissingSectionReds(t *testing.T) {
 	// one most likely to be skipped by an author porting an older recipe forward.
 	body := strings.Replace(conformant, "## For the human", "## Postscript", 1)
 	assertRed(t, lintFixture(t, body), "For the human")
+}
+
+func TestASummaryThatIsOnlyALabelReds(t *testing.T) {
+	body := strings.Replace(conformant,
+		"This capability builds a small, mechanically checked record so the rest of the fixture can prove\n"+
+			"the genre gate accepts one complete transferable capability before each isolated failure.",
+		"A checked record.", 1)
+	assertRed(t, lintFixture(t, body), "at least 80")
 }
 
 // The sequence IS the argument: principles before the build, cost after it. A recipe that

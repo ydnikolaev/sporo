@@ -114,7 +114,14 @@
       "use": "genre",
       "name": "genre",
       "short": "Print the recipe genre spec — the authoring rules this binary enforces",
-      "group": "surface"
+      "group": "surface",
+      "flags": [
+        {
+          "name": "version",
+          "default": "false",
+          "usage": "print only the embedded genre spec version"
+        }
+      ]
     },
     {
       "use": "harvest",

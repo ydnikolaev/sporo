@@ -29,7 +29,7 @@ ships is somebody *else's* build, delivered read-only: never write there.
   anything not actually finished. A recipe written from an intention teaches untested guesses
   as if they were earned.
 
-Read the genre spec before you write a line — `sporo genre` prints it. The eleven sections,
+Read the genre spec before you write a line — `sporo genre` prints it. The summary and eleven gated sections,
 the neutrality constraint, and the distinction the whole genre rests on: **doctrine says what
 must be true, a manual says how to operate this system, and a recipe says how to get from
 nothing to having it, anywhere.** If a section of your draft is a normative claim with no
@@ -71,7 +71,7 @@ for first, and how, concretely, does it break? A recipe whose reader would have 
 alone is a recipe that did not need writing. This section is usually the hardest and it is
 always the most valuable.
 
-### 3. Scaffold, then write the eleven sections in the genre's shape
+### 3. Scaffold, then write the summary and eleven gated sections in the genre's shape
 
 Do not start from a blank page:
 
@@ -86,7 +86,7 @@ is exempt from the gate and refused by seal and export, so nothing half-written 
 removing `draft: true` is the act of saying "this document now stands on its own".
 
 The shape you are filling: frontmatter (with `version` and the `stack` and `verified`
-stamps) → the problem and its acceptance → why the obvious approach fails → **the
+stamps) → a 2–4 sentence **summary** → the problem and its acceptance → why the obvious approach fails → **the
 principles** (the payload) → **the ground it needs** → **the contracts** → the build
 sequence, every step ending in `**Done when:**` → the seams → the scars → the verification
 → the trade-offs → **for the human**.

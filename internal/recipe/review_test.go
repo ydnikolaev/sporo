@@ -18,7 +18,7 @@ func reviewFixture(t *testing.T) (root string, cfg Config, corpus fstest.MapFS) 
 	t.Helper()
 	root, cfg = sealFixture(t)
 	corpus = fstest.MapFS{
-		"recipes/_adoption.md": &fstest.MapFile{Data: []byte("<!-- SSOT SOURCE -->\nhouse note\n## Adopt it here\nprobe first\n## Report back\nsend scars\n")},
+		"recipes/_adoption.md": &fstest.MapFile{Data: []byte(adoptionFixture)},
 	}
 	return root, cfg, corpus
 }

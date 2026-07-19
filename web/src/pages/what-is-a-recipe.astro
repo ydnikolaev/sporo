@@ -3,6 +3,11 @@ import Layout from '../components/Layout.astro';
 import Frame from '../components/Frame.astro';
 import { SITE_DATE, ORG_ID, WEBSITE_ID } from '../lib/site.ts';
 import AskAgent from '../components/AskAgent.astro';
+import { adoptionVersion, genreChangelogHtml, genreVersion } from '../lib/corpus.ts';
+
+const currentGenreVersion = genreVersion();
+const currentAdoptionVersion = adoptionVersion();
+const changelogHtml = genreChangelogHtml();
 
 const jsonLd = {
   '@type': 'Article',
@@ -20,7 +25,7 @@ const jsonLd = {
 const head = {
   title: 'sporo — what is a recipe: the transferable-build genre',
   description:
-    'The recipe genre, for a skeptical senior engineer: the eleven gated sections, the neutrality rule, the ground ladder, and why scars are the highest-value section.',
+    'The recipe genre, for a skeptical senior engineer: a summary plus eleven gated sections, the neutrality rule, the ground ladder, and why scars are the highest-value section.',
   path: '/what-is-a-recipe.html',
   mdMirror: 'what-is-a-recipe.md',
   ogImage: 'og-genre.png',
@@ -43,6 +48,10 @@ const head = {
     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1.4rem">the genre</div>
     <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">What is a recipe</h1>
     <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;text-wrap:pretty">You've read the pitch. Here's the actual genre — the fixed shape every recipe has to take, and why each part of it exists. If you're the senior engineer who's going to decide whether to let an agent act on one of these, this is the page that earns that.</p>
+    <div style="margin-top:1.2rem;display:flex;gap:.55rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
+      <span style="border:1px solid var(--line);border-radius:999px;padding:.35rem .65rem">genre v{currentGenreVersion}</span>
+      <span style="border:1px solid var(--line);border-radius:999px;padding:.35rem .65rem">adoption protocol v{currentAdoptionVersion}</span>
+    </div>
 
     <section style="margin-top:3.5rem">
       <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">01 — the one-sentence definition</div>
@@ -64,10 +73,11 @@ const head = {
     </section>
 
     <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
-      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">03 — the eleven sections</div>
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">03 — summary + eleven gated sections</div>
       <h2 style="font-size:clamp(1.4rem,3vw,1.9rem);letter-spacing:-.025em;line-height:1.15;font-weight:700">A fixed shape, checked by a gate, in this order.</h2>
-      <ol style="margin-top:1.8rem;padding:0;list-style:none;display:grid;counter-reset:sec">
-        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">01</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Frontmatter</b> — a permanent id (a ULID, the recipe's identity across renames), name, title, the problem in one sentence, prerequisites (stated as capabilities, never tool names), what it's derived from, the stack it was verified on, and when. The one place a product may be named — provenance, not instruction.</span></li>
+      <p style="margin-top:1rem;color:var(--muted);text-wrap:pretty">Frontmatter carries identity, version and provenance. The body then opens with a short narrative summary before the eleven section-by-section gates below.</p>
+      <ol class="genre-shape" style="margin-top:1.8rem;padding:0;list-style:none;display:grid">
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">S</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Summary</b> — a 2–4 sentence orientation: what gets built, why the design transfers, and what result to expect. It stays open on the recipe page and is neutrality-scanned like every other body line.</span></li>
         <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">02</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">The problem</b> — what you don't have, what the output actually is, and how you'll know you have it. Acceptance criteria live here, at the top — not buried at the end where a vague success condition becomes obvious only after the build is expensive to redo.</span></li>
         <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">03</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Why the obvious approach fails</b> — the fork in the road, named honestly. Without it, the reader just follows their first instinct into the same dead end you already found.</span></li>
         <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">04</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">The principles</b> — the payload. The load-bearing, portable claims that survive on a stack nobody's tested them on yet. Everything below is an instance of something here.</span></li>
@@ -77,9 +87,10 @@ const head = {
         <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">08</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">The seams</b> — what must stay configurable, and why: the paths, thresholds and vocabulary that belong to the reader's project, not yours.</span></li>
         <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">09</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">The scars</b> — the highest-value section, the one a clean-room reimplementation cannot produce. Each carries three literal markers: <b style="color:var(--ink)">Symptom</b>, <b style="color:var(--ink)">Root cause</b>, <b style="color:var(--ink)">Fix</b> — fixed so it can't decay into vague regret, and each one earned.</span></li>
         <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">10</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Verification</b> — the gates that ship with the capability, plus the one live check that says it actually works. Not a promise. A test.</span></li>
-        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">11</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">The trade-offs</b> — what the design costs, what it refuses, and when not to build it at all. A recipe that only advocates is marketing wearing a build sequence.</span></li>
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">11</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">The trade-offs</b> — what the design costs, what it refuses, and when not to build it at all. A recipe that only advocates is marketing wearing a build sequence.</span></li>
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">12</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">For the human</b> — what gets built in plain language, which stack choices are essential or incidental, and what that stack bought and cost.</span></li>
       </ol>
-      <p style="margin-top:1.4rem;color:var(--muted);font-size:.97rem;text-wrap:pretty">Two more things happen around the eleven, and neither is authored per-recipe: the closing section written for a human, and an appendix — the only place concrete names and paths are allowed, explicitly marked as illustration. Everything above it has to stand without it.</p>
+      <p style="margin-top:1.4rem;color:var(--muted);font-size:.97rem;text-wrap:pretty">The eleventh gated section, <strong style="color:var(--ink)">For the human</strong>, closes the authored body with the original stack's essential and incidental choices. An optional appendix is the only place concrete names and paths are allowed; everything above it must stand without it.</p>
     </section>
 
     <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
@@ -105,9 +116,25 @@ const head = {
       <p style="font-size:clamp(1.1rem,2vw,1.3rem);line-height:1.5;font-weight:550;text-wrap:pretty">The exported file — never the source. The export strips the authoring banner and appends the adoption protocol, so what a stranger receives is complete: <em style="color:var(--accent);font-style:italic">the machine payload first, the human closing section last</em>, and instructions for how to get it into a repository that has never heard of yours.</p>
     </section>
 
+    {changelogHtml && (
+      <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
+        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">07 — genre versions</div>
+        <h2 style="font-size:clamp(1.4rem,3vw,1.9rem);letter-spacing:-.025em;line-height:1.15;font-weight:700">A conformance verdict names a moving constitution.</h2>
+        <div class="prose" style="margin-top:1.2rem" set:html={changelogHtml}></div>
+      </section>
+    )}
+
     <div style="margin-top:3.5rem;padding-top:1.6rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:1rem;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem">
       <a href="manifesto.html">read the manifesto →</a>
       <a href="./#get" class="hov-ink" style="margin-left:auto;color:var(--muted)">get sporo</a>
     </div>
   </Frame>
 </Layout>
+
+<style>
+  .genre-shape { counter-reset: gated; }
+  .genre-shape > li:not(:first-child) { counter-increment: gated; }
+  .genre-shape > li > span:first-child { font-size: 0 !important; }
+  .genre-shape > li > span:first-child::after { content: counter(gated, decimal-leading-zero); font-size: .85rem; }
+  .genre-shape > li:first-child > span:first-child::after { content: 'S'; }
+</style>

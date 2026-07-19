@@ -31,7 +31,7 @@ version. The recipe you read next month has already survived a failure you would
 otherwise hit this month.
 
 That loop is the moat, not the file format. Anyone can write a markdown template with
-eleven headings. What compounds is a genre disciplined enough — gated on neutrality,
+twelve headings. What compounds is a genre disciplined enough — gated on neutrality,
 gated on shown contracts, gated on earned scars — that reports keep landing in a shape
 worth reading, version after version, without one author's private conventions leaking
 into everyone else's build.

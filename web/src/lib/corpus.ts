@@ -104,15 +104,18 @@ export function formatDate(iso: string | undefined): string {
 // (exportedRecipe) derive from it, so they cannot disagree with each other or with the Go
 // `adoption()` step they mirror.
 export function adoptionProtocol(): string {
-  const raw = adoptionSpec();
-  const start = raw.search(/^## /m);
-  return start >= 0 ? raw.slice(start) : raw;
+  const { meta, body } = frontmatter(adoptionSpec());
+  const start = body.search(/^## /m);
+  const protocol = start >= 0 ? body.slice(start) : body;
+  return `> **Adoption protocol:** v${meta.version ?? 'unknown'}\n\n${protocol}`;
 }
 
 // adoptionSections renders the adoption protocol (Adopt it here, Report back) as HTML for the
 // detail page — the same two sections the export form appends, split per `## ` heading.
 export function adoptionSections(): RecipeSection[] {
-  return adoptionProtocol()
+  const protocol = adoptionProtocol();
+  const start = protocol.search(/^## /m);
+  return (start >= 0 ? protocol.slice(start) : protocol)
     .split(/\n(?=## )/)
     .map((p) => {
       const title = (p.match(/^## (.+)/)?.[1] ?? '').trim();
@@ -139,6 +142,7 @@ export interface RecipeStats {
 export interface Recipe {
   meta: Record<string, string>;
   introHtml: string;
+  summaryHtml: string;
   sections: RecipeSection[];
   stats: RecipeStats;
   sealed: boolean;
@@ -161,7 +165,9 @@ export function readRecipe(slug: string): Recipe {
   // Split on level-2 headings; everything before the first `## ` is the intro (# title +
   // thesis blockquote).
   const parts = body.split(/\n(?=## )/);
-  const sections: RecipeSection[] = parts.slice(1).map((p) => {
+  const bodySections = parts.slice(1);
+  const summaryPart = bodySections.find((p) => /^## Summary\s*$/m.test(p.split('\n')[0] ?? '')) ?? '';
+  const sections: RecipeSection[] = bodySections.filter((p) => p !== summaryPart).map((p) => {
     const title = (p.match(/^## (.+)/)?.[1] ?? '').trim();
     const md = p.replace(/^## .+\n/, '');
     // The scars section is the payload a clean-room rebuild cannot reproduce — open it.
@@ -172,6 +178,7 @@ export function readRecipe(slug: string): Recipe {
   // line after the frontmatter fence, so the H1 is NOT at index 0; allow leading whitespace or it
   // survives the strip (the bug that printed the title twice).
   const intro = parts[0].replace(/^\s*#\s+.+\n+/, '');
+  const summaryMd = summaryPart.replace(/^## Summary\s*\n/, '');
   // Locate the scars and contracts sections by their heading, then count from their raw markdown.
   const sectionMd = (rx: RegExp) => parts.find((p) => rx.test(p.split('\n')[0] ?? '')) ?? '';
   const stats: RecipeStats = {
@@ -179,7 +186,15 @@ export function readRecipe(slug: string): Recipe {
     scars: (sectionMd(/scar/i).match(/^### /gm) ?? []).length,
     contracts: countContracts(sectionMd(/contract/i)),
   };
-  return { meta, introHtml: marked.parse(intro) as string, sections, stats, sealed: sealVerified(slug), raw };
+  return {
+    meta,
+    introHtml: marked.parse(intro) as string,
+    summaryHtml: marked.parse(summaryMd) as string,
+    sections,
+    stats,
+    sealed: sealVerified(slug),
+    raw,
+  };
 }
 
 export function genreSpec(): string {
@@ -188,6 +203,29 @@ export function genreSpec(): string {
 
 export function adoptionSpec(): string {
   return stripBanner(fs.readFileSync(path.join(recipesDir, '_adoption.md'), 'utf-8'));
+}
+
+export function genreVersion(): string {
+  return frontmatter(genreSpec()).meta.version ?? '';
+}
+
+export function adoptionVersion(): string {
+  return frontmatter(adoptionSpec()).meta.version ?? '';
+}
+
+// The site shows the version history from the spec itself, not a second hand-maintained copy.
+// A heading renumber can move it without changing this parser; its semantic title is the key.
+export function genreChangelogHtml(): string {
+  return marked.parse(genreChangelogMarkdown()) as string;
+}
+
+export function genreChangelogMarkdown(): string {
+  const { body } = frontmatter(genreSpec());
+  const start = body.search(/^## \d+\. Version history\s*$/m);
+  if (start < 0) return '';
+  const section = body.slice(start).replace(/^## .+\n/, '');
+  const next = section.search(/^## /m);
+  return (next >= 0 ? section.slice(0, next) : section).trim();
 }
 
 // The raw markdown of one recipe, banner stripped — for the llms-full.txt corpus dump.

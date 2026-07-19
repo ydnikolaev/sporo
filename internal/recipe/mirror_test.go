@@ -14,7 +14,7 @@ import (
 // and the count reflects the corpus.
 func TestWriteMirrorWritesTheExportFormPerRecipe(t *testing.T) {
 	corpus := fstest.MapFS{
-		"recipes/_adoption.md": {Data: []byte("<!-- SSOT SOURCE -->\n<!-- house business -->\n\n## Adopt it here\nProbe.\n\n## Report back\nScars.\n")},
+		"recipes/_adoption.md": {Data: []byte(adoptionFixture)},
 		"recipes/alpha.md":     {Data: []byte("<!-- SSOT SOURCE -->\n\n---\nname: alpha\n---\n# Alpha\n")},
 		"recipes/beta.md":      {Data: []byte("<!-- SSOT SOURCE -->\n\n---\nname: beta\n---\n# Beta\n")},
 	}

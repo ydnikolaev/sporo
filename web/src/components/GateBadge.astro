@@ -6,7 +6,7 @@
 //     `.sporo/registry.yaml`, checked at BUILD by re-hashing the file (see corpus.ts `sealVerified`)
 //     and re-checked by CI on every push. It never renders unless the bytes match — a drifted or
 //     unsealed recipe falls back to the gate-passed form below.
-//   - `gate-passed` (a shield): passes the genre gate — the eleven sections in order, neutrality
+//   - `gate-passed` (a shield): passes the genre gate — a summary plus eleven sections in order, neutrality
 //     (no leaked paths or product names), and earned scars.
 //
 // It still does NOT claim "no prompt injection / secure": no scan backs that yet. A decorative claim
@@ -25,8 +25,8 @@ const label = sealed
     ? 'gate-passed'
     : 'gate-passed · neutral';
 const tip = sealed
-  ? 'Sealed: this recipe still hashes (sha256) to the value committed in .sporo/registry.yaml, verified at build and re-checked by CI on every push — recompute it yourself from the repo. It also passes the genre gate (eleven sections in order, neutrality, earned scars). Not a security scan.'
-  : 'Passes the genre gate: the eleven sections in order, neutrality (no leaked paths or product names), and earned scars. Not a seal and not a security scan.';
+  ? 'Sealed: this recipe still hashes (sha256) to the value committed in .sporo/registry.yaml, verified at build and re-checked by CI on every push — recompute it yourself from the repo. It also passes the genre gate (a summary plus eleven sections in order, neutrality, earned scars). Not a security scan.'
+  : 'Passes the genre gate: a summary plus eleven sections in order, neutrality (no leaked paths or product names), and earned scars. Not a seal and not a security scan.';
 ---
 
 <span

@@ -97,7 +97,7 @@ overclaim this project is built to avoid.
   identical to yours, zero re-derivation cost beats a document an agent has to
   interpret.
 - **The capability is one library call** — the recipe is the install command. Writing
-  eleven sections around that teaches nothing.
+  a summary and eleven gated sections around that teaches nothing.
 - **Nothing went wrong building it** — a recipe's highest-value section is its scars. A
   build with no scars didn't need one.
 

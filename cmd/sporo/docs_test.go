@@ -73,3 +73,18 @@ func TestNestedSubcommandsAreCaptured(t *testing.T) {
 		}
 	}
 }
+
+func TestGenreVersionFlagIsPartOfTheDocumentedSurface(t *testing.T) {
+	for _, verb := range buildSurface().Verbs {
+		if verb.Name != "genre" {
+			continue
+		}
+		for _, flag := range verb.Flags {
+			if flag.Name == "version" {
+				return
+			}
+		}
+		t.Fatal("genre --version is callable but absent from the generated docs surface")
+	}
+	t.Fatal("genre verb is absent from the generated docs surface")
+}

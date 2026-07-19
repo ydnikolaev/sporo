@@ -7,7 +7,7 @@
 
 Key facts an agent should know:
 
-- A recipe is a fixed, machine-gated genre: eleven sections in order, a neutrality rule
+- A recipe is a fixed, machine-gated genre: a summary plus eleven sections in order, a neutrality rule
   (the body names roles — "the facts file", "the collector" — never paths, filenames or
   product names), a literal `**Done when:**` acceptance on every build step, and scars
   recorded as symptom → root cause → fix.
@@ -43,8 +43,8 @@ reference, the genre and adoption specs, and a complete recipe — see
 - [Recipes — the corpus](https://sporo.dev/recipes.md): every recipe in the corpus, each
   linking to the full recipe page and its raw `.md`
 - [A real recipe](https://sporo.dev/derived-progress-report.md): the derived-progress-report
-  recipe in full — the eleven gated sections, the scars, and the shape a reader adopts
-- [What is a recipe](https://sporo.dev/what-is-a-recipe.md): the genre in full — the eleven
+  recipe in full — a summary, the eleven gated sections, the scars, and the shape a reader adopts
+- [What is a recipe](https://sporo.dev/what-is-a-recipe.md): the genre in full — the summary and eleven
   sections and why each exists, the neutrality rule and its careful edges, the ground
   ladder, bindings, and the two sections appended at export
 - [Manifesto](https://sporo.dev/manifesto.md): why transferable intent is a third primitive

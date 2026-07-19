@@ -6,7 +6,7 @@ the same thing — on its own stack, without repeating this build's mistakes.
 
 When asked to write, check, or hand over a recipe:
 
-- **Read the genre first**: `sporo genre` prints the authoring spec (eleven gated sections;
+- **Read the genre first**: `sporo genre` prints the authoring spec (a summary plus eleven gated sections;
   the neutrality constraint — the body names roles, never paths/filenames/products; every
   build step ends with `**Done when:**`; every scar is symptom → root cause → fix).
 - **Harvest before you recall**: `sporo harvest --since <the release before the work>` mines

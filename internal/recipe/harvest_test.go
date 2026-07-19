@@ -85,7 +85,7 @@ func TestAMalformedRecordIsAnErrorNotASilentSkip(t *testing.T) {
 func TestExportStripsTheBannerAndRefusesTheGenreSpec(t *testing.T) {
 	corpus := fstest.MapFS{
 		"recipes/_authoring.md": {Data: []byte("<!-- SSOT SOURCE (mate repo). -->\n\n# how to write one\n")},
-		"recipes/_adoption.md":  {Data: []byte("<!-- SSOT SOURCE -->\n<!-- a note to us -->\n\n## Adopt it here\nprobe first.\n")},
+		"recipes/_adoption.md":  {Data: []byte(adoptionFixture)},
 		"recipes/a-thing.md":    {Data: []byte("<!-- SSOT SOURCE (mate repo). -->\n\n---\nname: a-thing\n---\n# A thing\n")},
 	}
 	body, err := Export(corpus, "", "a-thing")
@@ -115,7 +115,7 @@ func TestTheProjectsOwnRecipesAreListedAndExportedFirst(t *testing.T) {
 	corpus := fstest.MapFS{
 		"recipes/a-thing.md":    {Data: []byte("<!-- SSOT SOURCE -->\n\n# the fleet's version\n")},
 		"recipes/_authoring.md": {Data: []byte("<!-- SSOT SOURCE -->\n")},
-		"recipes/_adoption.md":  {Data: []byte("<!-- SSOT SOURCE -->\n\n## Adopt it here\nprobe first.\n")},
+		"recipes/_adoption.md":  {Data: []byte(adoptionFixture)},
 	}
 	home := t.TempDir()
 	write(t, home, "a-thing.md", "<!-- SSOT SOURCE -->\n\n# this repo's own version\n")

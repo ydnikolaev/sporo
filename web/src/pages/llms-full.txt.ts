@@ -4,6 +4,7 @@ import path from 'node:path';
 import { surface, SPORO_VERSION } from '../lib/site.ts';
 import { genreSpec, adoptionSpec, rawRecipe } from '../lib/corpus.ts';
 import { compareMarkdown } from '../lib/compare.ts';
+import { genrePageMarkdown } from '../lib/genre-page.ts';
 
 // llms-full.txt — the whole corpus an agent needs, expanded into one fetch (the companion to
 // llms.txt, which only links). Everything here is read at build from its single source: the
@@ -45,8 +46,8 @@ function commandReference(): string {
   return md.trimEnd();
 }
 
-// The two hand-written prose mirrors live in public/ (served verbatim at /manifesto.md and
-// /what-is-a-recipe.md). Read them from there so llms-full.txt carries the same text.
+// Hand-written prose mirrors live in public/. The genre page is composed separately because
+// its versions and changelog come from the embedded specs rather than duplicated prose.
 function prose(name: string): string {
   return fs.readFileSync(path.resolve(process.cwd(), 'public', name), 'utf-8').trim();
 }
@@ -68,7 +69,7 @@ ${SPORO_VERSION}. Source: https://github.com/ydnikolaev/sporo`,
     prose('index.md'),
     `# Recipe vs skill vs prompt vs MCP vs fine-tune\n\n${compareMarkdown()}`,
     prose('manifesto.md'),
-    prose('what-is-a-recipe.md'),
+    genrePageMarkdown(),
     commandReference(),
     `# The recipe genre (authoring spec)\n\n${genreSpec()}`,
     `# The adoption protocol\n\n${adoptionSpec()}`,

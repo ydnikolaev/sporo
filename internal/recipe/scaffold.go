@@ -9,7 +9,7 @@ import (
 )
 
 // `sporo new` — the answer to the genre's real supply constraint, which is not reader
-// trust but AUTHORING COST. Eleven gated sections written from a blank page is expensive
+// trust but AUTHORING COST. A summary plus eleven gated sections written from a blank page is expensive
 // enough that the recipe nobody writes is the common case; the gate can only reject, it
 // cannot help. The scaffold helps: every section arrives with a coach comment saying what
 // belongs in it (and, for the two sections authors reliably get wrong, what GOOD looks
@@ -56,6 +56,12 @@ func Scaffold(root string, cfg Config, slug, title string, h *Harvest) (string, 
 		"     breaks the permalink a marketplace and every report-back hang on.\n" +
 		"     The one rule that cannot bend: the body names ROLES, never your paths, filenames or\n" +
 		"     product names. Read `sporo genre` before filling anything. -->\n\n")
+
+	b.WriteString("## Summary\n\n" +
+		"<!-- coach: orient the reader in 2–4 sentences before the gated argument: what gets\n" +
+		"     built, why the design is worth transferring, and the result they can expect. This\n" +
+		"     is body text, so the same neutrality rule applies — roles, never coordinates. -->\n\n" +
+		"TODO — Write a short narrative that lets a human or agent understand the capability before deciding whether to read the full recipe.\n\n")
 
 	b.WriteString("## The problem\n\n" +
 		"<!-- coach: what the reader does NOT have, what the output IS, and the acceptance — how\n" +

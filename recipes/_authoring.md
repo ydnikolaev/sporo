@@ -2,6 +2,7 @@
 
 ---
 name: _authoring
+version: 2.0.0
 title: Authoring a recipe — the canonical shape of a transferable build
 problem: A capability we built cannot be rebuilt by anyone who did not watch us build it.
 prerequisites: [read-files, edit-files]
@@ -59,10 +60,11 @@ that has to survive being handed to a stranger. If a section of your recipe is a
 claim with no build step under it, it is doctrine — **cite the principle and move on**; do
 not restate a corpus inside a recipe.
 
-## 1. The shape — eleven sections, in this order
+## 1. The shape — twelve body sections, in this order
 
-Every recipe is these parts, in this order. The shape is **gated**, because a genre defined
-only by taste drifts into whatever the last author felt like writing.
+Every recipe has frontmatter, then twelve required body sections in this order, followed by
+an optional appendix. The shape is **gated**, because a genre defined only by taste drifts
+into whatever the last author felt like writing.
 
 1. **Frontmatter** — `id`, `name`, `version` (semver), `title`, `problem` (one sentence),
    `prerequisites` (capabilities, never tool names), `derived_from`, `stack`, `verified:
@@ -78,18 +80,22 @@ only by taste drifts into whatever the last author felt like writing.
    a report-back binds to it, and new scars from readers are what produce the next one. The
    frontmatter is the **one place a product may be named** — it is provenance, not
    instruction.
-2. **`## The problem`** — what you do not have, **what the output is**, and **how you will
+2. **`## Summary`** — a 2–4 sentence orientation for humans and agents before the argument:
+   what gets built, why the design is worth transferring, and the result the reader can
+   expect. It is body text, not provenance, so neutrality applies in full; the gate rejects
+   a label or stub shorter than 80 visible characters.
+3. **`## The problem`** — what you do not have, **what the output is**, and **how you will
    know you have it**. The acceptance goes here, at the top, in the reader's terms. A recipe
    whose success condition is vague produces a build nobody can call finished.
-3. **`## Why the obvious approach fails`** — the fork in the road. State the design the next
+4. **`## Why the obvious approach fails`** — the fork in the road. State the design the next
    agent *will* reach for first, and the concrete way it breaks. This section is what makes
    a recipe worth more than the reader's own first instinct; without it, they will simply
    follow that instinct.
-4. **`## The principles`** — **the payload.** The load-bearing claims, portable, each one
+5. **`## The principles`** — **the payload.** The load-bearing claims, portable, each one
    survivable on a stack you have never seen. Everything below is an instance of something
    here; everything above is why you need it. Where a claim already lives in a doctrine,
    name the principle in one line and cite it rather than re-deriving it.
-5. **`## The ground it needs`** — what must be **standing underneath** before the sequence
+6. **`## The ground it needs`** — what must be **standing underneath** before the sequence
    can start, and **why each one is load-bearing**. Four kinds, and the last two are the ones
    authors reliably forget: the single **source of truth** this capability derives from; the
    **structure and gates** that keep it from rotting the day after it ships; the **external
@@ -103,40 +109,40 @@ only by taste drifts into whatever the last author felt like writing.
    variable one — the two bleed into each other if you let them). Write it as a **ladder**, not
    a statement (§5): most readers will not have what it asks for, and a precondition with no
    rung under it is one they will quietly substitute rather than build.
-6. **`## The contracts`** — the shapes this capability consumes and emits, **shown**, in fenced
+7. **`## The contracts`** — the shapes this capability consumes and emits, **shown**, in fenced
    blocks (§4). Not described: *shown*. Every shape carries a **binding** above its fence —
    `**Binding: exact**` (a consumer outside the repository parses it; copy byte-for-byte,
    changing it later is a MAJOR version) or `**Binding: adapt**` (shown so the reader does not
    re-invent it; local conventions win). This is the section a recipe cannot fake, and the
    gate requires the fence AND the marker.
-7. **`## The build sequence`** — the steps, one `###` heading each, and **every step ends
+8. **`## The build sequence`** — the steps, one `###` heading each, and **every step ends
    with a `**Done when:**` line**. A sequence without per-step acceptance is a wish list: the
    reader cannot tell whether they are on track until the end, which is exactly when it is
    expensive to find out. The marker is literal and the gate counts it against the steps,
    because "each step has an acceptance" is otherwise a promise nobody checks.
-8. **`## The seams`** — what MUST stay configurable, and why. This is where the recipe
+9. **`## The seams`** — what MUST stay configurable, and why. This is where the recipe
    protects the next project from inheriting *your* values: the paths, the thresholds, the
    vocabulary. Name the seam and what varies across it, never the value. **The ground is what
    the reader stands up underneath the capability; the seams are what they are free to swap
    inside it.**
-9. **`## The scars`** — what actually went wrong. One `###` heading per scar, each carrying
+10. **`## The scars`** — what actually went wrong. One `###` heading per scar, each carrying
    the three literal markers **`**Symptom:**`**, **`**Root cause:**`** and **`**Fix:**`** —
    the shape is fixed so the section cannot decay into a paragraph of regret, and so an agent
    can lift a scar out whole. Each scar must be **earned**: one invented to look thorough
    teaches a defence against a failure that does not exist and costs the reader real work.
    This is the highest-value section in the document, and the one a clean-room
    reimplementation cannot produce.
-10. **`## Verification`** — the gates that must ship *with* the capability (a capability whose
+11. **`## Verification`** — the gates that must ship *with* the capability (a capability whose
     invariants are unguarded rots back to nothing), and the one live check that says it really
     works.
-11. **`## The trade-offs`** — what this **design** costs, what it deliberately refuses, and
+12. **`## The trade-offs`** — what this **design** costs, what it deliberately refuses, and
     **when not to build it at all**. A recipe that only advocates is marketing. (The cost of
     the *stack* is a different axis and belongs in the closing section.)
-12. **`## For the human`** — the closing section, and **the only one written for a person**.
+13. **`## For the human`** — the closing section, and **the only one written for a person**.
     See §3 below: it is not a summary of the document, it is the author's declaration of what
     was built, what it runs on, and what that choice bought and cost. It does **not** restate
     the trade-offs — the same question asked of the stack rather than of the design.
-13. **`## Appendix`** — optional, and the **only** section where concrete names, paths and
+14. **`## Appendix`** — optional, and the **only** section where concrete names, paths and
     commands are allowed. It is explicitly an illustration, and everything above it must
     stand without it.
 
@@ -344,7 +350,7 @@ early that I forgot it was a decision?*
 - [ ] Frontmatter carries `id`, `name`, `version`, `title`, `problem`, `prerequisites`,
       `derived_from`, `stack`, `verified`, `effort` — `id` is the ULID `sporo new` minted (never
       typed), and `effort` is honest about which half of the build eats the budget.
-- [ ] All eleven sections are present, in order (the appendix is optional). `## Adopt it here`
+- [ ] All twelve body sections are present, in order (the appendix is optional). `## Adopt it here`
       and `## Report back` are **not** among them — delivery appends those.
 - [ ] The body contains **no** repository path, filename, or product name — in **any**
       section, the stack sections and the fenced examples included. Technologies are free,
@@ -388,3 +394,16 @@ corpus's own `_adoption` document) — edit it there, never in a recipe. Recipes
 through the sporo-recipe skill and checked by `sporo lint`, which the binary carries so any
 consumer can run it on a recipe about its **own** repository; `sporo genre` prints this spec
 wherever the binary goes.
+
+## 11. Version history
+
+### 2.0.0 — summary becomes part of the genre
+
+Added `## Summary` as the first required body section, with a minimum narrative length and
+the same neutrality constraint as the rest of the body. This is a MAJOR change because every
+recipe conformant to the earlier shape becomes non-conformant until it adds the section.
+
+### 1.0.0 — the original sealed genre
+
+Established the fixed eleven-section body, required frontmatter, neutrality, contracts,
+ground ladders, earned scars, per-step acceptance, and the closing human section.

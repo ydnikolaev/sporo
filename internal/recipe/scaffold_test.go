@@ -36,7 +36,7 @@ func TestTheScaffoldIsBornADraftAndRefusedByExportAndSeal(t *testing.T) {
 		t.Fatalf("seal must refuse a draft: %v", err)
 	}
 	corpus := fstest.MapFS{
-		"recipes/_adoption.md": {Data: []byte("<!-- SSOT SOURCE -->\n## Adopt it here\nprobe\n## Report back\nscars\n")},
+		"recipes/_adoption.md": {Data: []byte(adoptionFixture)},
 	}
 	if _, err := Export(corpus, filepath.Join(root, cfg.Home), "my-capability"); err == nil || !strings.Contains(err.Error(), "draft") {
 		t.Fatalf("export must refuse a draft — a stranger must never receive TODOs as if they were earned: %v", err)

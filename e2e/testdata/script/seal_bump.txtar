@@ -36,6 +36,10 @@ effort: an evening
 
 # Nightly digest
 
+## Summary
+This capability builds a small checked record and a readable digest, preserving the facts an
+agent needs to reproduce the result without inheriting the originating repository.
+
 ## The problem
 You do not have the thing. You have it when the check passes.
 
@@ -100,6 +104,10 @@ effort: an evening
 
 # Nightly digest
 
+## Summary
+This capability builds a small checked record and a readable digest, preserving the facts an
+agent needs to reproduce the result without inheriting the originating repository.
+
 ## The problem
 You do not have the thing. You have it when the check passes.
 
@@ -163,6 +171,10 @@ effort: an evening
 ---
 
 # Nightly digest
+
+## Summary
+This capability builds a small checked record and a readable digest, preserving the facts an
+agent needs to reproduce the result without inheriting the originating repository.
 
 ## The problem
 You do not have the thing. You have it when the check passes.

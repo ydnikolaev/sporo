@@ -122,7 +122,7 @@ func verbDoc(c *cobra.Command) VerbDoc {
 func flagsOf(c *cobra.Command) []FlagDoc {
 	var out []FlagDoc
 	c.Flags().VisitAll(func(f *pflag.Flag) {
-		if f.Name == "help" || f.Name == "version" {
+		if f.Name == "help" {
 			return
 		}
 		out = append(out, FlagDoc{Name: f.Name, Default: f.DefValue, Usage: f.Usage})

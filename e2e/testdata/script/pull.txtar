@@ -47,6 +47,10 @@ effort: an evening
 
 # CRM feed
 
+## Summary
+This capability builds a small checked record and a readable digest, preserving the facts an
+agent needs to reproduce the result without inheriting the originating repository.
+
 ## The problem
 The aggregator cannot parse prose.
 
@@ -107,6 +111,10 @@ effort: an evening
 ---
 
 # CRM feed
+
+## Summary
+This capability builds a small checked record and a readable digest, preserving the facts an
+agent needs to reproduce the result without inheriting the originating repository.
 
 ## The problem
 The aggregator cannot parse prose.

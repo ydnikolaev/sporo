@@ -1,5 +1,11 @@
 <!-- SSOT SOURCE (sporo repo). Consumers receive a provenance-stamped copy via `sporo update` — edit HERE, never the synced copies. -->
 
+---
+name: _adoption
+version: 1.0.0
+title: The adoption and report-back protocol appended to every recipe export
+---
+
 <!--
 The two sections below are the same in EVERY recipe, so they are not authored in any of
 them. They are appended to whatever the delivery step hands over — which means one edit

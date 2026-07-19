@@ -23,7 +23,7 @@ principles, contracts, scars — and leaves behind everything that only makes se
 
 ## The genre
 
-Eleven gated sections — the problem (acceptance first), why the obvious approach fails, the
+A short summary, then eleven gated sections — the problem (acceptance first), why the obvious approach fails, the
 principles, the ground it needs (every precondition a ladder: probe → build the smallest →
 degrade with a label), the contracts (shapes shown, each with a binding: `adapt` or `exact`),
 the build sequence (a `Done when:` per step), the seams, the scars (symptom → root cause →

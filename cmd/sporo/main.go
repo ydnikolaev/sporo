@@ -307,10 +307,19 @@ func registerBestEffort(cmd *cobra.Command, root string) {
 // genre prints the authoring spec from the binary's corpus. In a consumer repository the
 // binary is the only place the genre lives, and the skill's first instruction is to read it.
 func genreCmd() *cobra.Command {
+	var onlyVersion bool
 	cmd := &cobra.Command{
 		Use:   "genre",
 		Short: "Print the recipe genre spec — the authoring rules this binary enforces",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if onlyVersion {
+				v, err := recipe.GenreVersion(sporo.Recipes)
+				if err != nil {
+					return err
+				}
+				fmt.Fprintln(cmd.OutOrStdout(), v)
+				return nil
+			}
 			s, err := recipe.Genre(sporo.Recipes)
 			if err != nil {
 				return err
@@ -319,6 +328,7 @@ func genreCmd() *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&onlyVersion, "version", false, "print only the embedded genre spec version")
 	return cmd
 }
 
@@ -381,7 +391,7 @@ func harvestCmd() *cobra.Command {
 	return cmd
 }
 
-// lint checks a recipe against the genre: the shape (the eleven sections, the frontmatter, a
+// lint checks a recipe against the genre: the shape (a summary plus eleven sections, the frontmatter, a
 // `**Done when:**` per build step, symptom/root-cause/fix per scar, a shown shape under The
 // contracts) and the one constraint the genre exists for — NEUTRALITY. The body may name
 // technologies and show CONTRACTS (shapes a reader copies and adapts); it may not name

@@ -1,7 +1,7 @@
 ---
 id: 01KXS4J44AWVNJMYZSWKYD5CC9
 name: derived-progress-report
-version: 1.0.1
+version: 1.1.0
 title: The daily progress report that checks itself — derived numbers, a page for people, a record the knowledge base ingests
 problem: A recurring report is read by people who cannot verify a single figure in it, and later by machines that cannot parse the prose it is written in.
 prerequisites: [read-files, edit-files, run-shell, read-version-control-history, http-client, scheduled-jobs]
@@ -12,6 +12,13 @@ effort: "large — the collector and the wire client are a few days of ordinary 
 ---
 
 # The daily progress report that checks itself
+
+## Summary
+
+This recipe builds a reporting pipeline in which every number comes from a durable facts
+record, while judgment remains explicitly authored. It produces an immutable period record,
+a readable page, a regenerated history, and an idempotent feed for an outside knowledge base,
+with missing evidence shown as absence instead of a reassuring zero.
 
 ## The problem
 
@@ -757,6 +764,8 @@ for every consumer of the binary: an improvement to a number's method reaches a 
 that project reinstalls, which is a real coordination cost the day the fix is urgent.
 
 ---
+
+> **Adoption protocol:** v1.0.0
 
 ## Adopt it here
 

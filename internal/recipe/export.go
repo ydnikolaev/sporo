@@ -35,7 +35,10 @@ type Entry struct {
 // They are NOT authored per recipe — that would be forty lines of boilerplate copied into
 // every document, drifting apart the moment one of them is improved — so they live once and
 // the delivery step appends them.
-const AdoptionDoc = "_adoption.md"
+const (
+	AdoptionDoc = "_adoption.md"
+	GenreDoc    = "_authoring.md"
+)
 
 // Export hands ONE self-contained file to an agent in a repository that has never heard
 // of this harness. That is the whole delivery contract, and it is why the fleet corpus is
@@ -99,6 +102,10 @@ func adoption(corpus fs.FS) (string, error) {
 			"recipe carries it, and a recipe without it has no consumption path — the binary is "+
 			"broken, not the recipe: %w", AdoptionDoc, err)
 	}
+	version, err := specVersion(b, AdoptionDoc)
+	if err != nil {
+		return "", err
+	}
 	lines := strings.Split(string(b), "\n")
 	for i, l := range lines {
 		if strings.HasPrefix(l, "## ") {
@@ -107,7 +114,7 @@ func adoption(corpus fs.FS) (string, error) {
 			// coordinates. Landing straight from that into instructions the reader EXECUTES,
 			// with nothing between them, is how a reader mistakes one for the other. The break
 			// says: the document above is finished; what follows is addressed to you.
-			return "\n---\n\n" + strings.Join(lines[i:], "\n"), nil
+			return "\n---\n\n> **Adoption protocol:** v" + version + "\n\n" + strings.Join(lines[i:], "\n"), nil
 		}
 	}
 	return "", fmt.Errorf("the adoption protocol carries no section (%s)", AdoptionDoc)
@@ -120,11 +127,39 @@ func adoption(corpus fs.FS) (string, error) {
 // documents for a good reason (a stranger asked for a capability, not a style guide), so the
 // spec gets its own door instead of a hole in that rule.
 func Genre(corpus fs.FS) (string, error) {
-	b, err := fs.ReadFile(corpus, path.Join("recipes", "_authoring.md"))
+	b, err := fs.ReadFile(corpus, path.Join("recipes", GenreDoc))
 	if err != nil {
 		return "", fmt.Errorf("the genre spec is missing from the corpus — the binary is broken, not your repository: %w", err)
 	}
 	return strip(string(b)), nil
+}
+
+// GenreVersion and AdoptionVersion expose the independent versions of the two constitutional
+// texts embedded in the binary. The spec file remains the SSOT: callers read its frontmatter,
+// never a second constant that can drift from the prose it claims to identify.
+func GenreVersion(corpus fs.FS) (string, error) {
+	b, err := fs.ReadFile(corpus, path.Join("recipes", GenreDoc))
+	if err != nil {
+		return "", fmt.Errorf("the genre spec is missing from the corpus — the binary is broken, not your repository: %w", err)
+	}
+	return specVersion(b, GenreDoc)
+}
+
+func AdoptionVersion(corpus fs.FS) (string, error) {
+	b, err := fs.ReadFile(corpus, path.Join("recipes", AdoptionDoc))
+	if err != nil {
+		return "", fmt.Errorf("the adoption protocol is missing from the corpus (%s): %w", AdoptionDoc, err)
+	}
+	return specVersion(b, AdoptionDoc)
+}
+
+func specVersion(src []byte, name string) (string, error) {
+	version := recipekit.FrontmatterValue(src, "version")
+	triple, ok := recipekit.SemverTriple(version)
+	if !ok || fmt.Sprintf("%d.%d.%d", triple[0], triple[1], triple[2]) != version {
+		return "", fmt.Errorf("%s must declare an exact MAJOR.MINOR.PATCH `version:` in frontmatter — the embedded spec must identify the rules it ships", name)
+	}
+	return version, nil
 }
 
 // List enumerates BOTH corpora — the fleet's and this project's. `_`-prefixed files are the

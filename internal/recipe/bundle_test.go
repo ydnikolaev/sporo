@@ -21,7 +21,7 @@ func bundleFixture(t *testing.T) (corpus fstest.MapFS, home string) {
 		}
 	}
 	corpus = fstest.MapFS{
-		"recipes/_adoption.md": {Data: []byte("<!-- SSOT SOURCE -->\nhouse business\n## Adopt it here\nprobe first\n## Report back\nsend scars\n")},
+		"recipes/_adoption.md": {Data: []byte(adoptionFixture)},
 		"recipes/official.md":  {Data: []byte(strings.Replace(conformant, "name: baseline", "name: official", 1))},
 	}
 	return corpus, home
@@ -51,7 +51,7 @@ func TestABundleComposesMembersInOrderUnderOneProtocol(t *testing.T) {
 	if n := strings.Count(out, "## Adopt it here"); n != 1 {
 		t.Fatalf("exactly ONE adoption protocol for the whole composition, got %d", n)
 	}
-	if !strings.HasSuffix(strings.TrimSpace(out), "send scars") {
+	if !strings.HasSuffix(strings.TrimSpace(out), "New scars.") {
 		t.Fatal("the protocol goes at the very end — after it, nothing")
 	}
 	if !strings.Contains(out, "## The shared ground") {

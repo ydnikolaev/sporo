@@ -1,7 +1,7 @@
 ---
 id: 01KXS83W67BK5QB23TXSMZ073K
 name: russian-personal-data-legal-and-consent-banner
-version: 0.1.1
+version: 0.2.0
 title: A compliant personal-data legal set + cookie-consent banner for a Russian-jurisdiction site
 problem: A public site that processes any personal data of people in Russia needs a legal-document set and a cookie banner that satisfy 152-ФЗ — not a translated GDPR template that blocks the wrong things and is silent on what the law actually demands.
 prerequisites: [read-files, edit-files, publish-web-pages, run-a-browser]
@@ -12,6 +12,13 @@ effort: heavy — but the budget is lopsided: the legal half (document content, 
 ---
 
 # A compliant personal-data legal set + cookie-consent banner for a Russian-jurisdiction site
+
+## Summary
+
+This recipe builds the legal-document set and consent boundary a Russian-jurisdiction site
+needs before it processes personal data. It separates the operator's legal duties from the
+browser mechanism, then makes non-essential tracking wait for affirmative consent while
+keeping the resulting evidence auditable by document revision.
 
 ## The problem
 
@@ -532,6 +539,8 @@ hand-authored path in this recipe is complete on its own. The registry is what t
 becomes the thing you keep getting wrong.
 
 ---
+
+> **Adoption protocol:** v1.0.0
 
 ## Adopt it here
 

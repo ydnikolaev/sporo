@@ -30,6 +30,10 @@ effort: reference
 
 # Baseline
 
+## Summary
+This capability builds a small, mechanically checked record so the shared fixture can prove the
+staying package accepts one complete transferable capability before exercising its callers.
+
 ## The problem
 You do not have the thing. You have it when the check passes.
 

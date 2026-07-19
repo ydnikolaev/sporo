@@ -35,6 +35,7 @@ func (f Finding) String() string {
 // checked rather than trusted. `## Appendix` is deliberately absent: it is optional, and it
 // is the one section where instances are allowed.
 var requiredSections = []string{
+	"## Summary",
 	"## The problem",
 	"## Why the obvious approach fails",
 	"## The principles",
@@ -47,6 +48,8 @@ var requiredSections = []string{
 	"## The trade-offs",
 	"## For the human",
 }
+
+const summaryMinRunes = 80
 
 // requiredKeys is the frontmatter. `stack` and `verified` are honesty stamps, not metadata:
 // one says what the build ran on, the other says it is a snapshot of a build that actually
@@ -69,8 +72,9 @@ var (
 	// coordinate in the reader's tree). The cost of the conservatism is a known gap — a
 	// one-segment bare path ("src/main.c") passes — and the semantic review's neutrality
 	// axis is the declared counterweight, not a wider regex that reds on prose.
-	reBarePath = regexp.MustCompile(`(?:^|[^\w./])((?:[\w-]+/){2,}[\w-]+\.[A-Za-z]{1,5})\b`)
-	reURL      = regexp.MustCompile(`https?://\S+`)
+	reBarePath    = regexp.MustCompile(`(?:^|[^\w./])((?:[\w-]+/){2,}[\w-]+\.[A-Za-z]{1,5})\b`)
+	reURL         = regexp.MustCompile(`https?://\S+`)
+	reHTMLComment = regexp.MustCompile(`(?s)<!--.*?-->`)
 	// Binding is the strictness of one shown shape, and it is two-valued on purpose:
 	// `exact` — a consumer OUTSIDE the emitting repository reads this shape (a fleet's
 	// collector, another team's tool); it is copied byte-for-byte, and changing it later is
@@ -112,7 +116,7 @@ var scarMarkers = []string{"Symptom", "Root cause", "Fix"}
 //
 // A `_`-prefixed name is a corpus document, not a recipe: one TEACHES the shape, the other
 // is appended to every export. Neither instantiates the genre, so both are held to the banner
-// alone — demanding the eleven sections of the spec would be the gate testing its own habit.
+// alone — demanding the recipe's twelve body sections of the spec would be the gate testing its own habit.
 func Lint(name string, src []byte, products []string, extra ...func(name string, src []byte) []Finding) []Finding {
 	var out []Finding
 	fail := func(line int, format string, a ...any) {
@@ -179,6 +183,17 @@ func Lint(name string, src []byte, products []string, extra ...func(name string,
 				strings.TrimPrefix(want, "## "), strings.TrimPrefix(prev, "## "))
 		}
 		prev, prevAt = want, at
+	}
+
+	// The summary is the reader's orientation before the argument, not another label in the
+	// table of contents. Presence alone would let `## Summary\n\nTODO` satisfy the new shape
+	// while giving the most-read section no payload, so require enough visible text to carry a
+	// short narrative. HTML coach comments do not count: the scaffold may explain the section,
+	// but only what the exported reader sees earns the floor.
+	summary := strings.Join(SectionBody(lines, "## Summary"), "\n")
+	summary = reHTMLComment.ReplaceAllString(summary, "")
+	if n := len([]rune(strings.TrimSpace(summary))); n < summaryMinRunes {
+		fail(0, "Summary is %d character(s); write a 2–4 sentence orientation of at least %d characters — a label or TODO is not a narrative", n, summaryMinRunes)
 	}
 
 	// Every build step carries its acceptance. Counted, not assumed: "each step says how you
