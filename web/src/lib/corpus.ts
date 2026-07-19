@@ -97,19 +97,28 @@ export function formatDate(iso: string | undefined): string {
   return m ? `${m[3]}.${m[2]}.${m[1]}` : '';
 }
 
-// adoptionSections renders the adoption protocol EXACTLY as `sporo export` appends it: the two
-// reader-facing sections of `_adoption.md` (Adopt it here, Report back), sliced from the first
-// `## ` heading so the note to the corpus's own authors above it — house business the reader is
-// not in — is dropped, matching export's `adoption()` step rather than a raw file dump.
-export function adoptionSections(): RecipeSection[] {
+// adoptionProtocol returns the adoption protocol as raw markdown, EXACTLY as `sporo export`
+// appends it: `_adoption.md` sliced from its first `## ` heading, so the note to the corpus's own
+// authors above it — house business the reader is not in — is dropped. This is the one place the
+// slice rule lives; both the rendered sections (adoptionSections) and the downloadable export form
+// (exportedRecipe) derive from it, so they cannot disagree with each other or with the Go
+// `adoption()` step they mirror.
+export function adoptionProtocol(): string {
   const raw = adoptionSpec();
   const start = raw.search(/^## /m);
-  const body = start >= 0 ? raw.slice(start) : raw;
-  return body.split(/\n(?=## )/).map((p) => {
-    const title = (p.match(/^## (.+)/)?.[1] ?? '').trim();
-    const md = p.replace(/^## .+\n/, '');
-    return { title, html: marked.parse(md) as string, open: false };
-  });
+  return start >= 0 ? raw.slice(start) : raw;
+}
+
+// adoptionSections renders the adoption protocol (Adopt it here, Report back) as HTML for the
+// detail page — the same two sections the export form appends, split per `## ` heading.
+export function adoptionSections(): RecipeSection[] {
+  return adoptionProtocol()
+    .split(/\n(?=## )/)
+    .map((p) => {
+      const title = (p.match(/^## (.+)/)?.[1] ?? '').trim();
+      const md = p.replace(/^## .+\n/, '');
+      return { title, html: marked.parse(md) as string, open: false };
+    });
 }
 
 export interface RecipeSection {
@@ -184,6 +193,19 @@ export function adoptionSpec(): string {
 // The raw markdown of one recipe, banner stripped — for the llms-full.txt corpus dump.
 export function rawRecipe(slug: string): string {
   return stripBanner(fs.readFileSync(path.join(recipesDir, `${slug}.md`), 'utf-8'));
+}
+
+// exportedRecipe composes the SAME file `sporo export <slug>` prints: the banner-stripped recipe,
+// then a `---` break, then the adoption protocol. This is the artifact the detail page's copy and
+// download actions hand over — a recipe without the protocol has no consumption path, which is the
+// bug this repairs (the download used to stop at the recipe's last section). Verified byte-for-byte
+// against the Go Export() output for the whole corpus; the drift gate keeps it that way.
+//
+// Note: this form intentionally does NOT re-hash to the seal. The seal covers the RAW source bytes
+// (banner included); the trust panel re-verifies against GitHub raw source, never this artifact —
+// so a shasum of a downloaded export not matching the seal is expected, not a tamper signal.
+export function exportedRecipe(slug: string): string {
+  return rawRecipe(slug) + '\n---\n\n' + adoptionProtocol();
 }
 
 export interface CorpusEntry {
