@@ -82,10 +82,15 @@ Body under alpha.
 }
 
 func TestShapeForRoundTrip(t *testing.T) {
-	RegisterShape(Shape{Kind: KindSeed, Sections: []string{"## X"}, Keys: []string{"h"}})
+	// Both real shapes now register through their package-var initializers (RecipeShape,
+	// SeedShape), so the vocabulary is closed and re-registering KindSeed here would
+	// duplicate-panic. Assert the real registered shapes round-trip instead of a throwaway.
 	got, ok := ShapeFor(KindSeed)
 	if !ok || got.Kind != KindSeed {
-		t.Fatalf("a registered shape must round-trip through ShapeFor; got %+v ok=%v", got, ok)
+		t.Fatalf("the seed shape must round-trip through ShapeFor; got %+v ok=%v", got, ok)
+	}
+	if len(got.Sections) == 0 || got.Sections[0] != "## Summary" {
+		t.Fatalf("the registered seed shape must carry its sections; got %v", got.Sections)
 	}
 	if _, ok := ShapeFor(KindRecipe); !ok {
 		t.Fatal("the recipe shape must be registered by its initializer")

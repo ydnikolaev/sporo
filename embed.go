@@ -17,3 +17,11 @@ import "embed"
 //
 //go:embed all:recipes
 var Recipes embed.FS
+
+// Seeds is the seed corpus, compiled into the binary alongside Recipes: the seed genre's shape
+// spec (`_authoring.md`) and every seed shipped with the tool. `all:` is load-bearing here for
+// the same reason it is above — a bare `//go:embed seeds` would silently skip the `_`-prefixed
+// genre spec the whole shape rests on.
+//
+//go:embed all:seeds
+var Seeds embed.FS

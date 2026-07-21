@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"sporo.dev/sporo/pkg/recipekit"
 )
 
 // The defect this file exists for, and how it hid.
@@ -110,5 +112,102 @@ func TestADeclaredSourceBeatsTheProbe(t *testing.T) {
 	}
 	if len(c.Products) != 2 {
 		t.Fatalf("a project with siblings declares them all; got %v", c.Products)
+	}
+}
+
+// The per-kind home seam, as a truth table. The recipe home is the flat `home:` (back-compat, so
+// every existing caller keeps reading Home); every other kind reads its `homes:` entry; a kind
+// with no declared home is an ABSENCE, not an error — the difference between "this project has no
+// seed corpus" and a crash. This repo's own config declares `home: recipes/` and `homes: {seed:
+// seeds/}`, so it exercises the two declared rows against real values.
+func TestHomeForResolvesEachKind(t *testing.T) {
+	cfg, err := LoadConfig("../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if home, ok := cfg.HomeFor(recipekit.KindRecipe); !ok || home != "recipes/" {
+		t.Fatalf("recipe home is the flat `home:` key; got (%q, %v)", home, ok)
+	}
+	if home, ok := cfg.HomeFor(recipekit.KindSeed); !ok || home != "seeds/" {
+		t.Fatalf("seed home is its `homes:` entry; got (%q, %v)", home, ok)
+	}
+
+	// A project that declares no `homes:` at all: the recipe home still resolves (it is the flat
+	// key), and the seed home is a stated absence — ("", false), never a crash.
+	bare, err := LoadConfig(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if home, ok := bare.HomeFor(recipekit.KindRecipe); !ok || home != DefaultHome {
+		t.Fatalf("a config-less project still answers HomeFor(recipe) with the default; got (%q, %v)", home, ok)
+	}
+	if home, ok := bare.HomeFor(recipekit.KindSeed); ok || home != "" {
+		t.Fatalf("an undeclared kind is absent, not an error; got (%q, %v)", home, ok)
+	}
+}
+
+// A `homes:` key outside the closed kind vocabulary is a HARD error, not a silently-unreachable
+// home. A typo'd kind means a fixable config, never a corpus the walk never reaches — the same
+// default-then-validate discipline LoadRegistry applies to a sealed entry's kind.
+func TestLoadConfigRejectsUnknownHomeKind(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, ".sporo"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cfg := "project: svc\nhomes:\n  bogus: heaps/\n"
+	if err := os.WriteFile(filepath.Join(dir, ".sporo", "config.yaml"), []byte(cfg), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err := LoadConfig(dir)
+	if err == nil {
+		t.Fatal("an unknown home kind must hard-error, not store a home nothing walks")
+	}
+	if !strings.Contains(err.Error(), "bogus") {
+		t.Fatalf("the error must name the offending kind; got %v", err)
+	}
+}
+
+// The corpus-walk seam: resolve the seed home through HomeFor, walk it, and lint every instance
+// against SeedShape. This proves the home is reachable and the genre engine runs over it — the
+// mechanism S2 delivers in place of a `sporo lint` CLI verb (deferred to S3). Today the corpus
+// holds only the `_`-prefixed genre spec, so the instance loop is empty and MUST NOT fail on that:
+// the walk proves the seam, not a populated corpus. The banner-only `_authoring.md` is asserted
+// present (the walk reached the home) and is exempt from the instance shape by its `_` prefix.
+func TestSeedCorpusWalksAndLintsGreen(t *testing.T) {
+	const root = "../.."
+	cfg, err := LoadConfig(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	home, ok := cfg.HomeFor(recipekit.KindSeed)
+	if !ok {
+		t.Fatal("this repo declares a seed home; HomeFor(seed) must resolve it")
+	}
+	entries, err := os.ReadDir(filepath.Join(root, home))
+	if err != nil {
+		t.Fatalf("seed home %q must be walkable: %v", home, err)
+	}
+	foundGenreSpec := false
+	for _, e := range entries {
+		name := e.Name()
+		if e.IsDir() || !strings.HasSuffix(name, ".md") {
+			continue
+		}
+		if name == "_authoring.md" {
+			foundGenreSpec = true
+		}
+		if strings.HasPrefix(name, "_") {
+			continue // a corpus document teaches the genre; it is not an instance of it
+		}
+		src, err := os.ReadFile(filepath.Join(root, home, name))
+		if err != nil {
+			t.Fatalf("read %q: %v", name, err)
+		}
+		if f := recipekit.LintShape(recipekit.SeedShape, name, src, cfg.Products); len(f) != 0 {
+			t.Fatalf("seed %q must lint green against SeedShape: %v", name, f)
+		}
+	}
+	if !foundGenreSpec {
+		t.Fatal("the walk must reach the seed home's genre spec (_authoring.md) — the seam is unproven otherwise")
 	}
 }

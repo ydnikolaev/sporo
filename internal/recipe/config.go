@@ -23,12 +23,21 @@ import (
 	"unicode"
 
 	"gopkg.in/yaml.v3"
+
+	"sporo.dev/sporo/pkg/recipekit"
 )
 
 // Config is the recipe module's view of a project.
 type Config struct {
 	// Home is where this project's OWN recipes are authored (`<home:recipes>`).
 	Home string
+	// Homes maps each entity KIND to the corpus home this project authors that kind's instances in.
+	// It is the per-kind generalization of Home: the flat `home:` key IS the recipe home (kept so
+	// every existing caller is unchanged), and every other kind (seed, …) declares its own home
+	// under `homes:`. Read it through HomeFor, never directly — HomeFor owns the recipe-always-Home
+	// and absent-is-not-an-error contracts. This is the seam S3 (the seed CLI) and S4 (web) resolve
+	// each kind's corpus through, which is why it is designed for N kinds from day one.
+	Homes map[string]string
 	// Products is the forbidden vocabulary of the neutrality scan: names that mean
 	// something only inside one repository. It defaults to the project's own name —
 	// the one name most likely to leak into a document written by someone standing in
@@ -81,10 +90,24 @@ const DefaultHome = ".sporo/recipes/"
 // projectConfig is `.sporo/config.yaml`. sporo IS the recipe tool, so there is no `recipe:`
 // wrapper: the block is flat.
 type projectConfig struct {
-	Project  string   `yaml:"project"`
-	Home     string   `yaml:"home"`
-	Products []string `yaml:"products"`
-	Sources  Sources  `yaml:"sources"`
+	Project  string            `yaml:"project"`
+	Home     string            `yaml:"home"`
+	Homes    map[string]string `yaml:"homes"`
+	Products []string          `yaml:"products"`
+	Sources  Sources           `yaml:"sources"`
+}
+
+// HomeFor returns the corpus home this project authors the given kind's instances in, and whether
+// one is declared. The recipe kind always resolves to Home — the flat `home:` key IS the recipe
+// home, and no `homes:` entry can override it (back-compat; every existing caller reads Home). Any
+// other declared kind resolves to its `homes:` entry; a kind with NO declared home returns
+// ("", false) — an absence the caller reports, never a crash (REQ-5): a project that authors
+// recipes but not seeds is a stated "no seed corpus". An unknown kind can only enter through
+// `.sporo/config.yaml`, and LoadConfig rejects it there (mirroring LoadRegistry), so a well-formed
+// Config holds only valid kinds and this stays a total two-outcome lookup.
+func (c Config) HomeFor(kind string) (string, bool) {
+	home, ok := c.Homes[kind]
+	return home, ok
 }
 
 // LoadConfig folds a project's `.sporo/config.yaml` over the defaults. A MISSING config is
@@ -93,6 +116,9 @@ type projectConfig struct {
 // the project's own product vocabulary and run a neutrality scan that bans nothing.
 func LoadConfig(root string) (Config, error) {
 	c := Config{Home: DefaultHome, Products: defaultProducts(root)}
+	// Seed the recipe home now so even a config-less project (the early return below) answers
+	// HomeFor(recipe). The config-present path re-asserts it after resolving `home:`.
+	c.Homes = map[string]string{recipekit.KindRecipe: c.Home}
 
 	data, err := os.ReadFile(filepath.Join(root, ".sporo", "config.yaml"))
 	if err != nil {
@@ -106,6 +132,18 @@ func LoadConfig(root string) (Config, error) {
 	if strings.TrimSpace(cfg.Home) != "" {
 		c.Home = cfg.Home
 	}
+	// Per-kind homes fold over the recipe home. Each declared key is validated against the closed
+	// kind vocabulary and an unknown one is a HARD error, not a silently-unreachable home — a typo'd
+	// `homes:` key means a fixable config, never a corpus the walk never reaches (mirrors
+	// LoadRegistry's default-then-validate on RegistryEntry.Kind). The recipe home is re-asserted
+	// LAST so the flat `home:` owns it: a `homes: {recipe: …}` cannot override the back-compat key.
+	for kind, home := range cfg.Homes {
+		if !recipekit.ValidKind(kind) {
+			return c, fmt.Errorf(".sporo/config.yaml declares a home for unknown kind %q — the kind is a member of a closed vocabulary this binary knows; a newer kind means a newer binary (or a typo'd `homes:` key), not a home the walk silently never reaches", kind)
+		}
+		c.Homes[kind] = home
+	}
+	c.Homes[recipekit.KindRecipe] = c.Home
 	if cfg.Project != "" {
 		c.Products = []string{cfg.Project}
 	}

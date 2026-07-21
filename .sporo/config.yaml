@@ -6,3 +6,8 @@ home: recipes/
 # The neutrality vocabulary — this project's own name, the word most likely to leak into a
 # recipe written by someone standing in this repo.
 project: sporo
+# Per-kind corpus homes. `home:` above is the recipe home; every other kind declares its own here.
+# Seeds live at seeds/ (a sibling of recipes/, not nested) so the seed corpus versions and walks
+# on its own, and the classify guard files it public in the same breath.
+homes:
+  seed: seeds/
