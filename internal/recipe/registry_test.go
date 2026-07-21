@@ -582,6 +582,27 @@ func TestVerifyRegistryIgnoresASealedSeed(t *testing.T) {
 	}
 }
 
+func TestVerifyRegistryStillFlagsAnUnsealedRecipeSharingASeedSlug(t *testing.T) {
+	// The fifth read (AUD-S3-01): the finished-but-unsealed disk sweep is kind-guarded too. A
+	// finished recipe-home file and a sealed SEED share a slug but live in different homes; the
+	// seed's seal must NOT suppress the recipe's "finished but not sealed" finding, or `sporo lint`
+	// output moves when a seed is sealed (INV-1). Unlike TestVerifyRegistryIgnoresASealedSeed, this
+	// fixture writes the recipe-home file so the disk sweep actually reaches it.
+	root, cfg := seedSealFixture(t)
+	recipeHome := filepath.Join(root, cfg.Home)
+	if err := os.MkdirAll(recipeHome, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(recipeHome, "widget.md"), []byte(conformant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Seal `widget` as a SEED (from the seed home); the recipe-home `widget.md` stays unsealed.
+	if _, err := SealKind(root, cfg, recipekit.KindSeed, "widget"); err != nil {
+		t.Fatal(err)
+	}
+	assertFinding(t, root, cfg, "finished but not sealed")
+}
+
 func assertFinding(t *testing.T, root string, cfg Config, want string) {
 	t.Helper()
 	f, err := VerifyRegistry(root, cfg)

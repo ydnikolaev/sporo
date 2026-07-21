@@ -339,7 +339,11 @@ func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
 			continue
 		}
 		slug := strings.TrimSuffix(e.Name(), ".md")
-		if _, sealed := reg.Recipes[slug]; sealed {
+		// Kind-guarded, like the coherence sweep above: only a RECIPE seal witnesses this recipe-home
+		// file. A seed sealed under the same slug (a different home entirely) must not suppress the
+		// recipe's "finished but not sealed" finding — else `sporo lint` output would move when a seed
+		// is sealed, which INV-1 forbids.
+		if entry, sealed := reg.Recipes[slug]; sealed && entry.Kind == recipekit.KindRecipe {
 			continue
 		}
 		src, err := os.ReadFile(filepath.Join(root, cfg.Home, e.Name()))
