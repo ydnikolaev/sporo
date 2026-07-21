@@ -36,8 +36,10 @@ import (
 var sealNow = func() string { return time.Now().UTC().Format(time.RFC3339) }
 
 // RegistrySchema names the current on-disk shape, so a future binary can migrate an old
-// registry instead of misreading it.
-const RegistrySchema = 1
+// registry instead of misreading it. Schema 2 adds `kind` to each entry; it is
+// read-compatible with schema 1 — a schema-1 ledger (no kind fields) loads unchanged,
+// every entry defaulting to `recipe` (see LoadRegistry).
+const RegistrySchema = 2
 
 // RegistryEntry is one sealed recipe: its permanent identity, the version the author
 // declared, the content that version names, and whose build it is.
@@ -49,6 +51,11 @@ type RegistryEntry struct {
 	// file — witnesses the identity. `omitempty` keeps registries sealed before ids existed
 	// loadable; the next seal backfills them.
 	ID string `yaml:"id,omitempty"`
+	// Kind names the entity genre this seal is — a member of recipekit's closed vocabulary
+	// (`recipe`, `seed`). `omitempty` keeps a schema-1 ledger (sealed before kinds existed)
+	// loadable: a missing kind reads as `recipe` in LoadRegistry, so no re-seal or migration
+	// step is forced. It is registry metadata, never part of the content hash.
+	Kind string `yaml:"kind,omitempty"`
 	// Version mirrors the recipe's own frontmatter at seal time. The two diverging is a
 	// finding, not a preference — each is the other's witness.
 	Version string `yaml:"version"`
@@ -124,6 +131,20 @@ func LoadRegistry(root string) (Registry, error) {
 	if r.Recipes == nil {
 		r.Recipes = map[string]RegistryEntry{}
 	}
+	// Default THEN validate: an absent kind (a schema-1 entry, or one written before the field
+	// existed) reads as `recipe` — the read-compatibility that keeps an old ledger loadable
+	// without a re-seal. Only after defaulting is the kind checked against the closed vocabulary,
+	// so a genuinely unknown kind is a hard error (a foreign genre this binary cannot honour is
+	// the same danger as a malformed registry — better refused than silently mis-sealed).
+	for slug, entry := range r.Recipes {
+		if entry.Kind == "" {
+			entry.Kind = recipekit.KindRecipe
+			r.Recipes[slug] = entry
+		}
+		if !recipekit.ValidKind(entry.Kind) {
+			return r, fmt.Errorf(".sporo/registry.yaml records recipe %q with unknown kind %q — the kind is a member of a closed vocabulary this binary knows; a newer kind means a newer binary (or a corrupt ledger), not a degrade to empty", slug, entry.Kind)
+		}
+	}
 	return r, nil
 }
 
@@ -183,7 +204,10 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	now := sealNow()
 	switch {
 	case !sealed:
-		entry = RegistryEntry{ID: id, Version: version, Hash: hash, Provenance: "local", SealedAt: now, ExactContracts: digest}
+		// A flat `seal` records a recipe; stamping that value is not a branch on kind. The re-seal
+		// and backfill branches below mutate the loaded entry, which already carries a defaulted
+		// kind, so kind is preserved there the same way provenance is.
+		entry = RegistryEntry{ID: id, Kind: recipekit.KindRecipe, Version: version, Hash: hash, Provenance: "local", SealedAt: now, ExactContracts: digest}
 	case entry.Hash == hash && entry.Version == version && entry.ID == id:
 		// Already sealed exactly so — idempotent by design. Backfill only a MISSING sealed_at (a
 		// seal made before the field existed): recording when is the ledger catching up, not a

@@ -103,88 +103,38 @@ var (
 // of regret that an agent cannot lift out whole.
 var scarMarkers = []string{"Symptom", "Root cause", "Fix"}
 
-// Lint checks one recipe against the genre. `products` is the forbidden product vocabulary —
-// the names that mean something only inside one repository (the project's own name, and any
-// sibling it can see). Findings are returned, never printed: the caller owns the output, and
-// the tests own the assertions.
-//
-// `extra` is the injection seam for the conform layer's lint half (fixtureFindings), which
-// lives in internal/recipe because it parses JSON/YAML — machinery this pure package does not
-// import. It runs at the ORIGINAL call site (after the contract checks, before neutrality, and
-// after the `_`-prefix early return below), so finding order and the meta-document exemption
-// are preserved exactly. Do not "simplify" this into an append after Lint returns.
-//
-// A `_`-prefixed name is a corpus document, not a recipe: one TEACHES the shape, the other
-// is appended to every export. Neither instantiates the genre, so both are held to the banner
-// alone — demanding the recipe's twelve body sections of the spec would be the gate testing its own habit.
-func Lint(name string, src []byte, products []string, extra ...func(name string, src []byte) []Finding) []Finding {
-	var out []Finding
-	fail := func(line int, format string, a ...any) {
-		out = append(out, Finding{File: name, Line: line, Msg: fmt.Sprintf(format, a...)})
-	}
-	lines := strings.Split(string(src), "\n")
+// RecipeShape is the recipe genre as data — the same sections, keys, and extra checks the
+// engine ran inline before the shape seam existed. It registers in its own initializer so
+// `internal/recipe` and the CLI reach it through ShapeFor without importing the vars.
+var RecipeShape = RegisterShape(Shape{
+	Kind:              KindRecipe,
+	Sections:          requiredSections,
+	Keys:              requiredKeys,
+	FrontmatterChecks: recipeFrontmatterChecks,
+	BodyChecks:        recipeBodyChecks,
+})
 
-	if len(lines) == 0 || !strings.Contains(lines[0], "<!-- SSOT SOURCE") {
-		fail(1, "missing provenance banner on line 1 (`<!-- SSOT SOURCE… -->`) — the marker `recipe export` strips on the way out")
+// recipeFrontmatterChecks is the recipe genre's format layer over the required keys: id is a
+// ULID, version a semver triple, verified and stack the honesty stamps. Each fires only when
+// the key is present — a missing key is the required-key scan's finding, not this one's.
+func recipeFrontmatterChecks(fm []string, fail FailFunc) {
+	if v := KeyLine(fm, "id"); v != "" && !reULID.MatchString(v) {
+		fail(0, "`id:` must be a ULID (26 Crockford-base32 chars) — it is the recipe's permanent identity, minted by `sporo new`, never typed or edited; a hand-written id is how two recipes end up claiming the same permalink")
 	}
-	if strings.HasPrefix(name, "_") {
-		return out
+	if v := KeyLine(fm, "version"); v != "" && !reSemver.MatchString(v) {
+		fail(0, "`version:` must be a semver triple (MAJOR.MINOR.PATCH) — the report-back channel binds to it, and a version that cannot be ordered cannot say which text superseded which")
 	}
+	if v := KeyLine(fm, "verified"); v != "" && !strings.Contains(v, "project") {
+		fail(0, "`verified:` must name the build that proves this recipe (project, release, date) — a recipe written from an intention teaches untested guesses as if they were earned")
+	}
+	if v := KeyLine(fm, "stack"); v != "" && !strings.Contains(v, "language") {
+		fail(0, "`stack:` must name what the build actually ran on (language, runtime, why) — the reader cannot weigh the recommendation without it")
+	}
+}
 
-	// Frontmatter. Line 1 is the banner, so the fences are the first two `---` after it.
-	fmStart, fmEnd := -1, -1
-	for i := 1; i < len(lines); i++ {
-		if strings.TrimSpace(lines[i]) == "---" {
-			if fmStart < 0 {
-				fmStart = i
-			} else {
-				fmEnd = i
-				break
-			}
-		}
-	}
-	if fmStart < 0 || fmEnd < 0 {
-		fail(0, "missing frontmatter (--- … ---) with %s", strings.Join(requiredKeys, "/"))
-	} else {
-		fm := lines[fmStart+1 : fmEnd]
-		for _, key := range requiredKeys {
-			if !hasKey(fm, key) {
-				fail(0, "frontmatter is missing `%s:`", key)
-			}
-		}
-		if v := KeyLine(fm, "id"); v != "" && !reULID.MatchString(v) {
-			fail(0, "`id:` must be a ULID (26 Crockford-base32 chars) — it is the recipe's permanent identity, minted by `sporo new`, never typed or edited; a hand-written id is how two recipes end up claiming the same permalink")
-		}
-		if v := KeyLine(fm, "version"); v != "" && !reSemver.MatchString(v) {
-			fail(0, "`version:` must be a semver triple (MAJOR.MINOR.PATCH) — the report-back channel binds to it, and a version that cannot be ordered cannot say which text superseded which")
-		}
-		if v := KeyLine(fm, "verified"); v != "" && !strings.Contains(v, "project") {
-			fail(0, "`verified:` must name the build that proves this recipe (project, release, date) — a recipe written from an intention teaches untested guesses as if they were earned")
-		}
-		if v := KeyLine(fm, "stack"); v != "" && !strings.Contains(v, "language") {
-			fail(0, "`stack:` must name what the build actually ran on (language, runtime, why) — the reader cannot weigh the recommendation without it")
-		}
-	}
-
-	// The shape — present AND in order. Order is checked, not merely claimed: the sequence is
-	// the argument (why you need it → what it rests on → how to build it → what it cost), and
-	// a recipe that opens with its build steps has quietly become a checklist. Checking only
-	// presence would let the document say anything in any order while the gate reported the
-	// genre as enforced.
-	prev, prevAt := "", -1
-	for _, want := range requiredSections {
-		at := sectionAt(lines, want)
-		if at < 0 {
-			fail(0, "missing section: %s", strings.TrimPrefix(want, "## "))
-			continue
-		}
-		if prevAt >= 0 && at < prevAt {
-			fail(at+1, "section out of order: %q must come after %q — the sequence IS the argument",
-				strings.TrimPrefix(want, "## "), strings.TrimPrefix(prev, "## "))
-		}
-		prev, prevAt = want, at
-	}
-
+// recipeBodyChecks is the recipe genre's body layer: the summary floor, the build-sequence
+// acceptance count, the contracts fence + binding, and the scars markers — in that order.
+func recipeBodyChecks(name string, lines []string, fail FailFunc) {
 	// The summary is the reader's orientation before the argument, not another label in the
 	// table of contents. Presence alone would let `## Summary\n\nTODO` satisfy the new shape
 	// while giving the most-read section no payload, so require enough visible text to carry a
@@ -272,16 +222,19 @@ func Lint(name string, src []byte, products []string, extra ...func(name string,
 			fail(0, "%d scar(s) but %d `**%s:**` marker(s) — a scar missing that half teaches nothing", scars, n, marker)
 		}
 	}
+}
 
-	// The conform layer's lint half — injected via `extra`, at this exact position (see the
-	// doc comment above). It fires ONLY on recipes that declared an exact contract (ADR-005):
-	// the shape must parse, valid fixtures must conform, invalid fixtures must not.
-	for _, ex := range extra {
-		out = append(out, ex(name, src)...)
-	}
-
-	out = append(out, neutrality(name, lines, fmEnd, products)...)
-	return out
+// Lint checks one recipe against the genre. `products` is the forbidden product vocabulary —
+// the names that mean something only inside one repository (the project's own name, and any
+// sibling it can see). Findings are returned, never printed: the caller owns the output, and
+// the tests own the assertions. It is the recipe-shaped entry into the generic LintShape
+// engine, kept so `internal/recipe` and `cmd/sporo` need no change.
+//
+// `extra` is the injection seam for the conform layer's lint half (fixtureFindings), which
+// lives in internal/recipe because it parses JSON/YAML — machinery this pure package does not
+// import.
+func Lint(name string, src []byte, products []string, extra ...func(name string, src []byte) []Finding) []Finding {
+	return LintShape(RecipeShape, name, src, products, extra...)
 }
 
 // neutrality is the constraint the genre exists for. The ban is on COORDINATES — a path, a

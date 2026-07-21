@@ -365,6 +365,110 @@ func TestAMalformedRegistryIsAHardError(t *testing.T) {
 	}
 }
 
+// The kind seam. A seal ledger is now kind-aware, but schema 2 is READ-COMPATIBLE with
+// schema 1: an old ledger with no kind fields loads unchanged, every entry defaulting to
+// `recipe` — no re-seal, no migration step. The default happens BEFORE the closed-vocabulary
+// check, so an absent kind is never mistaken for an unknown one.
+
+func writeLedger(t *testing.T, root, ledger string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Join(root, ".sporo"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".sporo", "registry.yaml"), []byte(ledger), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSchema1LedgerLoadsWithEveryEntryAsRecipe(t *testing.T) {
+	root := t.TempDir()
+	// A ledger sealed before kinds existed: `schema: 1`, no `kind:` anywhere. It must load, and
+	// every entry must read `recipe` — the read-compatibility that keeps an old repo working.
+	writeLedger(t, root, `schema: 1
+recipes:
+  alpha:
+    version: 1.0.0
+    hash: sha256:aaa
+    provenance: local
+  beta:
+    version: 2.1.0
+    hash: sha256:bbb
+    provenance: community
+`)
+	reg, err := LoadRegistry(root)
+	if err != nil {
+		t.Fatalf("a schema-1 ledger must load, not error: %v", err)
+	}
+	for slug, e := range reg.Recipes {
+		if e.Kind != "recipe" {
+			t.Fatalf("a schema-1 entry must default to kind recipe; %q got %q", slug, e.Kind)
+		}
+	}
+}
+
+func TestSealWritesSchema2AndRecipeKind(t *testing.T) {
+	root, cfg := sealFixture(t)
+	if _, err := Seal(root, cfg, "baseline"); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(root, ".sporo", "registry.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	on := string(data)
+	if !strings.Contains(on, "schema: 2") {
+		t.Fatalf("a seal must stamp the current schema (2) on disk; got:\n%s", on)
+	}
+	if !strings.Contains(on, "kind: recipe") {
+		t.Fatalf("a sealed entry must carry `kind: recipe` on disk; got:\n%s", on)
+	}
+}
+
+func TestAnAbsentKindDefaultsAmongEntriesThatCarryIt(t *testing.T) {
+	root := t.TempDir()
+	// A mixed ledger: the first entry carries an explicit kind, the mid-file one omits it. Only
+	// the absent one is defaulted; an explicit kind is preserved, never overwritten to `recipe`.
+	writeLedger(t, root, `schema: 2
+recipes:
+  alpha:
+    kind: seed
+    version: 1.0.0
+    hash: sha256:aaa
+    provenance: local
+  beta:
+    version: 2.0.0
+    hash: sha256:bbb
+    provenance: local
+`)
+	reg, err := LoadRegistry(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reg.Recipes["alpha"].Kind != "seed" {
+		t.Fatalf("an explicit kind must be preserved, not overwritten; got %q", reg.Recipes["alpha"].Kind)
+	}
+	if reg.Recipes["beta"].Kind != "recipe" {
+		t.Fatalf("an absent mid-ledger kind must default to recipe; got %q", reg.Recipes["beta"].Kind)
+	}
+}
+
+func TestAnUnknownKindIsAHardError(t *testing.T) {
+	root := t.TempDir()
+	// A kind outside the closed vocabulary is a hard error naming the kind — a foreign genre this
+	// binary cannot honour is the same danger as a malformed ledger, better refused than mis-read.
+	writeLedger(t, root, `schema: 2
+recipes:
+  alpha:
+    kind: weird
+    version: 1.0.0
+    hash: sha256:aaa
+    provenance: local
+`)
+	if _, err := LoadRegistry(root); err == nil || !strings.Contains(err.Error(), "weird") {
+		t.Fatalf("an unknown kind must be a hard error mentioning the kind; got: %v", err)
+	}
+}
+
 func assertFinding(t *testing.T, root string, cfg Config, want string) {
 	t.Helper()
 	f, err := VerifyRegistry(root, cfg)
