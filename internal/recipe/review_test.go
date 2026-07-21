@@ -177,6 +177,19 @@ func TestEveryMalformationIsRefusedByName(t *testing.T) {
 	}
 }
 
+func TestReviewVerifyRefusesASeedSlug(t *testing.T) {
+	// `review verify` is the RECIPE review path. A slug sealed as a seed lives in the same
+	// slug-keyed registry, so the lookup must be kind-guarded — a seed is refused pointing at its
+	// own tooling, never verified as a recipe (INV-1 read-side, the last of the four guards).
+	root, cfg, _ := reviewFixture(t)
+	seedRegistry(t, root, map[string]RegistryEntry{
+		"myseed": {Kind: "seed", Version: "1.0.0", Provenance: "local"},
+	})
+	if _, _, err := VerifyVerdicts(root, cfg, "myseed", nil); err == nil || !strings.Contains(err.Error(), "seed") {
+		t.Fatalf("review verify must refuse a seed slug, pointing at the seed tooling; got: %v", err)
+	}
+}
+
 func TestFindingsBlockTheTallyFromTheRegistry(t *testing.T) {
 	root, cfg, _ := reviewFixture(t)
 	if _, err := Seal(root, cfg, "baseline"); err != nil {

@@ -135,12 +135,18 @@ func seedBodyChecks(name string, lines []string, fail FailFunc) {
 }
 
 // seedReportCheck holds `## Report` to exactly the five fixed rows, in order (authoring §4): a
-// missing row, an extra row, and a reorder each red distinctly, because a report that drifts from
-// the five is one the human can no longer read at a glance.
+// wrong data-row count, a missing row, an extra row, and a reorder each red distinctly, because a
+// report that drifts from the five is one the human can no longer read at a glance. The
+// cardinality assert is the AUD-001 ride: the set-based missing/unexpected loops both pass a
+// duplicated known label, and the reorder check is skipped on a length mismatch, so a Report that
+// repeats or pads a known row would otherwise slip through — the count guard is what catches it.
 func seedReportCheck(report []string, fail FailFunc) {
 	got := reportLabels(report)
 	want := seedReportRows
 
+	if len(got) != len(want) {
+		fail(0, "`## Report` has %d data row(s), not the %d fixed rows — a duplicated or padded row breaks the five-row shape the human reads the same way every time", len(got), len(want))
+	}
 	for _, w := range want {
 		if !contains(got, w) {
 			fail(0, "`## Report` is missing the %q row — the human's audit is a fixed five-row table, and an omission breaks the shape they read the same way every time", w)

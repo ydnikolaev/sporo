@@ -14,7 +14,14 @@
 // refreshes the committed forms, and `make check` reds if the mirror drifts from a fresh run — so
 // the downloaded file can never diverge from what `sporo export` produces.
 //
+// The third directive is the seed twin of the second: it commits each seed's export form to
+// web/src/data/seeds/<slug>.md, the byte-for-byte `sporo seed export` handover. It writes nothing
+// today — the embedded seed corpus is underscore-only until a seed is sealed — and because git
+// stores no empty directory, web/src/data/seeds stays ABSENT (not empty) until then; the drift
+// gate is trivially clean for it. When a seed lands, the same discipline holds it to the binary.
+//
 //go:generate go run ./cmd/sporo docs --out web/src/data/surface.json
 //go:generate go run ./cmd/sporo web-mirror --out web/src/data/exports
+//go:generate go run ./cmd/sporo seed-mirror --out web/src/data/seeds
 
 package sporo

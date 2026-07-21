@@ -162,28 +162,51 @@ func (r Registry) Save(root string) error {
 	return os.WriteFile(registryPath(root), b, 0o644)
 }
 
-// Seal records a recipe's (version, hash, provenance) in the registry. The rules are the
-// integrity story, so they are spelled out:
+// Seal records a recipe's (version, hash, provenance) in the registry — the flat recipe path,
+// unchanged. It is SealKind bound to the recipe kind, so every existing caller keeps its
+// signature and every rule SealKind spells out applies to a recipe exactly as before.
+func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
+	return SealKind(root, cfg, recipekit.KindRecipe, slug)
+}
+
+// SealKind records one entity's (version, hash, provenance, KIND) in the registry, resolving
+// the source home per kind. The rules are the integrity story, so they are spelled out:
 //
-//   - a recipe with no entry seals at whatever version its frontmatter declares;
+//   - an entity with no entry seals at whatever version its frontmatter declares;
 //   - unchanged content re-seals as a no-op (idempotent, so a script can call it);
 //   - CHANGED content under an UNCHANGED version is refused — that edit is exactly the
 //     silent mutation the registry exists to catch; bump `version:` first;
-//   - changed content under a new version seals the new pair.
+//   - changed content under a new version seals the new pair;
+//   - a slug already sealed under a DIFFERENT kind is refused (the ledger is slug-keyed, so
+//     one slug is one kind for its life — see the collision guard below).
 //
 // Provenance defaults to `local` for a new entry and is PRESERVED on a re-seal: sealing a
-// new version of a community recipe does not quietly claim it as yours.
-func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
-	src, err := os.ReadFile(filepath.Join(root, cfg.Home, slug+".md"))
+// new version of a community recipe does not quietly claim it as yours. Kind is stamped on the
+// first seal and preserved on every re-seal — the collision guard guarantees the loaded entry
+// already carries this kind, so the re-seal branches keep it the way they keep provenance.
+func SealKind(root string, cfg Config, kind, slug string) (RegistryEntry, error) {
+	home, ok := cfg.HomeFor(kind)
+	if !ok {
+		// HomeFor's recipe-always-Home contract holds even for a hand-built Config whose Homes map
+		// was never seeded (LoadConfig seeds it; a direct Config{Home:…} does not), so the flat
+		// recipe path resolves to cfg.Home byte-for-byte as before. Any OTHER kind with no declared
+		// home is a stated absence, never a crash (REQ-5): a project that authors recipes but not
+		// seeds has no seed corpus to seal from.
+		if kind != recipekit.KindRecipe {
+			return RegistryEntry{}, fmt.Errorf("this project declares no home for kind %q — it authors no %s corpus to seal from; declare `homes: {%s: …}` in .sporo/config.yaml first", kind, kind, kind)
+		}
+		home = cfg.Home
+	}
+	src, err := os.ReadFile(filepath.Join(root, home, slug+".md"))
 	if err != nil {
-		return RegistryEntry{}, fmt.Errorf("no recipe %q in this project's home (%s) — seal guards what exists: %w", slug, cfg.Home, err)
+		return RegistryEntry{}, fmt.Errorf("no %s %q in this project's home (%s) — seal guards what exists: %w", kind, slug, home, err)
 	}
 	if IsDraft(src) {
-		return RegistryEntry{}, fmt.Errorf("recipe %q is still a draft — a draft has no version to promise; finish it, remove `draft: true`, then seal", slug)
+		return RegistryEntry{}, fmt.Errorf("%s %q is still a draft — a draft has no version to promise; finish it, remove `draft: true`, then seal", kind, slug)
 	}
 	version := fmValue(src, "version")
 	if version == "" {
-		return RegistryEntry{}, fmt.Errorf("recipe %q has no `version:` in its frontmatter — the seal records a version the document itself declares, so declare one (and `sporo lint` requires it)", slug)
+		return RegistryEntry{}, fmt.Errorf("%s %q has no `version:` in its frontmatter — the seal records a version the document itself declares, so declare one (and `sporo lint` requires it)", kind, slug)
 	}
 	id := fmValue(src, "id")
 	hash := ContentHash(src)
@@ -194,20 +217,27 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	}
 	digest := exactContractsDigest(src)
 	entry, sealed := reg.Recipes[slug]
+	// The registry is ONE slug-keyed map across kinds, so a slug is one kind for the life of the
+	// ledger. Sealing it as a different kind would silently overwrite the other genre's entry, and
+	// the coherence sweep would then hunt it in the wrong home — refuse it, naming both kinds. This
+	// is the smaller, back-compatible choice over a schema-3 kind-qualified key.
+	if sealed && entry.Kind != kind {
+		return RegistryEntry{}, fmt.Errorf("%q is already sealed as a %s — refusing to seal it as a %s; a slug is one kind across the registry (it is slug-keyed), so give the %s a different slug", slug, entry.Kind, kind, kind)
+	}
 	// The id is a PERMANENT identity — it may be recorded and it may be backfilled onto an old
 	// seal that predates ids, but it may never CHANGE. A changed id is not a new version of the
-	// same recipe; it is a different recipe wearing this one's slug, and letting it re-seal in
-	// place would silently rewrite a marketplace permalink.
+	// same entity; it is a different one wearing this slug, and letting it re-seal in place would
+	// silently rewrite a marketplace permalink.
 	if sealed && entry.ID != "" && id != "" && id != entry.ID {
-		return RegistryEntry{}, fmt.Errorf("recipe %q was sealed with id %s but its frontmatter now says %s — the id is a permanent identity, minted once and never edited; restore it (a genuinely new recipe gets a new slug, not a rewritten id)", slug, entry.ID, id)
+		return RegistryEntry{}, fmt.Errorf("%s %q was sealed with id %s but its frontmatter now says %s — the id is a permanent identity, minted once and never edited; restore it (a genuinely new %s gets a new slug, not a rewritten id)", kind, slug, entry.ID, id, kind)
 	}
 	now := sealNow()
 	switch {
 	case !sealed:
-		// A flat `seal` records a recipe; stamping that value is not a branch on kind. The re-seal
-		// and backfill branches below mutate the loaded entry, which already carries a defaulted
-		// kind, so kind is preserved there the same way provenance is.
-		entry = RegistryEntry{ID: id, Kind: recipekit.KindRecipe, Version: version, Hash: hash, Provenance: "local", SealedAt: now, ExactContracts: digest}
+		// The first seal stamps the kind it was handed. The re-seal and backfill branches below
+		// mutate the loaded entry, which already carries this same kind (the collision guard above
+		// guarantees it), so kind is preserved there the way provenance is.
+		entry = RegistryEntry{ID: id, Kind: kind, Version: version, Hash: hash, Provenance: "local", SealedAt: now, ExactContracts: digest}
 	case entry.Hash == hash && entry.Version == version && entry.ID == id:
 		// Already sealed exactly so — idempotent by design. Backfill only a MISSING sealed_at (a
 		// seal made before the field existed): recording when is the ledger catching up, not a
@@ -219,19 +249,19 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	case entry.Hash == hash && entry.Version == version:
 		// Content and version match; only the id differs — an old seal being backfilled. Record
 		// it without demanding a version bump: adding the id to the registry is not a mutation
-		// of the recipe, it is the ledger catching up to a field the file already carries.
+		// of the entity, it is the ledger catching up to a field the file already carries.
 		entry.ID = id
 		if entry.SealedAt == "" {
 			entry.SealedAt = now
 		}
 	case entry.Version == version:
-		return RegistryEntry{}, fmt.Errorf("recipe %q changed since it was sealed at %s, but `version:` still says %s — a sealed recipe never silently mutates; bump the version, then seal", slug, entry.Version, version)
+		return RegistryEntry{}, fmt.Errorf("%s %q changed since it was sealed at %s, but `version:` still says %s — a sealed %s never silently mutates; bump the version, then seal", kind, slug, entry.Version, version, kind)
 	default:
 		// The fleet rule: an exact-bound contract is somebody else's parser. Changing one
 		// under anything less than a major bump ships a break wearing a compatible version
 		// number — the consumer upgrades "safely" and their feed dies.
 		if entry.ExactContracts != "" && digest != entry.ExactContracts && semverMajor(version) <= semverMajor(entry.Version) {
-			return RegistryEntry{}, fmt.Errorf("recipe %q changes an exact-bound contract — every consumer in the fleet parses that shape, so this is a MAJOR version (%s → at least %d.0.0), not %s", slug, entry.Version, semverMajor(entry.Version)+1, version)
+			return RegistryEntry{}, fmt.Errorf("%s %q changes an exact-bound contract — every consumer in the fleet parses that shape, so this is a MAJOR version (%s → at least %d.0.0), not %s", kind, slug, entry.Version, semverMajor(entry.Version)+1, version)
 		}
 		// A re-seal after a version bump is a new seal event — restamp when.
 		entry.ID, entry.Version, entry.Hash, entry.ExactContracts, entry.SealedAt = id, version, hash, digest, now
@@ -243,33 +273,57 @@ func Seal(root string, cfg Config, slug string) (RegistryEntry, error) {
 	return entry, nil
 }
 
-// VerifyRegistry is the coherence half of the gate: every sealed recipe's file must still
-// say what the seal says. It returns findings in lint's own currency so the two run as one
-// gate. An UNSEALED recipe is legal — a draft has no obligations yet — so absence from the
-// registry is never a finding.
-func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
-	reg, err := LoadRegistry(root)
-	if err != nil {
-		return nil, err
+// verifySealCoherence is the map-sweep half of the gate, scoped to one KIND and its home:
+// every sealed entry OF THAT KIND must still say what its seal says. It is the shared mechanism
+// both the recipe gate (VerifyRegistry) and the seed lint path call — the same checks scoped per
+// kind, never one global sweep, so a sealed seed is never hunted in the recipe home and a sealed
+// recipe is never hunted in the seed home (INV-1). Findings come back in lint's own currency.
+//
+// The genre nouns are templated off `kind` — `recipe`→"recipes home"/"sporo seal", every other
+// kind→"<kind>s home"/"sporo <kind> seal" — so the recipe path reproduces its wording byte-for-byte
+// while a seed reads coherently through its own namespace.
+func verifySealCoherence(root, home string, reg Registry, kind string) []Finding {
+	// The re-seal verb for this kind: recipes use the flat `sporo seal`, every other kind its
+	// namespaced `sporo <kind> seal` (the seed CLI's `seal` subcommand).
+	seal := "sporo seal"
+	if kind != recipekit.KindRecipe {
+		seal = "sporo " + kind + " seal"
 	}
 	var out []Finding
 	for slug, entry := range reg.Recipes {
+		if entry.Kind != kind {
+			continue // another genre's seal — scoped out, so a flat recipe verb never sees a seed
+		}
 		name := slug + ".md"
-		src, err := os.ReadFile(filepath.Join(root, cfg.Home, name))
+		src, err := os.ReadFile(filepath.Join(root, home, name))
 		if err != nil {
-			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("sealed at %s but missing from the recipes home — a sealed recipe that vanished is a broken promise, not a cleanup; unseal it deliberately (remove its registry entry) or restore it", entry.Version)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("sealed at %s but missing from the %ss home — a sealed %s that vanished is a broken promise, not a cleanup; unseal it deliberately (remove its registry entry) or restore it", entry.Version, kind, kind)})
 			continue
 		}
 		version := fmValue(src, "version")
 		switch {
 		case entry.ID != "" && fmValue(src, "id") != entry.ID:
-			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("frontmatter id %s does not match the sealed id %s — the id is a permanent identity, never edited; restore it (a genuinely different recipe gets its own slug, not a rewritten id)", fmValue(src, "id"), entry.ID)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("frontmatter id %s does not match the sealed id %s — the id is a permanent identity, never edited; restore it (a genuinely different %s gets its own slug, not a rewritten id)", fmValue(src, "id"), entry.ID, kind)})
 		case version != entry.Version:
-			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("frontmatter says version %s but the seal says %s — re-seal (`sporo seal %s`) so the registry witnesses the version the document declares", version, entry.Version, slug)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("frontmatter says version %s but the seal says %s — re-seal (`%s %s`) so the registry witnesses the version the document declares", version, entry.Version, seal, slug)})
 		case ContentHash(src) != entry.Hash:
-			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("content drifted from its seal without a version bump (still %s) — a sealed recipe never silently mutates; bump `version:`, then `sporo seal %s`", entry.Version, slug)})
+			out = append(out, Finding{File: name, Line: 0, Msg: fmt.Sprintf("content drifted from its seal without a version bump (still %s) — a sealed %s never silently mutates; bump `version:`, then `%s %s`", entry.Version, kind, seal, slug)})
 		}
 	}
+	return out
+}
+
+// VerifyRegistry is the coherence half of the gate: every sealed recipe's file must still
+// say what the seal says. It returns findings in lint's own currency so the two run as one
+// gate. An UNSEALED recipe is legal — a draft has no obligations yet — so absence from the
+// registry is never a finding. It is kind-scoped to RECIPES: a sealed seed lives in the same
+// slug-keyed ledger but is swept by the seed lint path against the seed home, never here.
+func VerifyRegistry(root string, cfg Config) ([]Finding, error) {
+	reg, err := LoadRegistry(root)
+	if err != nil {
+		return nil, err
+	}
+	out := verifySealCoherence(root, cfg.Home, reg, recipekit.KindRecipe)
 	// The other direction: every FINISHED recipe in the project's own home must be sealed. A
 	// non-draft recipe declares itself done, and done means it promises a version; an unsealed
 	// one is published in intent but unwitnessed by the registry, so "all recipes are sealed"

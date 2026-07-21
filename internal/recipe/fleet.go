@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"sporo.dev/sporo/pkg/recipekit"
 )
 
 // FleetRow is one authored recipe, located across the machine — the shape `sporo recipes` prints
@@ -43,6 +45,10 @@ type AdoptedRow struct {
 // question this answers. A root with no registry (never sealed, or the repo is gone) contributes
 // nothing — `LoadRegistry` already degrades a missing file to empty, so a stale project root drops
 // out silently rather than erroring the whole index.
+//
+// The registry is one slug-keyed map across kinds, so a sealed SEED lives here too — but this is
+// the authored-RECIPE index, so a non-recipe entry is skipped (INV-1 read-side; the seed CLI lists
+// seeds, `sporo recipes` does not).
 func FleetRecipes(roots []string) []FleetRow {
 	var rows []FleetRow
 	for _, root := range roots {
@@ -52,6 +58,9 @@ func FleetRecipes(roots []string) []FleetRow {
 			continue
 		}
 		for slug, entry := range reg.Recipes {
+			if entry.Kind != recipekit.KindRecipe {
+				continue
+			}
 			rows = append(rows, FleetRow{
 				Repo:       filepath.Base(root),
 				Root:       root,
@@ -93,7 +102,11 @@ func FleetAll(roots []string) []FleetRow {
 			}
 			slug := strings.TrimSuffix(e.Name(), ".md")
 			row := FleetRow{Repo: filepath.Base(root), Root: root, Slug: slug, Provenance: "local"}
-			if entry, sealed := reg.Recipes[slug]; sealed {
+			// The lookup is kind-guarded: this walks the RECIPE home, so a registry entry for this
+			// slug counts as its seal only when it is a recipe. A sealed seed sharing the slug (a
+			// different home entirely) must not lend its seal/version/provenance to the recipe file —
+			// fall through to the frontmatter/unsealed branch instead (INV-1 read-side).
+			if entry, sealed := reg.Recipes[slug]; sealed && entry.Kind == recipekit.KindRecipe {
 				row.ID, row.Version, row.Provenance, row.Status = entry.ID, entry.Version, entry.Provenance, "sealed"
 			} else {
 				src, err := os.ReadFile(filepath.Join(home, e.Name()))

@@ -118,3 +118,47 @@ func mustReadSeedSpec(t *testing.T) []byte {
 	}
 	return src
 }
+
+// runnerSpecHashes is the released-byte ledger for the seed runner preamble — the short
+// constitutional meta-doc (seeds/_runner.md) that seed export prepends to every seal. It is a
+// sibling of seedSpecHashes, not an entry in it: the two docs version independently (the genre
+// spec and the execution preamble are different constitutions), so a bump to one must not force a
+// bump to the other. The normalize-and-hash path is shared — seedSpecPayloadHash is a pure
+// function of bytes, and the version line is normalized the same way — so no second helper is
+// warranted; only the ledger and its reader are runner-specific.
+var runnerSpecHashes = map[string]string{
+	"1.0.0": "sha256:0015f0c664367ec75c3f4a15609de85aca8ec9f0efbd69b6fc63adc0e730cd24",
+}
+
+func runnerSpecHashMatches(version string, src []byte) bool {
+	want, ok := runnerSpecHashes[version]
+	return ok && seedSpecPayloadHash(src) == want
+}
+
+func TestReleasedRunnerPreambleBytesAreBoundToTheirVersion(t *testing.T) {
+	src := mustReadRunnerPreamble(t)
+	version := FrontmatterValue(src, "version")
+	if !runnerSpecHashMatches(version, src) {
+		t.Fatalf("seeds/_runner.md changed without a version bump: add the new version and payload hash to runnerSpecHashes (version %q, hash %q)", version, runnerSpecPayloadHash(src))
+	}
+}
+
+func TestRunnerPreambleVersionGateHasMutationTeeth(t *testing.T) {
+	src := mustReadRunnerPreamble(t)
+	version := FrontmatterValue(src, "version")
+	mutated := append(append([]byte(nil), src...), []byte("\nA silently changed runner rule.\n")...)
+	if runnerSpecHashMatches(version, mutated) {
+		t.Fatalf("seeds/_runner.md content mutation under version %s must red the gate", version)
+	}
+}
+
+func runnerSpecPayloadHash(src []byte) string { return seedSpecPayloadHash(src) }
+
+func mustReadRunnerPreamble(t *testing.T) []byte {
+	t.Helper()
+	src, err := os.ReadFile("../../seeds/_runner.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return src
+}

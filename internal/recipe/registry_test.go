@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"sporo.dev/sporo/pkg/recipekit"
 )
 
 // The seal's teeth. The one behavior that matters most is the REFUSAL: changed content under
@@ -466,6 +468,117 @@ recipes:
 `)
 	if _, err := LoadRegistry(root); err == nil || !strings.Contains(err.Error(), "weird") {
 		t.Fatalf("an unknown kind must be a hard error mentioning the kind; got: %v", err)
+	}
+}
+
+// The kind-parameterized seal. SealKind resolves the source home per kind and stamps the entry's
+// kind; the flat Seal is its recipe binding (covered byte-for-byte by the tests above). Because
+// the ledger is ONE slug-keyed map across kinds, a slug is one kind for its life — sealing it as a
+// second kind is refused in both directions, and the recipe coherence gate ignores a sealed seed.
+
+// seedSealFixture stands up a project with BOTH homes declared and a conformant document in the
+// seed home, so SealKind(..., KindSeed, …) has a seed corpus to seal from. The document bytes are
+// the shared recipe fixture — the seal records (version, hash, kind), it does not lint the genre,
+// so the same bytes seal cleanly under either kind.
+func seedSealFixture(t *testing.T) (root string, cfg Config) {
+	t.Helper()
+	root = t.TempDir()
+	cfg = Config{
+		Home:  ".sporo/recipes/",
+		Homes: map[string]string{recipekit.KindRecipe: ".sporo/recipes/", recipekit.KindSeed: "seeds/"},
+	}
+	seedHome := filepath.Join(root, "seeds")
+	if err := os.MkdirAll(seedHome, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(seedHome, "widget.md"), []byte(conformant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return root, cfg
+}
+
+func TestSealKindStampsTheSeedKindAtSchema2(t *testing.T) {
+	root, cfg := seedSealFixture(t)
+	entry, err := SealKind(root, cfg, recipekit.KindSeed, "widget")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if entry.Kind != recipekit.KindSeed {
+		t.Fatalf("SealKind must stamp the kind it was handed; got %q", entry.Kind)
+	}
+	data, err := os.ReadFile(filepath.Join(root, ".sporo", "registry.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	on := string(data)
+	if !strings.Contains(on, "kind: seed") || !strings.Contains(on, "schema: 2") {
+		t.Fatalf("a sealed seed must persist `kind: seed` at schema 2 on disk; got:\n%s", on)
+	}
+}
+
+func TestSealKindRefusesAKindWithNoDeclaredHome(t *testing.T) {
+	// A project that authors recipes but not seeds has no seed corpus — sealing a seed is a stated
+	// absence naming the kind, never a crash (REQ-5). cfg here declares only the recipe home.
+	root := t.TempDir()
+	cfg := Config{Home: ".sporo/recipes/", Homes: map[string]string{recipekit.KindRecipe: ".sporo/recipes/"}}
+	if _, err := SealKind(root, cfg, recipekit.KindSeed, "widget"); err == nil || !strings.Contains(err.Error(), "no home for kind") {
+		t.Fatalf("a kind with no declared home must error cleanly naming the kind; got: %v", err)
+	}
+}
+
+func TestSealKindRefusesASeedOverASealedRecipeSlug(t *testing.T) {
+	root, cfg := seedSealFixture(t)
+	// The same slug also exists in the recipe home; seal it as a recipe first.
+	recipeHome := filepath.Join(root, cfg.Home)
+	if err := os.MkdirAll(recipeHome, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(recipeHome, "widget.md"), []byte(conformant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Seal(root, cfg, "widget"); err != nil {
+		t.Fatal(err)
+	}
+	// Now sealing the seed `widget` must be refused, naming both kinds — the slug is a recipe's.
+	_, err := SealKind(root, cfg, recipekit.KindSeed, "widget")
+	if err == nil || !strings.Contains(err.Error(), "recipe") || !strings.Contains(err.Error(), "seed") {
+		t.Fatalf("sealing a seed over a sealed recipe slug must be refused naming both kinds; got: %v", err)
+	}
+}
+
+func TestSealRefusesARecipeOverASealedSeedSlug(t *testing.T) {
+	root, cfg := seedSealFixture(t)
+	recipeHome := filepath.Join(root, cfg.Home)
+	if err := os.MkdirAll(recipeHome, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(recipeHome, "widget.md"), []byte(conformant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Seal `widget` as a seed first; the flat recipe seal of the same slug must then be refused.
+	if _, err := SealKind(root, cfg, recipekit.KindSeed, "widget"); err != nil {
+		t.Fatal(err)
+	}
+	_, err := Seal(root, cfg, "widget")
+	if err == nil || !strings.Contains(err.Error(), "seed") || !strings.Contains(err.Error(), "recipe") {
+		t.Fatalf("sealing a recipe over a sealed seed slug must be refused naming both kinds; got: %v", err)
+	}
+}
+
+func TestVerifyRegistryIgnoresASealedSeed(t *testing.T) {
+	// A sealed seed must be invisible to the recipe coherence gate: an unfiltered sweep would read
+	// it from the recipe home, miss it, and report "missing from the recipes home" — moving a flat
+	// recipe verb's output when a seed is sealed (INV-1). The gate must stay green.
+	root, cfg := seedSealFixture(t)
+	if _, err := SealKind(root, cfg, recipekit.KindSeed, "widget"); err != nil {
+		t.Fatal(err)
+	}
+	f, err := VerifyRegistry(root, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f) != 0 {
+		t.Fatalf("the recipe coherence gate must ignore a sealed seed; got: %v", f)
 	}
 }
 

@@ -201,6 +201,18 @@ func TestSeedRedsReportMissingRow(t *testing.T) {
 	}
 }
 
+func TestSeedRedsReportDuplicateRow(t *testing.T) {
+	// A duplicated known label with all five rows still present: the set-based missing/unexpected
+	// loops both see every label at least once, and the reorder check is skipped on the length
+	// mismatch — only the cardinality assert (AUD-001) catches the six-row Report.
+	src := strings.Replace(conformantSeed(t),
+		"| **suggest next** | wire the tool into the repository's own agent harness |\n",
+		"| **suggest next** | wire the tool into the repository's own agent harness |\n| **suggest next** | a duplicated known label the set-based check would let pass |\n", 1)
+	if f := lintSeed("acme.md", src); !hasFinding(f, "duplicated or padded row") {
+		t.Fatalf("a Report with a duplicated known-label row must red on cardinality; got: %v", f)
+	}
+}
+
 func TestSeedRedsReportReorderedRows(t *testing.T) {
 	s := strings.Replace(conformantSeed(t),
 		"| **what it is** | the acme build tool, brought in and stood up |", "@@ROW@@", 1)

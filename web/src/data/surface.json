@@ -298,6 +298,88 @@
       ]
     },
     {
+      "use": "seed",
+      "name": "seed",
+      "short": "Author, check, seal and export install seeds — the recipe verbs, one kind over",
+      "group": "authoring",
+      "subcommands": [
+        {
+          "use": "export <slug>",
+          "name": "export",
+          "short": "Write one seed as a single self-contained install file — runner preamble first, then the seed",
+          "group": "authoring",
+          "flags": [
+            {
+              "name": "root",
+              "default": ".",
+              "usage": "project root (searched for this repo's own seeds before the embedded corpus)"
+            },
+            {
+              "name": "stdout",
+              "default": "false",
+              "usage": "print the composed document to stdout instead of writing a file (for piping)"
+            }
+          ]
+        },
+        {
+          "use": "lint",
+          "name": "lint",
+          "short": "Check this project's seed corpus against the genre — shape, acceptance, neutrality, seals",
+          "group": "authoring",
+          "flags": [
+            {
+              "name": "root",
+              "default": ".",
+              "usage": "project root (its config names the seed home and the forbidden product vocabulary)"
+            }
+          ]
+        },
+        {
+          "use": "list",
+          "name": "list",
+          "short": "List the seeds available here — this project's own, and the embedded corpus",
+          "group": "authoring",
+          "flags": [
+            {
+              "name": "root",
+              "default": ".",
+              "usage": "project root (its own seeds are listed alongside the embedded corpus)"
+            }
+          ]
+        },
+        {
+          "use": "new <slug>",
+          "name": "new",
+          "short": "Scaffold a draft seed — coached section stubs, born a draft",
+          "group": "authoring",
+          "flags": [
+            {
+              "name": "root",
+              "default": ".",
+              "usage": "project root (the draft lands in its seed home)"
+            },
+            {
+              "name": "title",
+              "usage": "the seed's title (defaults to a TODO)"
+            }
+          ]
+        },
+        {
+          "use": "seal <slug>",
+          "name": "seal",
+          "short": "Record a seed's version and content hash in the registry — a sealed seed never silently mutates",
+          "group": "authoring",
+          "flags": [
+            {
+              "name": "root",
+              "default": ".",
+              "usage": "project root (its registry records the seal)"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "use": "update",
       "name": "update",
       "short": "Re-sync the managed authoring surface from this binary — never clobbering your edits",

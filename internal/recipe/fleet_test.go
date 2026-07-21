@@ -100,6 +100,54 @@ func TestFleetAllMarksSealedUnsealedAndDraft(t *testing.T) {
 	}
 }
 
+// The read-side kind filters (INV-1 / VAL-3): a sealed SEED shares the one slug-keyed registry
+// with authored recipes, but neither `sporo recipes` (FleetRecipes) nor `sporo recipes --all`
+// (FleetAll) may surface it or let it lend its seal to a recipe file. Existing recipe rows must
+// not move.
+
+func TestFleetRecipesSkipsSealedSeeds(t *testing.T) {
+	root := t.TempDir()
+	seedRegistry(t, root, map[string]RegistryEntry{
+		"real-recipe": {ID: "01ARZ3NDEKTSV4RRFFQ69G5FAV", Kind: "recipe", Version: "1.0.0", Provenance: "local"},
+		"a-seed":      {ID: "01BX5ZZKBKACTAV9WEVGEMMVRZ", Kind: "seed", Version: "2.0.0", Provenance: "local"},
+	})
+	rows := FleetRecipes([]string{root})
+	if len(rows) != 1 || rows[0].Slug != "real-recipe" {
+		t.Fatalf("only the authored recipe must appear, never the sealed seed; got %+v", rows)
+	}
+}
+
+func TestFleetAllDoesNotInheritASeedSealForARecipeFile(t *testing.T) {
+	// The sharp case the collision guard cannot reach: an unsealed recipe file and a sealed seed
+	// share a slug but live in DIFFERENT homes. The recipe-home walk looks up the slug-keyed
+	// registry, so the lookup must be kind-guarded — else the recipe row inherits the seed's
+	// seal/version. The recipe file must take its OWN frontmatter (unsealed, 1.0.0).
+	root := t.TempDir()
+	home := filepath.Join(root, ".sporo", "recipes")
+	if err := os.MkdirAll(home, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(home, "widget.md"), []byte(conformant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	seedRegistry(t, root, map[string]RegistryEntry{
+		"widget": {ID: "01CX5ZZKBKACTAV9WEVGEMMV00", Kind: "seed", Version: "9.9.9", Provenance: "local"},
+	})
+	var row FleetRow
+	found := false
+	for _, r := range FleetAll([]string{root}) {
+		if r.Slug == "widget" {
+			row, found = r, true
+		}
+	}
+	if !found {
+		t.Fatal("the recipe file must still be listed by --all")
+	}
+	if row.Status != "unsealed" || row.Version != "1.0.0" {
+		t.Fatalf("the recipe file must take its own frontmatter (unsealed, 1.0.0), not the seed's seal (9.9.9); got %+v", row)
+	}
+}
+
 func TestFleetAdoptedReadsTheReaderSideOnly(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "consumer-repo")
 	reg := Registry{

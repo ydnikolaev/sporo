@@ -27,6 +27,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"sporo.dev/sporo/pkg/recipekit"
 )
 
 var reviewAxes = []struct{ key, def string }{
@@ -175,6 +177,12 @@ func VerifyVerdicts(root string, cfg Config, slug string, files []string) (Revie
 	entry, sealed := reg.Recipes[slug]
 	if !sealed {
 		return ReviewSummary{}, nil, fmt.Errorf("recipe %q is not sealed — a review binds a version and a content hash, and a draft has neither; `sporo seal %s`, then review what you sealed", slug, slug)
+	}
+	// The registry is one slug-keyed map across kinds; `review verify` is the RECIPE review path,
+	// so a slug sealed as another genre is refused pointing at that genre's tooling — the last of
+	// the four read-side kind guards (INV-1).
+	if entry.Kind != recipekit.KindRecipe {
+		return ReviewSummary{}, nil, fmt.Errorf("%q is sealed as a %s, not a recipe — `review verify` is the recipe review path; a %s is reviewed through the seed tooling, not here", slug, entry.Kind, entry.Kind)
 	}
 
 	var findings []Finding
