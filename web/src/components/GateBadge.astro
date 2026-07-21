@@ -15,18 +15,32 @@
 interface Props {
   compact?: boolean; // card form: one word; detail form spells the pair out
   sealed?: boolean; // hash-verified against the committed seal registry
+  noun?: 'recipe' | 'seed'; // which genre this badge speaks for — a seed's gate and discipline differ
 }
-const { compact = false, sealed = false } = Astro.props;
+const { compact = false, sealed = false, noun = 'recipe' } = Astro.props;
+// The unsealed detail form names the genre's DISCIPLINE: a recipe's is neutrality (names no
+// coordinate), a seed's is accountability (accounts for every move it makes on a foreign tree).
+const discipline = noun === 'seed' ? 'accountable' : 'neutral';
 const label = sealed
   ? compact
     ? 'sealed'
     : 'sealed · gate-passed'
   : compact
     ? 'gate-passed'
-    : 'gate-passed · neutral';
-const tip = sealed
-  ? 'Sealed: this recipe still hashes (sha256) to the value committed in .sporo/registry.yaml, verified at build and re-checked by CI on every push — recompute it yourself from the repo. It also passes the genre gate (a summary plus eleven sections in order, neutrality, earned scars). Not a security scan.'
-  : 'Passes the genre gate: a summary plus eleven sections in order, neutrality (no leaked paths or product names), and earned scars. Not a seal and not a security scan.';
+    : `gate-passed · ${discipline}`;
+// The tooltip spells out what the genre gate actually checks — a seed's contract is a different
+// shape (seven sections, a detect-first install with per-step acceptance, a cited install origin,
+// a runnable verify, a fixed five-row report) than a recipe's eleven sections + neutrality + scars.
+const seedGate =
+  'a summary plus seven sections in order, a detect-first install with per-step acceptance, a cited install origin, a runnable verify, and a fixed five-row report';
+const tip =
+  noun === 'seed'
+    ? sealed
+      ? `Sealed: this seed still hashes (sha256) to the value committed in .sporo/registry.yaml, verified at build and re-checked by CI on every push — recompute it yourself from the repo. It also passes the genre gate (${seedGate}). Not a security scan.`
+      : `Passes the genre gate: ${seedGate}. Not a seal and not a security scan.`
+    : sealed
+      ? 'Sealed: this recipe still hashes (sha256) to the value committed in .sporo/registry.yaml, verified at build and re-checked by CI on every push — recompute it yourself from the repo. It also passes the genre gate (a summary plus eleven sections in order, neutrality, earned scars). Not a security scan.'
+      : 'Passes the genre gate: a summary plus eleven sections in order, neutrality (no leaked paths or product names), and earned scars. Not a seal and not a security scan.';
 ---
 
 <span

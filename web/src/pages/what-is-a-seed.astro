@@ -1,0 +1,140 @@
+---
+import Layout from '../components/Layout.astro';
+import Frame from '../components/Frame.astro';
+import { SITE_DATE, ORG_ID, WEBSITE_ID } from '../lib/site.ts';
+import PageActionBar from '../components/PageActionBar.astro';
+import { seedGenreChangelogHtml, seedGenreVersion } from '../lib/seeds.ts';
+
+// The seed-genre explainer — the sibling of what-is-a-recipe.astro. It renders the fixed shape of a
+// seed and why each part exists, with the LIVE genre version and changelog read from the embedded
+// spec (seeds/_authoring.md via lib/seeds.ts). The seed genre carries one version only — no separate
+// adoption protocol — so the badge shows just "seed genre vX". This page is flat (/what-is-a-seed
+// .html), so its relative cross-links resolve.
+const currentGenreVersion = seedGenreVersion();
+const changelogHtml = seedGenreChangelogHtml();
+
+const jsonLd = {
+  '@type': 'Article',
+  headline: 'What is a seed',
+  author: { '@id': ORG_ID },
+  publisher: { '@id': ORG_ID },
+  isPartOf: { '@id': WEBSITE_ID },
+  datePublished: SITE_DATE,
+  dateModified: SITE_DATE,
+  inLanguage: 'en',
+  mainEntityOfPage: 'https://sporo.dev/what-is-a-seed.html',
+};
+
+const head = {
+  title: 'sporo — what is a seed: the transferable-install genre',
+  description:
+    'The seed genre, for a skeptical senior engineer: seven gated sections, a detect-first install with per-step acceptance, a cited install origin, a runnable verify, and a fixed five-row report the human audits.',
+  path: '/what-is-a-seed.html',
+  mdMirror: 'what-is-a-seed.md',
+  og: {
+    type: 'article' as const,
+    title: 'What is a seed',
+    description:
+      'The fixed genre every seed takes, and why each part exists — for the engineer deciding whether to let an agent run an install on their tree.',
+    publishedTime: SITE_DATE,
+    modifiedTime: SITE_DATE,
+  },
+  twitter: {},
+  jsonLd,
+};
+---
+
+<Layout head={head} active="seed-genre">
+  <Frame layout="reading">
+    <PageActionBar title="What is a seed" path="/what-is-a-seed.html" mdUrl="what-is-a-seed.md">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600">the seed genre</div>
+    </PageActionBar>
+    <h1 style="font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.04;letter-spacing:-.04em;font-weight:750;text-wrap:balance">What is a seed</h1>
+    <p style="margin-top:1.6rem;color:var(--muted);font-size:1.12rem;text-wrap:pretty">You've met the recipe — the genre that teaches an agent to <em>build</em> a capability from principles, naming nothing concrete. A seed is its sibling, inverted: it teaches an agent in a repository that has never had a tool how to <em>bring that one tool in</em> and stand it up. If you're the engineer deciding whether to let an agent run an install on your tree, this is the page that earns that.</p>
+    <div style="margin-top:1.2rem;display:flex;gap:.55rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
+      <span style="border:1px solid var(--line);border-radius:999px;padding:.35rem .65rem">seed genre v{currentGenreVersion}</span>
+    </div>
+
+    <section style="margin-top:3.5rem">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">01 — the one-sentence definition</div>
+      <p style="font-size:clamp(1.15rem,2.2vw,1.4rem);line-height:1.5;letter-spacing:-.01em;font-weight:550;text-wrap:pretty">A seed teaches an agent in a repository it has never seen how to acquire one named tool and make it real — detect whether it is already present, install it from an origin the seed vouches for, prove the install took, use it, wire it into the repository's harness, and account for every move.</p>
+      <p style="margin-top:1rem;color:var(--muted);text-wrap:pretty">It is written for the machine that will act on a foreign tree. Exactly one section, at the end, is written for you.</p>
+    </section>
+
+    <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">02 — accountability, not neutrality</div>
+      <h2 style="font-size:clamp(1.4rem,3vw,1.9rem);letter-spacing:-.025em;line-height:1.15;font-weight:700">Name the tool. Never the reader's tree.</h2>
+      <p style="margin-top:1rem;color:var(--muted);text-wrap:pretty">A recipe's hardest constraint is neutrality: name roles, never instances, because its subject is a transferable pattern. A seed inverts that. Its subject is <strong style="color:var(--ink)">one concrete tool</strong>, so it names that tool freely — the target, its version, its origin, its own install command all belong in the document, because they <em>are</em> the document. What a seed must still never name is the reader's tree: their paths, their filenames, the directory where their harness lives.</p>
+      <p style="margin-top:1rem;color:var(--muted);text-wrap:pretty">So the discipline shifts from transferable design to <strong style="color:var(--ink)">trustworthy action</strong>. The test is the recipe's test pointed at a different object: <strong style="color:var(--ink)">could an agent follow this in a repository whose layout you have never seen?</strong></p>
+      <div style="display:grid;gap:.7rem;margin-top:1.6rem">
+        <div style="border:1px solid var(--line);background:var(--card);border-radius:.8rem;padding:1rem 1.2rem;font-size:.95rem;color:var(--muted)"><b style="color:var(--ink)">A seed that installs without detecting</b> clobbers a working tree — stacks a second copy beside the first, or fails on a conflict it created, as a mutation the human never asked for.</div>
+        <div style="border:1px solid var(--line);background:var(--card);border-radius:.8rem;padding:1rem 1.2rem;font-size:.95rem;color:var(--muted)"><b style="color:var(--ink)">A seed that installs without verifying</b> reports a success it never had — a package half-lands, a lookup cache goes stale, a binary arrives without its execute bit.</div>
+        <div style="border:1px solid var(--line);background:var(--card);border-radius:.8rem;padding:1rem 1.2rem;font-size:.95rem;color:var(--muted)"><b style="color:var(--ink)">A seed that pipes a stranger's script into a shell with no cited origin</b> is an unaudited privilege it handed away on the reader's behalf. Every rule below exists to keep those from happening.</div>
+      </div>
+    </section>
+
+    <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">03 — seven gated sections</div>
+      <h2 style="font-size:clamp(1.4rem,3vw,1.9rem);letter-spacing:-.025em;line-height:1.15;font-weight:700">A fixed shape, checked by a gate, in this order.</h2>
+      <p style="margin-top:1rem;color:var(--muted);text-wrap:pretty">Frontmatter carries identity, version, and the two trust anchors — the target it brings in and the origin it vouches for. The body then walks a chain in which each section earns the right to the next.</p>
+      <ol class="genre-shape" style="margin-top:1.8rem;padding:0;list-style:none;display:grid">
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">01</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Summary</b> — a 2–4 sentence orientation before any move: what tool this brings in, what standing it up buys the reader, and the state they're in when it's done. It's body text, so neutrality applies in full.</span></li>
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">02</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">What it is</b> — the tool itself: what it does, the shape of the thing that lands, and the model the reader needs before they let it onto their machine. Understanding before acquisition.</span></li>
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">03</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Install</b> — the acquisition sequence, one step per heading. Its first step opens with a <b style="color:var(--ink)">Detect</b> marker (is the tool already here, at what version?), and every step closes with a literal <b style="color:var(--ink)">Done when</b> line stating the observable condition that proves it took.</span></li>
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">04</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Verify</b> — the proof the whole install works, and it must run at least one real command the agent observes, not prose that asserts success. Install can lie; Verify is the acceptance at the whole-tool level.</span></li>
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">05</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Use</b> — how the reader actually puts the now-installed tool to work: the first real thing they do with it, concrete enough to act on but still neutral about their own tree.</span></li>
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">06</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Harness</b> — how the tool joins the repository's agent harness so future agents know it's here. Advisory: recommend a project rule only when the tool ships none of its own, or you manufacture a second source of truth that drifts.</span></li>
+        <li style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;padding:1rem 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-size:.85rem;padding-top:.2rem">07</span><span style="color:var(--muted);font-size:.97rem"><b style="color:var(--ink)">Report</b> — the closing section, and the only one written for a person: a fixed five-row table that accounts for what the seed just did to this repository.</span></li>
+      </ol>
+      <p style="margin-top:1.4rem;color:var(--muted);font-size:.97rem;text-wrap:pretty">The order is the argument. You cannot use a tool you haven't verified; you cannot verify one you haven't installed; you cannot install one you don't understand enough to describe. Reorder the sections and you break the chain.</p>
+    </section>
+
+    <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">04 — the trust contract, the seed's teeth</div>
+      <h2 style="font-size:clamp(1.4rem,3vw,1.9rem);letter-spacing:-.025em;line-height:1.15;font-weight:700">Four rules, each mechanical, each with a gate.</h2>
+      <div style="display:grid;gap:.7rem;margin-top:1.4rem">
+        <div style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;border:1px solid var(--line);background:var(--card);border-radius:.8rem;padding:1rem 1.2rem;font-size:.95rem;color:var(--muted)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-weight:600">1</span><span><b style="color:var(--ink)">Detect before you install.</b> The first install step answers one question — is the target already present, and at what version? Detect-first is what makes a seed idempotent: safe to run twice, safe where the tool already exists.</span></div>
+        <div style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;border:1px solid var(--line);background:var(--card);border-radius:.8rem;padding:1rem 1.2rem;font-size:.95rem;color:var(--muted)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-weight:600">2</span><span><b style="color:var(--ink)">Every step states its acceptance.</b> A step with no observable Done-when is one the agent can't tell succeeded until the end — which on a foreign tree is exactly when failure is most expensive.</span></div>
+        <div style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;border:1px solid var(--line);background:var(--card);border-radius:.8rem;padding:1rem 1.2rem;font-size:.95rem;color:var(--muted)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-weight:600">3</span><span><b style="color:var(--ink)">No blind pipe into a shell.</b> The genre doesn't ban piping a remote script into an interpreter — for many tools it's the official path — but the step must cite the origin the frontmatter vouches for, so the human can audit where the code came from.</span></div>
+        <div style="display:grid;grid-template-columns:2.6rem 1fr;gap:1rem;border:1px solid var(--line);background:var(--card);border-radius:.8rem;padding:1rem 1.2rem;font-size:.95rem;color:var(--muted)"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;color:var(--accent);font-weight:600">4</span><span><b style="color:var(--ink)">Verify holds a runnable proof.</b> A command whose output the agent reads is the difference between "I ran the installer" and "the tool actually runs here."</span></div>
+      </div>
+      <p style="margin-top:1.4rem;color:var(--muted);text-wrap:pretty">Together they turn an install from a hopeful sequence of commands into an <strong style="color:var(--ink)">accountable</strong> one: it doesn't clobber, doesn't proceed on faith, doesn't execute the untraceable, and doesn't claim a success it never observed.</p>
+    </section>
+
+    <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">05 — the Report is for the human</div>
+      <p style="color:var(--muted);text-wrap:pretty">The Summary orients the agent; the <strong style="color:var(--ink)">Report</strong> is written for the person who has to accept what the seed just did. Where a recipe describes a design and can do so in prose, a seed took an action on the reader's tree — so its closing section is a fixed-shape audit, exactly five rows in order: <strong style="color:var(--ink)">what it is</strong>, <strong style="color:var(--ink)">how it works</strong>, <strong style="color:var(--ink)">what was done</strong> (the actual mutations this run made — the row that makes the seed accountable), <strong style="color:var(--ink)">how to use it</strong>, and <strong style="color:var(--ink)">suggest next</strong>. A human reviews many seed runs; a report whose shape changes every time is one they must re-read from scratch. The fixed table is a contract with that eye.</p>
+    </section>
+
+    <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">06 — derived from the tool's current truth</div>
+      <p style="font-size:clamp(1.1rem,2vw,1.3rem);line-height:1.5;font-weight:550;text-wrap:pretty">Read and run, never recalled. A tool's install command, its verify check, the origin it ships from — all of it lives in the tool's own current docs and in what it does when you run it, not in what you remember. The <em style="color:var(--accent);font-style:italic">verified</em> stamp is the proof: it says the seed was run, on a named machine, at a named release, on a named date — a snapshot of one successful install, not maintained doctrine.</p>
+    </section>
+
+    {changelogHtml && (
+      <section style="margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line)">
+        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.7rem">07 — seed genre versions</div>
+        <h2 style="font-size:clamp(1.4rem,3vw,1.9rem);letter-spacing:-.025em;line-height:1.15;font-weight:700">A conformance verdict names a moving constitution.</h2>
+        <div class="prose" style="margin-top:1.2rem" set:html={changelogHtml}></div>
+      </section>
+    )}
+
+    <div style="margin-top:3.5rem;padding-top:1.6rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:1rem;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem">
+      <a href="what-is-a-recipe.html">what a recipe is →</a>
+      <a href="seeds.html" class="hov-ink" style="margin-left:auto;color:var(--muted)">browse the seeds</a>
+    </div>
+  </Frame>
+</Layout>
+
+<style>
+  .genre-shape { counter-reset: gated; }
+  .genre-shape > li { counter-increment: gated; }
+  .genre-shape > li > span:first-child { font-size: 0 !important; }
+  .genre-shape > li > span:first-child::after { content: counter(gated, decimal-leading-zero); font-size: .85rem; }
+  .prose { color: var(--muted); line-height: 1.66; }
+  .prose h3 { color: var(--ink); font-size: 1.05rem; letter-spacing: -.01em; margin: 1.6rem 0 .6rem; }
+  .prose p { margin: .7rem 0; text-wrap: pretty; }
+  .prose strong { color: var(--ink); }
+  .prose ul, .prose ol { margin: .7rem 0; padding-left: 1.3rem; }
+  .prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+</style>

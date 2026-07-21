@@ -1,8 +1,8 @@
 ---
 // The sticky nav, shared across every page. `active` marks the current page so its own link
 // reads as ink (not a muted target); the install link points at the home anchor from anywhere.
-// The nav links are relative and resolve from any root-level page (/manifesto.html → the same
-// /what-is-a-recipe.html).
+// The nav links are root-absolute (see lib/nav.ts), so they resolve to the same destination from
+// any page — flat (/manifesto.html) or nested (/seeds/<slug>.html).
 //
 // Responsive: on a phone the links do not fit one line at any legible size, so below 700px they
 // collapse behind an accessible hamburger (a real <button> with aria-expanded / aria-controls)
@@ -12,7 +12,7 @@
 // weight (the two concept pages, the decision page, the proof, the reference, history last).
 import { NAV } from '../lib/nav.ts';
 interface Props {
-  active?: 'home' | 'genre' | 'manifesto' | 'compare' | 'recipes' | 'docs' | 'changelog';
+  active?: 'home' | 'genre' | 'manifesto' | 'compare' | 'recipes' | 'docs' | 'changelog' | 'seeds' | 'seed-genre';
 }
 const { active = 'home' } = Astro.props;
 const cls = (k: string) => (active === k ? 'hov-nou' : 'hov-ink-nou');

@@ -9,9 +9,10 @@ interface Props {
   mdUrl: string;
   contentType?: 'page' | 'recipe';
   contentId?: string;
+  mdAbsUrl?: string; // forwarded to AskAgent; lets a nested page fix its absolute twin URL
 }
 
-const { title, path, mdUrl, contentType = 'page', contentId = path } = Astro.props;
+const { title, path, mdUrl, contentType = 'page', contentId = path, mdAbsUrl } = Astro.props;
 ---
 
 <div class="page-action-bar">
@@ -22,6 +23,7 @@ const { title, path, mdUrl, contentType = 'page', contentId = path } = Astro.pro
     mdUrl={mdUrl}
     contentType={contentType}
     contentId={contentId}
+    mdAbsUrl={mdAbsUrl}
   />
 </div>
 

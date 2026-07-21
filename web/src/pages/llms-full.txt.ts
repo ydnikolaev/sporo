@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { surface, SPORO_VERSION } from '../lib/site.ts';
 import { genreSpec, adoptionSpec, rawRecipe } from '../lib/corpus.ts';
+import { seedGenreSpec, listSeeds, rawSeed } from '../lib/seeds.ts';
 import { compareMarkdown } from '../lib/compare.ts';
 import { genrePageMarkdown } from '../lib/genre-page.ts';
 
@@ -74,6 +75,11 @@ ${SPORO_VERSION}. Source: https://github.com/ydnikolaev/sporo`,
     `# The recipe genre (authoring spec)\n\n${genreSpec()}`,
     `# The adoption protocol\n\n${adoptionSpec()}`,
     `# A complete recipe: derived-progress-report\n\n${rawRecipe('derived-progress-report')}`,
+    // The seed genre and every seed body come from the corpus reader (seeds.ts), NOT surface.json,
+    // so this stays complete with or without S3. Order: the genre spec, then each seed in full
+    // (frontmatter intact). The corpus holds zero seeds today, so only the genre spec lands until S5.
+    `# The seed genre (authoring spec)\n\n${seedGenreSpec()}`,
+    ...listSeeds().map((s) => `# A complete seed: ${s.slug}\n\n${rawSeed(s.slug)}`),
   ];
   return new Response(parts.join(rule) + '\n', {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },

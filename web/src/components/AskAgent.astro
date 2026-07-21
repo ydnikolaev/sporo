@@ -19,10 +19,14 @@ interface Props {
   mdUrl: string; // 'docs.md' — the markdown twin, relative to the page
   contentType?: 'page' | 'recipe'; // GA4 grouping without inferring page shape in the browser
   contentId?: string; // stable slug/path for GA4 explorations
+  mdAbsUrl?: string; // absolute twin URL; defaults to `${SITE_ORIGIN}/${mdUrl}` (flat-page behaviour)
 }
-const { title, path, mdUrl, contentType = 'page', contentId = path } = Astro.props;
+const { title, path, mdUrl, contentType = 'page', contentId = path, mdAbsUrl } = Astro.props;
 const pageUrl = `${SITE_ORIGIN}${path}`;
-const mdAbs = `${SITE_ORIGIN}/${mdUrl}`;
+// On a flat page `${SITE_ORIGIN}/${mdUrl}` is the twin's absolute URL; on a NESTED page (/seeds/
+// <slug>.html) no single `mdUrl` is both correct page-relative AND correct absolute, so the caller
+// passes the absolute form explicitly. Default preserves today's behaviour exactly.
+const mdAbs = mdAbsUrl ?? `${SITE_ORIGIN}/${mdUrl}`;
 // The context an agent receives: what this page is, one plain line of what sporo is (mechanism, not
 // pitch), the page as markdown to read, and a starter. Kept well under Claude's ~14k q= limit.
 const prompt = `I'm reading "${title}" on sporo.dev (${pageUrl}). sporo turns a build you already did into a recipe — a self-contained file that teaches an AI agent in a repository that has never seen yours how to rebuild the capability, on its own stack. Here is this page as markdown: ${mdAbs} — read it, then help me understand it and whether sporo fits what I'm building.`;

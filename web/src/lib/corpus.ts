@@ -6,60 +6,25 @@
 // edit rebuilds the site.)
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
 import { marked } from 'marked';
-import { parse as parseYaml } from 'yaml';
+import {
+  sealVerified as sealVerifiedSeam,
+  sealHash,
+  sealedAt,
+} from './seal.ts';
 
 const recipesDir = path.resolve(process.cwd(), '../recipes');
 
-// The seal registry the CLI writes at `.sporo/registry.yaml` (repo root, one level up from the
-// corpus). It records, per recipe, the sha256 of the recipe's SOURCE bytes at seal time. The site
-// reads it so the "sealed" badge is not decorative: a recipe is shown sealed only when its file
-// STILL hashes to the sealed value — the same coherence `sporo lint` enforces in CI. Reading the
-// committed registry and recomputing the hash is a verification anyone can reproduce from the repo.
-const registryPath = path.resolve(process.cwd(), '../.sporo/registry.yaml');
-
-interface SealEntry {
-  hash?: string;
-  sealed_at?: string;
-}
-function loadRegistry(): Record<string, SealEntry> {
-  try {
-    const doc = parseYaml(fs.readFileSync(registryPath, 'utf-8')) as {
-      recipes?: Record<string, SealEntry>;
-    };
-    return doc?.recipes ?? {};
-  } catch {
-    // No registry, or unreadable — nothing is shown sealed; the badge degrades to gate-passed.
-    return {};
-  }
-}
-const registry = loadRegistry();
-
-// sealVerified recomputes the seal currency the CLI uses — sha256 over the recipe's RAW source
-// bytes, provenance banner INCLUDED (recipe.ContentHash hashes the file as sealed, not the
-// banner-stripped display form) — and returns true only when it matches the committed seal. A
-// drifted or unsealed recipe returns false, so the badge can never outrun the bytes it claims.
+// The seal-currency check lives in the shared seam (lib/seal.ts) because the seed reader needs the
+// identical logic; the recipe path is the default-then-check case — an entry whose `kind` is absent
+// or `'recipe'` is a recipe (the committed registry has no `kind:` fields). These thin wrappers
+// preserve corpus.ts's exported surface — callers still see `sealVerified(slug)` — so recipe pages
+// render byte-identically after the extraction.
 export function sealVerified(slug: string): boolean {
-  const entry = registry[slug];
-  if (!entry?.hash) return false;
-  const raw = fs.readFileSync(path.join(recipesDir, `${slug}.md`)); // Buffer: the exact bytes Go sealed
-  const got = 'sha256:' + crypto.createHash('sha256').update(raw).digest('hex');
-  return got === entry.hash;
+  return sealVerifiedSeam(recipesDir, slug, 'recipe');
 }
-
-// sealHash returns the sha256 the registry committed for a recipe (or null). It is the fingerprint
-// the trust panel SHOWS; the panel's actual verification recomputes independently against GitHub, so
-// this value is display, not the root of trust.
-export function sealHash(slug: string): string | null {
-  return registry[slug]?.hash ?? null;
-}
-
-// sealedAt returns the machine-recorded seal timestamp (RFC3339) the registry committed, or null.
-// Unlike the frontmatter's author-typed `verified.date`, this is stamped by `sporo seal` itself.
-export function sealedAt(slug: string): string | null {
-  return registry[slug]?.sealed_at ?? null;
-}
+// sealHash/sealedAt are registry-only (directory-independent), re-exported unchanged from the seam.
+export { sealHash, sealedAt };
 
 // The source recipes carry a leading HTML-comment provenance banner (the SSOT marker). It is
 // not content; strip it before parsing or rendering.

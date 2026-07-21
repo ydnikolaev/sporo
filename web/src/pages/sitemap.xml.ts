@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { listCorpus } from '../lib/corpus.ts';
+import { listSeeds } from '../lib/seeds.ts';
 import { SITE_DATE } from '../lib/site.ts';
 
 // Generated, not hand-maintained — the corpus is a guaranteed-N seam (recipes get added), and a
@@ -17,6 +18,8 @@ const STATIC_PAGES: StaticPage[] = [
   { loc: '/what-is-a-recipe.html', priority: '0.8' },
   { loc: '/compare.html', priority: '0.8' },
   { loc: '/recipes.html', priority: '0.8' },
+  { loc: '/seeds.html', priority: '0.8' },
+  { loc: '/what-is-a-seed.html', priority: '0.8' },
   { loc: '/changelog.html', priority: '0.6' },
   { loc: '/manifesto.html', priority: '0.6' },
   { loc: '/security.html', priority: '0.7' },
@@ -30,10 +33,17 @@ export const GET: APIRoute = ({ site }) => {
     // date yet (never verified) falls back to the site-wide date rather than printing nothing.
     lastmod: /^\d{4}-\d{2}-\d{2}$/.test(meta.date ?? '') ? meta.date : SITE_DATE,
   }));
+  // Seed detail routes are NESTED (/seeds/<slug>.html); mirrors the recipe mapping against the seed
+  // corpus. Empty today (the first seed lands in S5), so this contributes nothing until then.
+  const seeds = listSeeds().map(({ slug, meta }) => ({
+    loc: `/seeds/${slug}.html`,
+    lastmod: /^\d{4}-\d{2}-\d{2}$/.test(meta.date ?? '') ? meta.date : SITE_DATE,
+  }));
 
   const urls = [
     ...STATIC_PAGES.map((p) => `  <url><loc>${origin}${p.loc}</loc><lastmod>${SITE_DATE}</lastmod><priority>${p.priority}</priority></url>`),
     ...recipes.map((r) => `  <url><loc>${origin}${r.loc}</loc><lastmod>${r.lastmod}</lastmod><priority>0.7</priority></url>`),
+    ...seeds.map((s) => `  <url><loc>${origin}${s.loc}</loc><lastmod>${s.lastmod}</lastmod><priority>0.7</priority></url>`),
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;

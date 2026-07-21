@@ -1,0 +1,560 @@
+---
+import Layout from '../../components/Layout.astro';
+import Frame from '../../components/Frame.astro';
+import AgentMarks from '../../components/AgentMarks.astro';
+import GateBadge from '../../components/GateBadge.astro';
+import Publisher from '../../components/Publisher.astro';
+import { readSeed, listSeeds, sealHash, sealedAt } from '../../lib/seeds.ts';
+import { formatDate } from '../../lib/corpus.ts';
+import { SITE_DATE, ORG_ID, SITE_ORIGIN } from '../../lib/site.ts';
+import PageActionBar from '../../components/PageActionBar.astro';
+
+// One detail page per corpus seed, generated from the slugs listSeeds() enumerates. The page IS the
+// seed, read straight from the embedded corpus at build — not a retyped copy. Unlike recipe routes
+// (kept flat so their relative nav resolves), seed routes are NESTED under /seeds/ — so every
+// hand-authored cross-page link and the breadcrumb here is ROOT-ABSOLUTE, and the shared nav is too
+// (lib/nav.ts). The only page-relative URL is the twin (`${slug}.md`), which resolves correctly to
+// /seeds/<slug>.md; its absolute form is passed explicitly to AskAgent so the copy/link targets the
+// nested path, not a root-level one.
+export function getStaticPaths() {
+  return listSeeds().map(({ slug }) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const seed = readSeed(slug as string);
+const m = seed.meta;
+const headline = (m.title ?? '').split(' — ')[0];
+const mdHref = `${slug}.md`; // page-relative twin: resolves to /seeds/<slug>.md
+const mdAbsUrl = `${SITE_ORIGIN}/seeds/${slug}.md`; // the nested absolute twin URL for AskAgent
+const date = formatDate(m.date);
+// A seed's trust anchors: the target it brings in (named + pinned), the origin it vouches for, the
+// project/release/date the install was proven in, and the machine-stamped seal date.
+const target = m.target;
+const source = m.source;
+const project = m.project;
+const release = m.release;
+const sealedDate = formatDate((sealedAt(slug) ?? '').slice(0, 10));
+// JSON-LD dates in ISO; a seal must never predate publication in the markup, so clamp modified ≥
+// published. Both fall back to the site date if the seed carries no date yet.
+const publishedISO = /^\d{4}-\d{2}-\d{2}$/.test(m.date ?? '') ? (m.date as string) : SITE_DATE;
+const sealedISO = (sealedAt(slug) ?? '').slice(0, 10);
+const modifiedISO =
+  /^\d{4}-\d{2}-\d{2}$/.test(sealedISO) && sealedISO >= publishedISO ? sealedISO : publishedISO;
+
+// The seal's public anchors, all on GitHub — the trust panel verifies against THESE, never against
+// anything sporo.dev asserts. The browser check refetches the seed AND the registry from raw
+// .githubusercontent and compares the two GitHub-sourced values.
+const GH_RAW = 'https://raw.githubusercontent.com/ydnikolaev/sporo/main';
+const seal = {
+  hash: sealHash(slug), // display only
+  seedRawUrl: `${GH_RAW}/seeds/${slug}.md`,
+  registryRawUrl: `${GH_RAW}/.sporo/registry.yaml`,
+  registryBlobUrl: 'https://github.com/ydnikolaev/sporo/blob/main/.sporo/registry.yaml',
+  ciUrl: 'https://github.com/ydnikolaev/sporo/actions/workflows/ci.yml',
+};
+
+const head = {
+  title: `${headline} — a sporo seed`,
+  description:
+    m.title
+      ? `${m.title} — a sporo seed: detect, install, verify, use, wire in, and account for one named tool in a repository that has never had it.`
+      : 'A real sporo seed, rendered: the tool it brings in, the install it proves, and the export you would hand an agent.',
+  path: `/seeds/${slug}.html`,
+  mdMirror: mdHref,
+  og: {
+    type: 'article' as const,
+    title: `${headline} — a sporo seed`,
+    description:
+      'A real sporo seed in full — detect, install, verify, use, wire in, and the fixed report the human audits.',
+    publishedTime: publishedISO,
+    modifiedTime: modifiedISO,
+  },
+  twitter: {},
+  // Two nodes: the seed itself (TechArticle — a transferable install document) and the breadcrumb
+  // that mirrors the visible Seeds › <headline> trail.
+  jsonLd: [
+    {
+      '@type': 'TechArticle',
+      '@id': `https://sporo.dev/seeds/${slug}.html#seed`,
+      headline: m.title || 'A sporo seed',
+      author: { '@type': 'Person', name: 'ydnikolaev', url: 'https://github.com/ydnikolaev' },
+      publisher: { '@id': ORG_ID },
+      datePublished: publishedISO,
+      dateModified: modifiedISO,
+      ...(m.version ? { version: m.version } : {}),
+      inLanguage: 'en',
+      mainEntityOfPage: `https://sporo.dev/seeds/${slug}.html`,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Seeds', item: 'https://sporo.dev/seeds.html' },
+        { '@type': 'ListItem', position: 2, name: headline, item: `https://sporo.dev/seeds/${slug}.html` },
+      ],
+    },
+  ],
+};
+---
+
+<Layout head={head} active="seeds">
+  <Frame layout="reading">
+    <div style="padding:0 0 3rem">
+      <PageActionBar title={headline} path={`/seeds/${slug}.html`} mdUrl={mdHref} mdAbsUrl={mdAbsUrl}>
+        <nav aria-label="Breadcrumb" style="width:100%;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;letter-spacing:.06em;font-weight:600;display:flex;align-items:center;gap:.5em;white-space:nowrap"><a href="/seeds.html" class="hov-ink-nou" style="color:var(--accent);flex:none">Seeds</a><span aria-hidden="true" style="color:var(--line);flex:none">›</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-weight:500">{headline}</span></nav>
+      </PageActionBar>
+      <h1 style="font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:760;max-width:26ch">{m.title}</h1>
+      <div style="margin-top:1.3rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted)">
+        <Publisher size={22} prefix="by" />
+        <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>
+        {seed.sealed ? (
+          <button id="seal-toggle" type="button" aria-expanded="false" aria-controls="seal-proof" class="seal-toggle" title="How this seal is verified">
+            <GateBadge sealed={true} noun="seed" />
+            <svg class="seal-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+        ) : (
+          <GateBadge sealed={false} noun="seed" />
+        )}
+        {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
+        {date && <span>verified {date}</span>}
+        {project && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
+        {project && <span>from <span style="color:var(--ink)">{project}{release ? ` · ${release}` : ''}</span></span>}
+      </div>
+
+      {seed.sealed && (
+        <div id="seal-proof" class="seal-proof" hidden data-slug={slug} data-seed-url={seal.seedRawUrl} data-registry-url={seal.registryRawUrl}>
+          <p class="seal-plain">This seed is <strong>sealed</strong>: these exact bytes have not changed since it was published. A SHA-256 fingerprint of the source is committed to a public registry — change one character and it no longer matches, and this badge is gone. You don't have to take our word for it.</p>
+
+          {sealedDate && <div class="seal-k">Sealed {sealedDate}{project && <> · proven by a real install in <span style="color:var(--ink)">{project}</span></>} — the date is stamped by <code class="seal-hash">sporo seal</code>, not typed by hand.</div>}
+
+          <div class="seal-block">
+            <div class="seal-k">Reproduce it yourself — the seed and its fingerprint both live on GitHub, not here:</div>
+            <div class="seal-cmd">
+              <code>curl -s {seal.seedRawUrl} | shasum -a 256</code>
+              <button type="button" class="seal-copy" data-copy={`curl -s ${seal.seedRawUrl} | shasum -a 256`}>copy</button>
+            </div>
+            <p class="seal-muted">The result equals the hash committed in the <a href={seal.registryBlobUrl} target="_blank" rel="noopener">public registry ↗</a> — <code class="seal-hash">{seal.hash}</code>. Neither side is served by this site.</p>
+          </div>
+
+          <div class="seal-block">
+            <button id="seal-verify" type="button" class="seal-verify">Verify in your browser</button>
+            <span id="seal-result" class="seal-result" role="status" aria-live="polite"></span>
+            <p class="seal-muted">A convenience demo: your browser refetches the seed <em>and</em> the registry from GitHub and recomputes the hash — it trusts nothing from this page. View source to confirm.</p>
+          </div>
+
+          <div class="seal-links">
+            <a href={seal.registryBlobUrl} target="_blank" rel="noopener">the registry ↗</a>
+            <a href={seal.seedRawUrl} target="_blank" rel="noopener">the source ↗</a>
+            <a href={seal.ciUrl} target="_blank" rel="noopener">the CI gate ↗</a>
+          </div>
+        </div>
+      )}
+
+      <div style="margin-top:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem">
+        {target && <span style="display:inline-flex;align-items:center;gap:.45rem;color:var(--muted)">brings in <span style="color:var(--accent);font-weight:600">{target}</span></span>}
+        {source && <a href={source} target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;text-underline-offset:3px">from its vouched origin ↗</a>}
+      </div>
+
+      <div id="seed-bar" style="margin-top:2rem;position:relative;border:1px solid var(--line);border-radius:.85rem;background:var(--card);overflow:hidden">
+        <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:1rem 1.2rem;flex-wrap:wrap;padding:.75rem .8rem">
+          <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;min-width:0">
+            <span style="display:inline-flex;align-items:center;gap:.5rem">
+              <svg width="18" height="18" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--accent)"></circle><circle cx="11" cy="2.6" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="var(--accent)" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="var(--accent)" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="var(--accent)" opacity=".75"></circle></svg>
+              <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.85rem;font-weight:600;letter-spacing:-.01em;color:var(--accent)">sporo seed</span>
+            </span>
+            <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;color:var(--muted);display:inline-flex;align-items:center;gap:.55rem"><span aria-hidden="true" style="width:1px;height:.9rem;background:var(--line)"></span>{seed.sections.length} sections · {seed.sealed ? 'sealed ' : 'v'}{m.version}</span>
+          </div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button id="copy-seed" data-md={mdHref} style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;font-weight:600;border:1px solid var(--accent);color:var(--bg);background:var(--accent);border-radius:.55rem;padding:.5rem 1rem;cursor:pointer;transition:opacity .15s ease">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+              <span id="copy-seed-label">copy</span>
+            </button>
+            <a href={mdHref} download id="download-seed" data-slug={slug} class="sc-ghost" style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem 1rem;text-decoration:none;transition:border-color .15s ease,color .15s ease">download .md ↓</a>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:1.2rem;font-size:.85rem;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,monospace;max-width:62ch;text-wrap:pretty">What a reader receives is this file, frontmatter and all — the provenance travels with the body. Every section below was written from one real install: detected, run, and proven on a named machine, not recalled from memory.</p>
+    </div>
+
+    <section style="border-top:1px solid var(--line)">
+      <div style="padding:1.7rem 0">
+        <AgentMarks label="Runs on any agent" />
+      </div>
+    </section>
+
+    {seed.introHtml.trim() && (
+      <section style="border-top:1px solid var(--line)">
+        <div style="padding:3rem 0" class="prose" set:html={seed.introHtml}></div>
+      </section>
+    )}
+
+    {seed.summaryHtml.trim() && (
+      <section style="border-top:1px solid var(--line)">
+        <div style="padding:2.6rem 0">
+          <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1rem">summary</div>
+          <div class="prose" style="font-size:1.08rem;max-width:68ch;text-wrap:pretty" set:html={seed.summaryHtml}></div>
+        </div>
+      </section>
+    )}
+
+    <section style="border-top:1px solid var(--line)">
+      <div style="padding:2.5rem 0">
+        <div style="display:flex;align-items:center;gap:1rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:2rem"><span style="color:var(--accent);font-weight:600">the seed, section by section</span><span style="flex:0 0 3.5rem;height:1px;background:var(--line)"></span><span style="color:var(--muted)">each gated · Report is for you</span></div>
+        <div style="display:grid;gap:.7rem">
+          {seed.sections.map((s, i) => (
+            <details open={s.open} style="border:1px solid var(--line);border-radius:.8rem;background:var(--card);overflow:hidden">
+              <summary style="cursor:pointer;padding:1rem 1.3rem;display:flex;align-items:center;gap:.9rem;list-style:none">
+                <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--accent)">{String(i + 1).padStart(2, '0')}</span>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;letter-spacing:-.01em">{s.title}</h2>
+              </summary>
+              <div class="prose" style="padding:0 1.3rem 1.3rem" set:html={s.html}></div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  </Frame>
+
+  <script>
+    // Copy: swap only the label span so the icon survives. Fetches the .md twin (the export form)
+    // and writes it to the clipboard. write() must be the first async call — a Promise-valued
+    // ClipboardItem reserves the write synchronously inside the gesture, the only shape Safari
+    // accepts when the text comes from a fetch. A swallowed reject is logged; download is the
+    // working fallback.
+    const btn = document.getElementById('copy-seed');
+    const clabel = document.getElementById('copy-seed-label');
+    if (btn) {
+      btn.addEventListener('click', async () => {
+        try {
+          if (navigator.clipboard && window.ClipboardItem) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'text/plain': fetch(btn.dataset.md).then((r) => r.text()) }),
+            ]);
+          } else if (navigator.clipboard) {
+            await navigator.clipboard.writeText(await (await fetch(btn.dataset.md)).text());
+          }
+          if (window.gtag) window.gtag('event', 'copy_seed', { seed: (btn.dataset.md || '').replace(/\.md$/, '') });
+          if (clabel) {
+            const original = clabel.textContent;
+            clabel.textContent = 'copied ✓';
+            setTimeout(() => {
+              clabel.textContent = original;
+            }, 1600);
+          }
+        } catch (e) {
+          console.warn('copy seed failed:', e);
+        }
+      });
+    }
+
+    // Download: the anchor does the work; we only record the intent.
+    const dl = document.getElementById('download-seed');
+    if (dl) {
+      dl.addEventListener('click', () => {
+        if (window.gtag) window.gtag('event', 'download_seed', { seed: dl.dataset.slug });
+      });
+    }
+
+    // Seal proof: expand the panel, and let the reader re-verify the seal WITHOUT trusting this
+    // page. The check refetches both the seed and the registry from raw.githubusercontent and
+    // compares the two GitHub-sourced values; sporo.dev's copy of the hash is never the authority.
+    const sealToggle = document.getElementById('seal-toggle');
+    const sealProof = document.getElementById('seal-proof');
+    if (sealToggle && sealProof) {
+      sealToggle.addEventListener('click', () => {
+        const willOpen = sealProof.hasAttribute('hidden');
+        if (willOpen) sealProof.removeAttribute('hidden');
+        else sealProof.setAttribute('hidden', '');
+        sealToggle.setAttribute('aria-expanded', String(willOpen));
+        sealToggle.classList.toggle('open', willOpen);
+      });
+    }
+
+    document.querySelectorAll('.seal-copy').forEach((b) => {
+      b.addEventListener('click', async () => {
+        try {
+          if (navigator.clipboard) await navigator.clipboard.writeText(b.dataset.copy);
+          const t = b.textContent;
+          b.textContent = 'copied ✓';
+          setTimeout(() => { b.textContent = t; }, 1400);
+        } catch {}
+      });
+    });
+
+    const verifyBtn = document.getElementById('seal-verify');
+    const resultEl = document.getElementById('seal-result');
+    if (verifyBtn && resultEl && sealProof) {
+      verifyBtn.addEventListener('click', async () => {
+        if (window.gtag) window.gtag('event', 'verify_seal', { seed: sealProof.dataset.slug });
+        resultEl.textContent = 'verifying…';
+        resultEl.className = 'seal-result pending';
+        try {
+          const [seedRes, regRes] = await Promise.all([
+            fetch(sealProof.dataset.seedUrl),
+            fetch(sealProof.dataset.registryUrl),
+          ]);
+          if (!seedRes.ok || !regRes.ok) throw new Error('unreachable');
+          const buf = await seedRes.arrayBuffer();
+          const regText = await regRes.text();
+          const esc = sealProof.dataset.slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const mm = regText.match(new RegExp('\\n\\s+' + esc + ':\\s*\\n[\\s\\S]*?hash:\\s*(sha256:[0-9a-f]{64})'));
+          if (!mm) throw new Error('no-seal');
+          const digest = await crypto.subtle.digest('SHA-256', buf);
+          const got = 'sha256:' + Array.from(new Uint8Array(digest)).map((x) => x.toString(16).padStart(2, '0')).join('');
+          if (got === mm[1]) {
+            resultEl.textContent = '✓ matches — recomputed from GitHub just now';
+            resultEl.className = 'seal-result ok';
+          } else {
+            resultEl.textContent = '✗ does not match';
+            resultEl.className = 'seal-result bad';
+          }
+        } catch {
+          resultEl.textContent = "couldn't verify in-browser — reproduce it with the command above";
+          resultEl.className = 'seal-result muted';
+        }
+      });
+    }
+  </script>
+</Layout>
+
+<style is:global>
+  #copy-seed:hover { opacity: 0.88; }
+  .sc-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .seal-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+  }
+  .seal-caret {
+    color: var(--accent);
+    transition: transform 0.2s ease;
+    flex: none;
+  }
+  .seal-toggle.open .seal-caret {
+    transform: rotate(180deg);
+  }
+  .seal-proof {
+    margin-top: 1.2rem;
+    max-width: 64ch;
+    border: 1px solid var(--line);
+    border-radius: 0.85rem;
+    background: var(--card);
+    padding: 1.2rem 1.3rem;
+    display: grid;
+    gap: 1rem;
+  }
+  .seal-proof[hidden] {
+    display: none;
+  }
+  .seal-plain {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .seal-plain strong {
+    color: var(--ink);
+  }
+  .seal-block {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .seal-k {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .seal-cmd {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #0e120f;
+    border: 1px solid #ffffff14;
+    border-radius: 0.55rem;
+    padding: 0.6rem 0.7rem;
+    overflow-x: auto;
+  }
+  .seal-cmd code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    color: #d9e4da;
+    white-space: nowrap;
+    flex: 1;
+  }
+  .seal-copy {
+    flex: none;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: #8fd1a4;
+    background: none;
+    border: 1px solid #ffffff26;
+    border-radius: 0.4rem;
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+  }
+  .seal-copy:hover {
+    border-color: #8fd1a4;
+  }
+  .seal-muted {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .seal-hash {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 0.08em 0.35em;
+    border-radius: 0.3em;
+    word-break: break-all;
+  }
+  .seal-verify {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .seal-verify:hover {
+    opacity: 0.88;
+  }
+  .seal-result {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    margin-left: 0.6rem;
+  }
+  .seal-result.ok {
+    color: var(--accent);
+  }
+  .seal-result.bad {
+    color: #c8892f;
+  }
+  .seal-result.pending,
+  .seal-result.muted {
+    color: var(--muted);
+  }
+  .seal-links {
+    display: flex;
+    gap: 1.1rem;
+    flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.74rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.9rem;
+  }
+  .seal-links a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .seal-links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seal-caret {
+      transition: none;
+    }
+    .sc-ghost {
+      transition: none;
+    }
+  }
+  .prose {
+    color: var(--muted);
+    max-width: 68ch;
+    line-height: 1.66;
+  }
+  .prose h3 {
+    color: var(--ink);
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+    margin: 1.6rem 0 0.6rem;
+  }
+  .prose h4 {
+    color: var(--ink);
+    font-size: 1rem;
+    margin: 1.3rem 0 0.5rem;
+  }
+  .prose p {
+    margin: 0.7rem 0;
+    text-wrap: pretty;
+  }
+  .prose strong {
+    color: var(--ink);
+  }
+  .prose ul,
+  .prose ol {
+    margin: 0.7rem 0;
+    padding-left: 1.3rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .prose blockquote {
+    margin: 1rem 0;
+    padding: 0.2rem 0 0.2rem 1.1rem;
+    border-left: 3px solid var(--accent);
+    color: var(--ink);
+  }
+  .prose code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.88em;
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 0.1em 0.4em;
+    border-radius: 0.35em;
+  }
+  .prose pre {
+    background: #0e120f;
+    color: #d9e4da;
+    border: 1px solid #ffffff14;
+    border-radius: 0.7rem;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .prose pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: 0.84rem;
+    line-height: 1.7;
+  }
+  .prose table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    display: block;
+    overflow-x: auto;
+  }
+  .prose th,
+  .prose td {
+    border: 1px solid var(--line);
+    padding: 0.5rem 0.7rem;
+    text-align: left;
+  }
+  .prose th {
+    color: var(--ink);
+    background: var(--accent-soft);
+  }
+  .prose a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose summary::-webkit-details-marker {
+    display: none;
+  }
+</style>
