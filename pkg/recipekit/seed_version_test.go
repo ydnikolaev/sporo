@@ -13,6 +13,11 @@ import (
 // under an existing key would erase what that released version meant. It is the seed-local sibling
 // of the recipe genre's genreShapes — a parallel ledger, because the recipe snapshot tests are
 // off-limits (INV-1) and a shared helper would have to reach into them.
+//
+// The key lists are INLINED, not a live `strings.Join(seedKeys, …)`: a pin built from the same
+// variable it guards moves with a key-only edit and never reds without a version bump (BL-002).
+// Both rows carry the identical literal because 1.0.1 is a byte-equal PATCH of 1.0.0; a key change
+// under either version is exactly what these rows must catch.
 var seedGenreShapes = map[string]string{
 	"1.0.0": strings.Join([]string{
 		"## Summary",
@@ -23,7 +28,7 @@ var seedGenreShapes = map[string]string{
 		"## Harness",
 		"## Report",
 		"-- frontmatter --",
-		strings.Join(seedKeys, "\n"),
+		"id\nname\nversion\ntitle\ntarget\nsource\nstack\nverified\neffort",
 	}, "\n"),
 	// 1.0.1 is a PATCH clarification of §3's neutrality prose — the seven-section shape and nine
 	// keys are unchanged, so the snapshot is byte-identical to 1.0.0 (no MAJOR required).
@@ -36,7 +41,7 @@ var seedGenreShapes = map[string]string{
 		"## Harness",
 		"## Report",
 		"-- frontmatter --",
-		strings.Join(seedKeys, "\n"),
+		"id\nname\nversion\ntitle\ntarget\nsource\nstack\nverified\neffort",
 	}, "\n"),
 }
 

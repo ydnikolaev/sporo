@@ -26,6 +26,10 @@ var genreShapes = map[string]string{
 		"-- frontmatter --",
 		strings.Join(requiredKeys, "\n"),
 	}, "\n"),
+	// The current version's key list is INLINED, not a live `strings.Join(requiredKeys, …)`: a pin
+	// built from the same variable it guards moves with a key-only edit and never reds without a
+	// version bump (BL-002). The literal must equal requiredKeys byte-for-byte until a new version
+	// key is added — a key change under 2.0.0 is exactly what this row must catch.
 	"2.0.0": strings.Join([]string{
 		"## Summary",
 		"## The problem",
@@ -40,7 +44,7 @@ var genreShapes = map[string]string{
 		"## The trade-offs",
 		"## For the human",
 		"-- frontmatter --",
-		strings.Join(requiredKeys, "\n"),
+		"id\nname\nversion\ntitle\nproblem\nprerequisites\nderived_from\nstack\nverified\neffort",
 	}, "\n"),
 }
 
