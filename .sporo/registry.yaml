@@ -1,7 +1,8 @@
-schema: 1
+schema: 2
 recipes:
     derived-progress-report:
         id: 01KXS4J44AWVNJMYZSWKYD5CC9
+        kind: recipe
         version: 1.1.0
         hash: sha256:0bd3989cc57e3c1ac6e170bac3e28f59593282b906f7c6ac613bfecc8db2d469
         provenance: local
@@ -9,7 +10,15 @@ recipes:
         exact_contracts: sha256:57b699d0decb69de6997c79115bec707ee0d430d03eb6be1c6cc437de5aa7a70
     russian-personal-data-legal-and-consent-banner:
         id: 01KXS83W67BK5QB23TXSMZ073K
+        kind: recipe
         version: 0.2.0
         hash: sha256:214317844cd5ad36bd89798a68d2843f82cdfe10e786613e3d9ad7a1182931d4
         provenance: local
         sealed_at: "2026-07-19T16:02:47Z"
+    sporo:
+        id: 01KY3NRFFZTXNE3NC88F1T1GSE
+        kind: seed
+        version: 1.0.0
+        hash: sha256:003754222d590daf749bd230dd17f34fc166e31ba074633d07f89be109f8d9eb
+        provenance: local
+        sealed_at: "2026-07-22T01:12:59Z"
