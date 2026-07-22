@@ -3,9 +3,11 @@ import Layout from '../../components/Layout.astro';
 import Frame from '../../components/Frame.astro';
 import AgentMarks from '../../components/AgentMarks.astro';
 import GateBadge from '../../components/GateBadge.astro';
+import AttestBadge from '../../components/AttestBadge.astro';
 import Publisher from '../../components/Publisher.astro';
 import { readSeed, listSeeds, sealHash, sealedAt } from '../../lib/seeds.ts';
 import { formatDate } from '../../lib/corpus.ts';
+import { isAttested } from '../../lib/attest.ts';
 import { SITE_DATE, ORG_ID, SITE_ORIGIN } from '../../lib/site.ts';
 import PageActionBar from '../../components/PageActionBar.astro';
 
@@ -22,6 +24,10 @@ export function getStaticPaths() {
 
 const { slug } = Astro.params;
 const seed = readSeed(slug as string);
+// Provenance mark, resolved at build (fail-closed): true only when GitHub holds an attestation for
+// this seed's exact export bytes — the seed mirror (web/src/data/seeds/<slug>.md), which the twin
+// now serves (Option A). False until the corpus workflow signs it; the mark self-heals next build.
+const attested = await isAttested(slug as string, 'seed');
 const m = seed.meta;
 const headline = (m.title ?? '').split(' — ')[0];
 const mdHref = `${slug}.md`; // page-relative twin: resolves to /seeds/<slug>.md
@@ -114,6 +120,8 @@ const head = {
         ) : (
           <GateBadge sealed={false} noun="seed" />
         )}
+        {attested && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
+        {attested && <AttestBadge slug={slug as string} />}
         {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
         {date && <span>verified {date}</span>}
         {project && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
@@ -140,6 +148,17 @@ const head = {
             <span id="seal-result" class="seal-result" role="status" aria-live="polite"></span>
             <p class="seal-muted">A convenience demo: your browser refetches the seed <em>and</em> the registry from GitHub and recomputes the hash — it trusts nothing from this page. View source to confirm.</p>
           </div>
+
+          {attested && (
+            <div class="seal-block">
+              <div class="seal-k">Attested provenance — prove the export you hold (the <code class="seal-hash">.md</code> from the download button above, not the GitHub source) came through the official pipeline, offline, from the file alone:</div>
+              <div class="seal-cmd">
+                <code>gh attestation verify {slug}.md -R ydnikolaev/sporo</code>
+                <button type="button" class="seal-copy" data-copy={`gh attestation verify ${slug}.md -R ydnikolaev/sporo`}>copy</button>
+              </div>
+              <p class="seal-muted">Sigstore-signed to <code class="seal-hash">ydnikolaev/sporo · attest-corpus.yml</code> on merge — keyless OIDC, no key to leak. Change one byte and the digest no longer matches, so verify fails. Proves origin + integrity, not a safety scan.</p>
+            </div>
+          )}
 
           <div class="seal-links">
             <a href={seal.registryBlobUrl} target="_blank" rel="noopener">the registry ↗</a>

@@ -15,13 +15,20 @@ import crypto from 'node:crypto';
 // for bytes that are not genuinely attested. Same posture as `sealVerified` — a claim the page makes
 // only when it holds, never by accident.
 const REPO = 'ydnikolaev/sporo';
-const exportsDir = path.resolve(process.cwd(), 'src/data/exports');
+// One mirror per genre — the exact files attest-corpus.yml checksums, and (since Option A) the exact
+// bytes each genre's `.md` twin serves. isAttested hashes the same bytes the workflow signed, so the
+// dir MUST match the entity's kind: a seed hashed against the recipe dir would 404 and silently
+// withhold a mark that is genuinely earned.
+const mirrorDir = {
+  recipe: path.resolve(process.cwd(), 'src/data/exports'),
+  seed: path.resolve(process.cwd(), 'src/data/seeds'),
+} as const;
 
-export async function isAttested(slug: string): Promise<boolean> {
+export async function isAttested(slug: string, kind: 'recipe' | 'seed' = 'recipe'): Promise<boolean> {
   let digest: string;
   try {
     // Buffer (no encoding): the exact bytes `sha256sum` hashed in the workflow, byte-for-byte.
-    const raw = fs.readFileSync(path.join(exportsDir, `${slug}.md`));
+    const raw = fs.readFileSync(path.join(mirrorDir[kind], `${slug}.md`));
     digest = 'sha256:' + crypto.createHash('sha256').update(raw).digest('hex');
   } catch {
     return false; // no export mirror for this slug — nothing could have been attested
