@@ -82,7 +82,7 @@ func seedLintCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			findings, n, drafts, err := recipe.LintSeedHome(root, cfg)
+			findings, n, metas, drafts, err := recipe.LintSeedHome(root, cfg)
 			if err != nil {
 				return err
 			}
@@ -93,7 +93,11 @@ func seedLintCmd() *cobra.Command {
 				return fmt.Errorf("sporo seed lint: the corpus has drifted from the seed genre — a seed that " +
 					"names the reader's own tree is a manual, not a transferable install (see the seed authoring spec, `_authoring`)")
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "sporo seed lint: %d seed(s) conformant and neutral ✓\n", n)
+			if metas > 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "sporo seed lint: %d seed(s) and %d meta-doc(s) conformant and neutral ✓\n", n, metas)
+			} else {
+				fmt.Fprintf(cmd.OutOrStdout(), "sporo seed lint: %d seed(s) conformant and neutral ✓\n", n)
+			}
 			if drafts > 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "sporo seed lint: %d draft(s) not checked — a draft cannot be sealed or exported; finish it and remove `draft: true`\n", drafts)
 			}

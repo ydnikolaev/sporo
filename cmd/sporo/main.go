@@ -418,7 +418,7 @@ func lintCmd() *cobra.Command {
 					"linter at the corpus you mean (`sporo lint <dir>`)", dir)
 			}
 			var findings []recipe.Finding
-			n, drafts := 0, 0
+			n, metas, drafts := 0, 0, 0
 			for _, e := range ents {
 				if !recipe.IsRecipe(e.Name(), e.IsDir()) && !isMeta(e.Name()) {
 					continue
@@ -433,7 +433,13 @@ func lintCmd() *cobra.Command {
 					drafts++
 					continue
 				}
-				n++
+				// Count instances and `_`-prefixed genre meta-docs apart: `sporo list` shows only
+				// instances, so a summary that folds the two together disagrees with it (BL-006).
+				if isMeta(e.Name()) {
+					metas++
+				} else {
+					n++
+				}
 				findings = append(findings, recipe.Lint(e.Name(), src, cfg.Products)...)
 			}
 			// Bundle manifests ride the same gate: a member that resolves to nothing is a
@@ -463,7 +469,11 @@ func lintCmd() *cobra.Command {
 				return fmt.Errorf("sporo lint: the corpus has drifted from the genre — a recipe that " +
 					"names its origin is a manual (see the genre spec, `_authoring`)")
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "sporo lint: %d recipe(s) conformant and neutral ✓\n", n)
+			if metas > 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "sporo lint: %d recipe(s) and %d meta-doc(s) conformant and neutral ✓\n", n, metas)
+			} else {
+				fmt.Fprintf(cmd.OutOrStdout(), "sporo lint: %d recipe(s) conformant and neutral ✓\n", n)
+			}
 			if drafts > 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "sporo lint: %d draft(s) not checked — a draft cannot be sealed or exported; finish it and remove `draft: true`\n", drafts)
 			}

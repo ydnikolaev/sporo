@@ -35,39 +35,48 @@ func LintSeed(name string, src []byte, products []string) []Finding {
 // every FINISHED recipe in the home must be sealed — is deliberately not reproduced here: it is not
 // part of the shared helper, and the seed corpus is meta-doc-only until S5 seals the first real
 // seed, so there is nothing finished-but-unsealed to find yet.
-func LintSeedHome(root string, cfg Config) ([]Finding, int, int, error) {
+//
+// It returns the findings and three counts the CLI reports: seed INSTANCES checked, `_`-prefixed
+// genre meta-docs checked, and drafts skipped. Instances and meta-docs are counted apart because
+// `sporo seed list` shows only instances — a summary that folded the two together would disagree
+// with it (BL-006).
+func LintSeedHome(root string, cfg Config) ([]Finding, int, int, int, error) {
 	home, ok := cfg.HomeFor(recipekit.KindSeed)
 	if !ok {
-		return nil, 0, 0, fmt.Errorf("this project declares no seed corpus — `sporo seed` authors seeds under a `homes: {seed: …}` home; declare one, then `sporo seed new` to start")
+		return nil, 0, 0, 0, fmt.Errorf("this project declares no seed corpus — `sporo seed` authors seeds under a `homes: {seed: …}` home; declare one, then `sporo seed new` to start")
 	}
 	dir := filepath.Join(root, home)
 	ents, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, 0, 0, fmt.Errorf("sporo seed lint: no seed corpus at %s — author one there with `sporo seed new`, or declare the seed home in the project config", dir)
+		return nil, 0, 0, 0, fmt.Errorf("sporo seed lint: no seed corpus at %s — author one there with `sporo seed new`, or declare the seed home in the project config", dir)
 	}
 	var findings []Finding
-	n, drafts := 0, 0
+	n, metas, drafts := 0, 0, 0
 	for _, e := range ents {
 		if !isSeed(e.Name(), e.IsDir()) && !isSeedMeta(e.Name()) {
 			continue
 		}
 		src, err := os.ReadFile(filepath.Join(dir, e.Name()))
 		if err != nil {
-			return nil, 0, 0, err
+			return nil, 0, 0, 0, err
 		}
 		if IsDraft(src) {
 			drafts++
 			continue
 		}
-		n++
+		if isSeedMeta(e.Name()) {
+			metas++
+		} else {
+			n++
+		}
 		findings = append(findings, LintSeed(e.Name(), src, cfg.Products)...)
 	}
 	reg, err := LoadRegistry(root)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, 0, 0, 0, err
 	}
 	findings = append(findings, verifySealCoherence(root, home, reg, recipekit.KindSeed)...)
-	return findings, n, drafts, nil
+	return findings, n, metas, drafts, nil
 }
 
 // isSeed: a `.md` in a seed home is a seed UNLESS it is a `_`-prefixed genre meta-document or the

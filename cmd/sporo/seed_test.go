@@ -158,3 +158,38 @@ func TestSeedLintWithoutASeedHomeErrorsCleanly(t *testing.T) {
 		t.Fatalf("the no-seed-home error should point at seed tooling, got %v", err)
 	}
 }
+
+// BL-006: the seed lint summary counts seed INSTANCES and `_`-prefixed genre meta-docs apart, so it
+// agrees with `sporo seed list` (which shows only instances). A home with a seed and a meta-doc must
+// report "1 seed(s) and 1 meta-doc(s)", never a folded "2 seed(s)".
+func TestSeedLintCountsMetaDocsApartFromInstances(t *testing.T) {
+	root := seedTestRoot(t)
+
+	// A finished seed instance: scaffold, then drop the draft mark (the scaffold is conformant by
+	// construction, so the corpus greens on wiring, not on a fixture's shape).
+	if _, _, err := runSeed(t, "new", "widget", "--root", root); err != nil {
+		t.Fatalf("seed new: %v", err)
+	}
+	seedPath := filepath.Join(root, "seeds", "widget.md")
+	src, err := os.ReadFile(seedPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(seedPath, bytes.Replace(src, []byte("draft: true\n"), nil, 1), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// A `_`-prefixed meta-doc with a valid provenance banner: held to its banner alone, so it lints
+	// clean though it has none of the seed sections — but it counts as a meta-doc, not a seed.
+	banner := "<!-- SSOT SOURCE (otherproj). -->\n\n## Anything\n\nprose, not a seed\n"
+	if err := os.WriteFile(filepath.Join(root, "seeds", "_notes.md"), []byte(banner), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	out, errOut, err := runSeed(t, "lint", "--root", root)
+	if err != nil {
+		t.Fatalf("seed lint (seed + meta-doc): %v\nstderr: %s", err, errOut)
+	}
+	if !strings.Contains(out, "1 seed(s) and 1 meta-doc(s) conformant and neutral") {
+		t.Fatalf("seed lint summary must count the meta-doc apart from the seed, got %q", out)
+	}
+}

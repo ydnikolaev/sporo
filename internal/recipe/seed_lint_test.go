@@ -50,15 +50,15 @@ func TestLintSeedGreensAConformantSeedAndRedsAMalformedOne(t *testing.T) {
 func TestLintSeedHomeGreensAConformantCorpus(t *testing.T) {
 	root, cfg := seedScaffoldWorld(t)
 	finishedSeedInHome(t, root, cfg, "my-tool")
-	findings, n, drafts, err := LintSeedHome(root, cfg)
+	findings, n, metas, drafts, err := LintSeedHome(root, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(findings) != 0 {
 		t.Fatalf("a conformant seed corpus must walk clean:\n%v", findings)
 	}
-	if n != 1 || drafts != 0 {
-		t.Fatalf("expected 1 seed checked, 0 drafts; got n=%d drafts=%d", n, drafts)
+	if n != 1 || metas != 0 || drafts != 0 {
+		t.Fatalf("expected 1 seed checked, 0 meta-docs, 0 drafts; got n=%d metas=%d drafts=%d", n, metas, drafts)
 	}
 }
 
@@ -74,7 +74,7 @@ func TestLintSeedHomeRedsAMalformedSeedInTheCorpus(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "broken.md"), []byte(malformed), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	findings, _, _, err := LintSeedHome(root, cfg)
+	findings, _, _, _, err := LintSeedHome(root, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,15 +89,15 @@ func TestLintSeedHomeSkipsDrafts(t *testing.T) {
 	if _, err := SeedScaffold(root, cfg, "wip-tool", ""); err != nil {
 		t.Fatal(err)
 	}
-	findings, n, drafts, err := LintSeedHome(root, cfg)
+	findings, n, metas, drafts, err := LintSeedHome(root, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(findings) != 0 {
 		t.Fatalf("a draft is exempt from the gate — the walk must not red on it:\n%v", findings)
 	}
-	if n != 0 || drafts != 1 {
-		t.Fatalf("expected 0 checked, 1 draft; got n=%d drafts=%d", n, drafts)
+	if n != 0 || metas != 0 || drafts != 1 {
+		t.Fatalf("expected 0 checked, 0 meta-docs, 1 draft; got n=%d metas=%d drafts=%d", n, metas, drafts)
 	}
 }
 
@@ -116,21 +116,23 @@ func TestLintSeedHomeHoldsMetaDocumentsToTheBanner(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "_notes.md"), []byte(banner), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	findings, n, _, err := LintSeedHome(root, cfg)
+	findings, n, metas, _, err := LintSeedHome(root, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(findings) != 0 {
 		t.Fatalf("a `_`-prefixed meta-document is held to its banner alone — a valid banner must not red:\n%v", findings)
 	}
-	if n != 1 {
-		t.Fatalf("the meta-document is still handed to the linter (for its banner), so it counts as checked; got n=%d", n)
+	// The meta-doc is still handed to the linter (for its banner), so it counts as checked — but as
+	// a meta-doc, not a seed instance, so it does not inflate the seed count `sporo seed list` shows.
+	if n != 0 || metas != 1 {
+		t.Fatalf("the meta-document counts as a checked meta-doc, not a seed; got n=%d metas=%d", n, metas)
 	}
 	// Now break the banner: the meta-doc is still linted, so the missing-banner finding surfaces.
 	if err := os.WriteFile(filepath.Join(dir, "_notes.md"), []byte("## Anything\n\nno banner here\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	findings, _, _, err = LintSeedHome(root, cfg)
+	findings, _, _, _, err = LintSeedHome(root, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +146,7 @@ func TestLintSeedHomeHoldsMetaDocumentsToTheBanner(t *testing.T) {
 func TestLintSeedHomeReportsAProjectWithNoSeedCorpus(t *testing.T) {
 	root := t.TempDir()
 	cfg := Config{Home: ".sporo/recipes/", Homes: map[string]string{recipekit.KindRecipe: ".sporo/recipes/"}}
-	if _, _, _, err := LintSeedHome(root, cfg); err == nil {
+	if _, _, _, _, err := LintSeedHome(root, cfg); err == nil {
 		t.Fatal("a project with no declared seed home must return a clean error, never crash")
 	}
 }
@@ -170,7 +172,7 @@ func TestLintSeedHomeCoherenceSweepFiresOnATamperedSeal(t *testing.T) {
 	if err := os.WriteFile(path, []byte(tampered), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	findings, _, _, err := LintSeedHome(root, cfg)
+	findings, _, _, _, err := LintSeedHome(root, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
