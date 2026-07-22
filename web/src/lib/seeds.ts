@@ -114,11 +114,16 @@ export function readSeed(slug: string): Seed {
   };
 }
 
-// The raw markdown of one seed, banner stripped but frontmatter INTACT — for the detail `.md` twin
-// and the llms-full.txt corpus dump (the twin serves the seed as a reader receives it, provenance
-// and all).
-export function rawSeed(slug: string): string {
-  return stripBanner(fs.readFileSync(path.join(seedsDir, `${slug}.md`), 'utf-8'));
+// exportedSeed returns the file `sporo seed export <slug>` prints: the seed with its runner-protocol
+// preamble prepended — the exact handover form an agent must READ AND FOLLOW, not the bare source.
+// Like exportedRecipe, it READS the committed mirror (web/src/data/seeds/<slug>.md, written by
+// `go generate` from `sporo seed export`) rather than recomposing it, so the composition lives in
+// exactly ONE place (the Go binary) and `make check` reds if this mirror ever drifts. This is what
+// the `.md` twin, the setup hand-off, and the llms-full corpus dump all serve — the bytes the corpus
+// attests, so the reader who verifies gets the same bytes the pipeline signed.
+const seedMirrorDir = path.resolve(process.cwd(), 'src/data/seeds');
+export function exportedSeed(slug: string): string {
+  return fs.readFileSync(path.join(seedMirrorDir, `${slug}.md`), 'utf-8');
 }
 
 // The seed genre spec (seeds/_authoring.md), banner stripped — the constitutional document the

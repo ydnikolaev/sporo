@@ -7,7 +7,7 @@
 // This is the guaranteed-N platform seam the plan names: two presentations exist on day one, so it
 // is designed for N from the start, not extracted after a second copy appeared.
 import { SITE_ORIGIN } from './site.ts';
-import { sealVerified, rawSeed } from './seeds.ts';
+import { sealVerified, exportedSeed } from './seeds.ts';
 
 // The sealed seed that installs sporo itself. Its slug is its route key (/seeds/<slug>.html|.md).
 export const SEED_SLUG = 'sporo';
@@ -25,7 +25,7 @@ export const SETUP_PROMPT = `Read ${seedMdUrl} and follow it to set up sporo in 
 // The seed's own Markdown, embedded at build (banner-stripped, frontmatter intact — exactly what the
 // `.md` twin serves). The "copy seed" affordance writes THIS local string, so the copy needs no
 // runtime cross-origin fetch and works identically in local preview and in production.
-export const seedMarkdown = rawSeed(SEED_SLUG);
+export const seedMarkdown = exportedSeed(SEED_SLUG);
 
 // The filename a downloaded copy of the seed lands under.
 export const seedFileName = `${SEED_SLUG}.md`;

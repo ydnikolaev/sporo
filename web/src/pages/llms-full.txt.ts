@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { surface, SPORO_VERSION } from '../lib/site.ts';
 import { genreSpec, adoptionSpec, rawRecipe } from '../lib/corpus.ts';
-import { seedGenreSpec, listSeeds, rawSeed } from '../lib/seeds.ts';
+import { seedGenreSpec, listSeeds, exportedSeed } from '../lib/seeds.ts';
 import { compareMarkdown } from '../lib/compare.ts';
 import { genrePageMarkdown } from '../lib/genre-page.ts';
 
@@ -79,7 +79,7 @@ ${SPORO_VERSION}. Source: https://github.com/ydnikolaev/sporo`,
     // so this stays complete with or without S3. Order: the genre spec, then each seed in full
     // (frontmatter intact) — the canonical `sporo` seed today, and any later seed with no edit here.
     `# The seed genre (authoring spec)\n\n${seedGenreSpec()}`,
-    ...listSeeds().map((s) => `# A complete seed: ${s.slug}\n\n${rawSeed(s.slug)}`),
+    ...listSeeds().map((s) => `# A complete seed: ${s.slug}\n\n${exportedSeed(s.slug)}`),
   ];
   return new Response(parts.join(rule) + '\n', {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },
