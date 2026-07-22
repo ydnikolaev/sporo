@@ -142,34 +142,6 @@ func upgradeCmd() *cobra.Command {
 // the corpus workflow re-runs server-side from the committed bytes — so a recipe can never reach the
 // corpus unsealed or gate-failing. The reviewed PR-open and the Sigstore/OIDC attestation of the
 // exported bytes are the next increments; the command is honest today about landing them.
-func publishCmd() *cobra.Command {
-	var root string
-	var check bool
-	cmd := &cobra.Command{
-		Use:   "publish <slug>",
-		Args:  cobra.ExactArgs(1),
-		Short: "Verify a recipe is sealed and gate-passed, ready to publish to the corpus",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			res, err := recipe.PublishPreflight(root, args[0])
-			if err != nil {
-				return err
-			}
-			if check {
-				// The CI/server semantic: one line, exit 0 — this is what the corpus workflow runs
-				// on the pushed bytes before it attests them.
-				fmt.Fprintf(cmd.OutOrStdout(), "sporo publish --check: %s %s is sealed and gate-passed (%s)\n", res.Slug, res.Entry.Version, res.Hash[:14])
-				return nil
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "sporo publish: %s %s — sealed and gate-passed, ready for the corpus (%s)\n", res.Slug, res.Entry.Version, res.Hash[:14])
-			fmt.Fprintln(cmd.OutOrStdout(), "next: open a reviewed PR adding it to the corpus; the merge attests its exported bytes to the official pipeline. PR-open + attestation are landing — see docs/design/attested-provenance.md")
-			return nil
-		},
-	}
-	cmd.Flags().StringVar(&root, "root", ".", "project root")
-	cmd.Flags().BoolVar(&check, "check", false, "verify only (the CI/server semantic): print the one-line result and exit")
-	return cmd
-}
-
 // releaseToken is the optional auth for the private-repository phase. Read here, once, so
 // the upgrade package never reaches into the environment behind the command's back.
 func releaseToken() string {

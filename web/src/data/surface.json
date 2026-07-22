@@ -218,7 +218,7 @@
     {
       "use": "publish <slug>",
       "name": "publish",
-      "short": "Verify a recipe is sealed and gate-passed, ready to publish to the corpus",
+      "short": "Verify a recipe is sealed and gate-passed, then open a corpus PR",
       "group": "handover",
       "flags": [
         {
