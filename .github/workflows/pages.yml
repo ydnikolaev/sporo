@@ -23,8 +23,17 @@ on:
   # request (the non-negotiable): the count just re-fetches on the next scheduled build.
   schedule:
     - cron: "0 6 * * *" # daily 06:00 UTC
+  # Two workflows must redeploy the site on completion, both for the same reason — the site resolves
+  # a build-time fact from GitHub that their run produces, and the tag/main push that triggered them
+  # already deployed the site once, too early:
+  #   - "Release": the version badge + changelog (resolved via `gh release view` / the Releases API).
+  #   - "Attest corpus": the per-recipe `attested` mark (lib/attest.ts queries the attestations API for
+  #     each export's digest — false until that run signs the bytes, so the mark self-heals here).
+  # Both are push-triggered (human tag / human main push), so their completion legitimately creates a
+  # workflow_run — unlike a GITHUB_TOKEN-triggered event, which GitHub refuses to chain. The deploy
+  # job guards on conclusion == success below.
   workflow_run:
-    workflows: ["Release"]
+    workflows: ["Release", "Attest corpus"]
     types: [completed]
   workflow_dispatch:
 
@@ -32,6 +41,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  attestations: read # the build queries the attestations API to earn the per-recipe `attested` mark
 
 concurrency:
   group: pages
@@ -40,8 +50,8 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # A workflow_run fires on ANY Release completion; only redeploy when the release actually
-    # succeeded. push and workflow_dispatch always deploy.
+    # A workflow_run fires on ANY watched-workflow completion (Release or Attest corpus); only
+    # redeploy when it actually succeeded. push and workflow_dispatch always deploy.
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages

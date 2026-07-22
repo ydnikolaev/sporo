@@ -1,0 +1,31 @@
+---
+// The `attested` provenance mark. Orthogonal to GateBadge (which claims CONFORMANCE — sealed /
+// gate-passed): this claims PROVENANCE — that these exact export bytes came through the official
+// sporo pipeline and are Sigstore-signed to it. It renders ONLY when a build-time, fail-closed check
+// (lib/attest.ts `isAttested`) confirmed an attestation exists for the bytes; there is no "not
+// attested" form, because an absent mark is the honest default, not a claim.
+//
+// It asserts origin + integrity, NOT safety: the tooltip says so, and — like the binary's PROVENANCE
+// line — points the reader at the ONE thing that actually proves it: their own offline verify. The
+// site is not the root of trust; the adopter is.
+interface Props {
+  slug: string; // names the file in the self-verify command the tooltip advertises
+}
+const { slug } = Astro.props;
+const tip =
+  `Provenance-attested: these exact export bytes are Sigstore-signed to the sporo pipeline ` +
+  `(keyless OIDC, on merge). Verify offline yourself, from the file alone: ` +
+  `gh attestation verify ${slug}.md -R ydnikolaev/sporo. Proves origin + integrity — not a safety or prompt-injection scan.`;
+---
+
+<span
+  title={tip}
+  style="display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:.24rem .6rem;white-space:nowrap"
+>
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="9" r="6" />
+    <path d="M9.4 9l1.8 1.8L15 7" />
+    <path d="M8.6 14.3 7 20l5-2.6L17 20l-1.6-5.7" />
+  </svg>
+  attested
+</span>
