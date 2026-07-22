@@ -7,6 +7,7 @@ import VerifyBlock from '../components/VerifyBlock.astro';
 import { SPORO_VERSION, VERB_COUNT, ORG_ID } from '../lib/site.ts';
 import { fetchDownloadCount } from '../lib/releases.ts';
 import PageActionBar from '../components/PageActionBar.astro';
+import SetupAgentBlock from '../components/SetupAgentBlock.astro';
 
 // The real GitHub release-asset download tally, fetched at build (null if the API call fails, so
 // the line is simply omitted — never a wrong zero).
@@ -72,11 +73,22 @@ const head = {
         <p style="margin-top:1.6rem;font-size:clamp(1.45rem,3.4vw,2.25rem);line-height:1.14;letter-spacing:-.03em;font-weight:640;color:var(--ink);max-width:19ch;text-wrap:balance">Transferable build recipes <span style="color:var(--accent)">for&nbsp;AI&nbsp;agents</span>.</p>
         <p style="margin-top:1.5rem;font-size:clamp(1.08rem,1.9vw,1.3rem);color:var(--muted);max-width:52ch;text-wrap:pretty"><span class="brand">sporo</span> turns a build you already did into a <strong style="color:var(--ink)">recipe</strong> — one self-contained file any AI agent can rebuild from, on its own stack, in a repository that has never seen yours. Your scars included, so nobody pays for them twice.</p>
         <div style="margin-top:3rem;max-width:44rem">
-          <div style="display:flex;align-items:stretch;border:1px solid #ffffff1c;border-radius:.9rem;overflow:hidden;background:#101410;box-shadow:0 24px 70px -40px rgba(0,0,0,.55)">
-            <code style="flex:1;display:flex;align-items:center;padding:1.15rem 1.3rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:clamp(.92rem,1.9vw,1.12rem);color:#d9e4da;white-space:nowrap;overflow-x:auto"><span style="color:#8fd1a4;margin-right:.6em;user-select:none">$</span><span id="typed">curl -fsSL sporo.dev/install.sh | sh</span><span aria-hidden="true" style="display:inline-block;width:.55em;height:1.15em;margin-left:2px;background:#8fd1a4;animation:blink 1.05s steps(1) infinite"></span></code>
-            <button id="copy" title="copy install command" class="hov-btn" style="border:none;border-left:1px solid #ffffff14;background:transparent;color:#8fd1a4;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.8rem;padding:0 1.3rem;cursor:pointer">copy</button>
+          <div class="setup-card">
+            <div class="setup-tabs" role="tablist" aria-label="How to set up sporo">
+              <button type="button" role="tab" id="tab-agent" aria-controls="panel-agent" aria-selected="true" class="setup-tab">for your agent</button>
+              <button type="button" role="tab" id="tab-hand" aria-controls="panel-hand" aria-selected="false" tabindex="-1" class="setup-tab">by hand</button>
+            </div>
+            <div id="panel-agent" role="tabpanel" aria-labelledby="tab-agent" class="setup-panel">
+              <SetupAgentBlock />
+            </div>
+            <div id="panel-hand" role="tabpanel" aria-labelledby="tab-hand" class="setup-panel">
+              <div class="byhand-cmd">
+                <code class="byhand-code"><span class="byhand-dollar">$</span>curl -fsSL sporo.dev/install.sh | sh</code>
+                <button type="button" class="setup-curl-copy byhand-copy" data-copy="curl -fsSL sporo.dev/install.sh | sh" title="copy install command" aria-label="Copy the install command">copy</button>
+              </div>
+              <div class="byhand-sub">one static binary · macOS / linux / windows · zero accounts, servers or runtimes · <a href="https://github.com/ydnikolaev/sporo/releases/latest" style="text-decoration:underline;text-underline-offset:3px">latest release</a>{downloads != null && downloads > 0 && ` · ${downloads.toLocaleString('en-US')} downloads`}</div>
+            </div>
           </div>
-          <div style="margin-top:.75rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.76rem;color:var(--muted)">one static binary · macOS / linux / windows · zero accounts, servers or runtimes · <a href="https://github.com/ydnikolaev/sporo/releases/latest" style="text-decoration:underline;text-underline-offset:3px">latest release</a>{downloads != null && downloads > 0 && ` · ${downloads.toLocaleString('en-US')} downloads`}</div>
           <div style="margin-top:1.15rem"><TrustStrip compact={true} /></div>
         </div>
         <div style="margin-top:2.8rem">
@@ -361,6 +373,93 @@ const head = {
   </Frame>
 
   <style>
+    /* The hero SETUP card: a two-tab surface. "for your agent" (the seed self-install) is the
+       default; "by hand" keeps the verbatim curl one-liner. With JS off both panels render (nothing
+       is lost); the tab script hides the inactive one. */
+    .setup-card {
+      border: 1px solid var(--line);
+      border-radius: 0.9rem;
+      overflow: hidden;
+      background: var(--card);
+      box-shadow: 0 24px 70px -40px rgba(0, 0, 0, 0.35);
+    }
+    .setup-tabs {
+      display: flex;
+      gap: 0.2rem;
+      padding: 0.35rem 0.55rem 0;
+      border-bottom: 1px solid var(--line);
+      background: var(--band);
+    }
+    .setup-tab {
+      appearance: none;
+      border: none;
+      background: transparent;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.74rem;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      padding: 0.6rem 0.9rem;
+      margin-bottom: -1px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+    .setup-tab:hover {
+      color: var(--ink);
+    }
+    .setup-tab[aria-selected='true'] {
+      color: var(--ink);
+      border-bottom-color: var(--accent);
+    }
+    .setup-panel {
+      padding: 1.15rem 1.2rem;
+    }
+    .byhand-cmd {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid #ffffff1c;
+      border-radius: 0.7rem;
+      overflow: hidden;
+      background: #101410;
+    }
+    .byhand-code {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 0.95rem 1.1rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: clamp(0.9rem, 1.8vw, 1.05rem);
+      color: #d9e4da;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+    .byhand-dollar {
+      color: #8fd1a4;
+      margin-right: 0.6em;
+      user-select: none;
+    }
+    .byhand-copy {
+      border: none;
+      border-left: 1px solid #ffffff14;
+      background: transparent;
+      color: #8fd1a4;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.8rem;
+      padding: 0 1.3rem;
+      cursor: pointer;
+    }
+    .byhand-sub {
+      margin-top: 0.75rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .setup-tab {
+        transition: none;
+      }
+    }
+
     /* The core "package → recipe → rebuild" flow. DESKTOP: a horizontal row — data flows left to
        right, and the "boundary code can't cross" is a VERTICAL dashed rule the flow crosses. */
     .core-boundary {
@@ -412,34 +511,46 @@ const head = {
   </style>
 
   <script>
-    // Progressive enhancement, faithfully translated from the design's DC logic. Without JS the
-    // full install command is already in the markup — the page loses nothing but motion.
+    // Progressive enhancement. Without JS both setup panels render (the prompt and the command are
+    // both in the markup) and the sections are simply visible — the page loses nothing but motion.
     (function () {
-      var cmd = 'curl -fsSL sporo.dev/install.sh | sh';
       var motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      var typed = document.getElementById('typed');
-      if (typed && motion) {
-        typed.textContent = '';
-        var i = 0;
-        setTimeout(function tick() {
-          if (i <= cmd.length) {
-            typed.textContent = cmd.slice(0, i++);
-            setTimeout(tick, 14 + Math.random() * 24);
-          }
-        }, 500);
-      }
-
-      var copy = document.getElementById('copy');
-      if (copy)
-        copy.addEventListener('click', function () {
-          if (navigator.clipboard) navigator.clipboard.writeText(cmd);
-          if (window.gtag) window.gtag('event', 'copy_install_command');
-          copy.textContent = 'copied ✓';
-          setTimeout(function () {
-            copy.textContent = 'copy';
-          }, 1600);
+      // The hero SETUP card tablist: hide the inactive panel, drive selection on click and with
+      // ArrowLeft/Right. The by-hand curl copy is wired globally by the header (setup-curl-copy).
+      document.querySelectorAll('[role="tablist"]').forEach(function (list) {
+        var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+        var panels = tabs.map(function (t) {
+          return document.getElementById(t.getAttribute('aria-controls'));
         });
+        function select(active) {
+          tabs.forEach(function (t, j) {
+            var on = active === j;
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            t.tabIndex = on ? 0 : -1;
+            if (panels[j]) panels[j].hidden = !on;
+          });
+        }
+        var initial = 0;
+        tabs.forEach(function (t, j) {
+          if (t.getAttribute('aria-selected') === 'true') initial = j;
+        });
+        select(initial);
+        tabs.forEach(function (t, i) {
+          t.addEventListener('click', function () {
+            select(i);
+          });
+          t.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+              e.preventDefault();
+              var dir = e.key === 'ArrowRight' ? 1 : -1;
+              var next = (i + dir + tabs.length) % tabs.length;
+              tabs[next].focus();
+              select(next);
+            }
+          });
+        });
+      });
 
       if (motion && 'IntersectionObserver' in window) {
         var io = new IntersectionObserver(

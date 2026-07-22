@@ -1,24 +1,34 @@
 ---
 // The sticky nav, shared across every page. `active` marks the current page so its own link
-// reads as ink (not a muted target); the install link points at the home anchor from anywhere.
+// reads as ink (not a muted target); the setup CTA is a popover (below) that works from any page.
 // The nav links are root-absolute (see lib/nav.ts), so they resolve to the same destination from
 // any page — flat (/manifesto.html) or nested (/seeds/<slug>.html).
 //
 // Responsive: on a phone the links do not fit one line at any legible size, so below 700px they
 // collapse behind an accessible hamburger (a real <button> with aria-expanded / aria-controls)
-// that drops a full-width panel. Desktop is unchanged.
+// that drops a full-width panel. The setup popover stays visible in the bar. Desktop is unchanged.
 //
-// The links come from lib/nav.ts, the single source the footer's sitemap reads too, ordered by
-// weight (the two concept pages, the decision page, the proof, the reference, history last).
+// The links come from lib/nav.ts, the single source the footer's sitemap reads too, ordered so
+// each entity showcase sits before its genre page (recipes → what's a recipe, seeds → what's a seed).
 import { NAV } from '../lib/nav.ts';
+import SetupAgentBlock from './SetupAgentBlock.astro';
 interface Props {
   active?: 'home' | 'genre' | 'manifesto' | 'compare' | 'recipes' | 'docs' | 'changelog' | 'seeds' | 'seed-genre';
 }
 const { active = 'home' } = Astro.props;
 const cls = (k: string) => (active === k ? 'hov-nou' : 'hov-ink-nou');
 const col = (k: string) => (active === k ? 'var(--ink)' : 'var(--muted)');
-const installHref = active === 'home' ? '#get' : '/#get';
 const links = NAV;
+
+// Small marks ride on the two entity showcases so the recipe/seed pairing reads at a glance. They
+// live here (nav.ts stays data-only) as raw inline SVG, injected with set:html and keyed by the
+// NavItem `k`; currentColor makes each inherit its link's muted/ink/active color.
+const NAV_ICONS: Record<string, string> = {
+  recipes:
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>',
+  seeds:
+    '<svg width="13" height="13" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="currentColor"/><circle cx="11" cy="2.6" r="1.5" fill="currentColor" opacity=".7"/><circle cx="18.6" cy="7.4" r="1.5" fill="currentColor" opacity=".55"/><circle cx="16.9" cy="16.9" r="1.5" fill="currentColor" opacity=".7"/><circle cx="5.1" cy="16.9" r="1.5" fill="currentColor" opacity=".55"/><circle cx="3.4" cy="7.4" r="1.5" fill="currentColor" opacity=".7"/></svg>',
+};
 ---
 <header class="hdr">
   <nav class="bar" aria-label="Primary">
@@ -29,11 +39,29 @@ const links = NAV;
     <div class="nav-right">
       <div id="nav-links" class="links">
         {links.map((l) => (
-          <a href={l.href} class={cls(l.k)} style={`color:${col(l.k)}`}>{l.label}</a>
+          <a href={l.href} class={cls(l.k)} style={`color:${col(l.k)}`}>
+            {NAV_ICONS[l.k] && <span class="nav-ico" set:html={NAV_ICONS[l.k]} />}
+            {l.label}
+          </a>
         ))}
         <a href="https://github.com/ydnikolaev/sporo" class="hov-ink-nou" style="color:var(--muted)">github</a>
-        <a href={installHref} class="hov-ink-nou" style="color:var(--accent)">install ↓</a>
       </div>
+      <details class="setup-pop">
+        <summary class="setup-summary" title="Set up sporo" aria-label="Set up sporo">
+          <span>set up</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="setup-pop-panel">
+          <SetupAgentBlock />
+          <div class="setup-pop-hand">
+            <div class="setup-pop-hand-label">or set it up by hand</div>
+            <div class="setup-pop-cmd">
+              <code class="setup-pop-code">curl -fsSL sporo.dev/install.sh | sh</code>
+              <button type="button" class="setup-curl-copy setup-pop-copy" data-copy="curl -fsSL sporo.dev/install.sh | sh" aria-label="Copy the install command">copy</button>
+            </div>
+          </div>
+        </div>
+      </details>
       <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme">
         <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
@@ -87,6 +115,108 @@ const links = NAV;
     font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 0.78rem;
     letter-spacing: 0.02em;
+  }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+  }
+  .nav-ico {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.85;
+  }
+
+  /* The setup CTA — a <details> disclosure that opens the same agent block + by-hand line as the
+     hero, from any page (SetupAgentBlock's links are absolute). Native <details> needs no JS to
+     open; ESC and outside-click are progressive enhancements in the script below. The panel anchors
+     to .bar (the positioned ancestor), so it pins to the header's right rail on every viewport. */
+  .setup-pop {
+    position: static;
+  }
+  .setup-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    list-style: none;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 0.5rem;
+    padding: 0.34rem 0.7rem;
+    white-space: nowrap;
+  }
+  .setup-summary::-webkit-details-marker {
+    display: none;
+  }
+  .setup-summary svg {
+    transition: transform 0.15s ease;
+  }
+  .setup-pop[open] .setup-summary svg {
+    transform: rotate(180deg);
+  }
+  .setup-pop-panel {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    z-index: 60;
+    width: min(23rem, calc(100vw - 2rem));
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+    padding: 1.05rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 0.85rem;
+    box-shadow: 0 18px 44px -16px #00000045;
+  }
+  .setup-pop-hand {
+    border-top: 1px solid var(--line);
+    padding-top: 0.85rem;
+  }
+  .setup-pop-hand-label {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .setup-pop-cmd {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .setup-pop-code {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.7rem;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.74rem;
+    color: var(--ink);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .setup-pop-copy {
+    border: none;
+    border-left: 1px solid var(--line);
+    background: transparent;
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    padding: 0 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
   }
   .theme-toggle {
     display: inline-flex;
@@ -242,4 +372,40 @@ const links = NAV;
       } catch (e) {}
     });
   }
+
+  // Setup popover: <details> opens natively (no JS needed). ESC and outside-click dismiss it, the
+  // same enhancement the Ask-an-agent menu carries — a pointer user expects outside-click to close.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape')
+      document
+        .querySelectorAll('details.setup-pop[open]')
+        .forEach((d) => ((d as HTMLDetailsElement).open = false));
+  });
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('details.setup-pop[open]').forEach((d) => {
+      if (!d.contains(e.target as Node)) (d as HTMLDetailsElement).open = false;
+    });
+  });
+
+  // Copy the by-hand install command wherever it renders — the header popover and, on the homepage,
+  // the hero's by-hand tab. One owner: the header ships on every page, so this single class-scoped
+  // handler wires both without an id collision or a second binding.
+  document.querySelectorAll('.setup-curl-copy').forEach((el) => {
+    const btn = el as HTMLButtonElement;
+    btn.addEventListener('click', async () => {
+      const text = btn.dataset.copy;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        if (window.gtag) window.gtag('event', 'copy_install_command');
+        const original = btn.textContent;
+        btn.textContent = 'copied ✓';
+        setTimeout(() => {
+          btn.textContent = original;
+        }, 1600);
+      } catch (err) {
+        console.warn('copy install command failed:', err);
+      }
+    });
+  });
 </script>

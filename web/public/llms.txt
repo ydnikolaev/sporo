@@ -27,6 +27,40 @@ For the entire corpus in a single fetch — this overview, the prose, the full c
 reference, the genre and adoption specs, and a complete recipe — see
 [llms-full.txt](https://sporo.dev/llms-full.txt).
 
+## Seeds
+
+A seed is a recipe's sibling for tools that already exist. Where a recipe teaches an
+agent to build a capability from principles, a seed teaches an agent in a repository that
+has never heard of a named tool how to bring it in and stand it up — detect it, install
+it from an origin the seed vouches for, prove it runs, wire it into the repository's agent
+harness, and account for every move to the human. A recipe's discipline is transferable
+design; a seed's is accountability of action.
+
+- A seed is a fixed, machine-gated genre (v1.0.1): frontmatter plus seven sections in
+  order — Summary, What it is, Install, Verify, Use, Harness, Report. Its teeth are four:
+  the Install sequence's first step opens with a `**Detect:**` marker (so a seed is
+  idempotent and never clobbers a working tree), every install step closes with a
+  `**Done when:**` acceptance, no remote script is piped into a shell unless the step cites
+  the frontmatter's declared `source` origin, and `## Verify` holds at least one runnable
+  command — not prose that asserts success.
+- The closing `## Report` is the one section written for the human: a fixed five-row table
+  — what it is / how it works / what was done / how to use it / suggest next — that audits
+  the actual mutations the run made to this repository.
+- A seed names its one tool concretely (target, version, origin) but stays neutral about
+  the reader's own tree — the inverse of a recipe's neutrality. Seeds are sealed (version +
+  content hash in a registry) and, like recipes, improve through report-backs.
+- To set sporo up by seed, hand an agent one line:
+  `Fetch https://sporo.dev/seeds/sporo.md and run it`. The agent fetches the sealed `sporo`
+  seed and runs its detect → install → verify sequence.
+
+- [Seeds — the corpus](https://sporo.dev/seeds.md): every seed available here, each linking
+  to its full page and raw `.md`
+- [The sporo setup seed](https://sporo.dev/seeds/sporo.md): the sealed seed that stands
+  sporo itself up — the file the setup prompt fetches
+- [What is a seed](https://sporo.dev/what-is-a-seed.md): the genre in full — the seven
+  sections and why each exists, the trust contract, and how a seed inverts a recipe's
+  neutrality (the tool is named, the reader's tree is not)
+
 ## Docs
 
 - [Command reference](https://sporo.dev/docs.md): every verb the CLI carries, grouped and
