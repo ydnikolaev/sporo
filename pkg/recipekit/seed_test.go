@@ -226,6 +226,153 @@ func TestSeedRedsReportReorderedRows(t *testing.T) {
 	}
 }
 
+// seedFixture reads a named seed fixture from testdata.
+func seedFixture(t *testing.T, file string) string {
+	t.Helper()
+	src, err := os.ReadFile("testdata/seed/" + file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(src)
+}
+
+// VAL-2: a sporo-targeted seed that names sporo (the product) and its own artifacts — the bare
+// word, the `.sporo/` convention, a bare `sporo/cmd/main.go` path — greens on BOTH axes, even with
+// the repo product list naming sporo, because the neutrality policy erases the instance's own
+// declared tool before the scan.
+func TestSeedTargetExemptionGreensOwnArtifacts(t *testing.T) {
+	src := seedFixture(t, "sporo.md")
+	if f := LintShape(SeedShape, "sporo.md", []byte(src), []string{"sporo"}); len(f) != 0 {
+		t.Fatalf("a sporo-targeted seed naming sporo and its own artifacts must lint green; got: %v", f)
+	}
+}
+
+// VAL-3: an unrelated backticked coordinate in the same document still reds — the exemption removes
+// only the target's own tokens, never the reader's tree.
+func TestSeedNonTargetCoordinateReds(t *testing.T) {
+	src := strings.Replace(seedFixture(t, "sporo.md"),
+		"Point sporo at a recipe and let it export the first artifact, so the reader sees a real result in their own repository rather than a promise.",
+		"Point sporo at a recipe, but never edit `internal/foo.go` by hand.", 1)
+	if f := LintShape(SeedShape, "sporo.md", []byte(src), []string{"sporo"}); !hasFinding(f, "names a FILE") {
+		t.Fatalf("an unrelated coordinate must still red; got: %v", f)
+	}
+}
+
+// REQ-4 hyphen boundary: a lookalike that merely STARTS with the tool name (`sporo-helper/…`, the
+// reader's own file) still reds — segment-stem equality, not containment.
+func TestSeedHyphenLookalikeStillReds(t *testing.T) {
+	src := strings.Replace(seedFixture(t, "sporo.md"),
+		"Point sporo at a recipe and let it export the first artifact, so the reader sees a real result in their own repository rather than a promise.",
+		"Never edit `sporo-helper/main.go`, the reader's own file.", 1)
+	if f := LintShape(SeedShape, "sporo.md", []byte(src), []string{"sporo"}); !hasFinding(f, "names a FILE") {
+		t.Fatalf("a lookalike that merely starts with the tool name must still red; got: %v", f)
+	}
+}
+
+// An unrelated BARE (un-backticked) path — the reBarePath axis — still reds, exercising the
+// eraser's not-owned branch (the path is kept, not erased).
+func TestSeedUnrelatedBarePathReds(t *testing.T) {
+	src := strings.Replace(seedFixture(t, "sporo.md"),
+		"Point sporo at a recipe and let it export the first artifact, so the reader sees a real result in their own repository rather than a promise.",
+		"Point sporo at a recipe, but leave vendor/lib/thing.go alone.", 1)
+	if f := LintShape(SeedShape, "sporo.md", []byte(src), []string{"sporo"}); !hasFinding(f, "names a PATH") {
+		t.Fatalf("an unrelated bare path must still red; got: %v", f)
+	}
+}
+
+// The both-axes trap on ONE line: an exempt `.sporo/…` span and an unrelated coordinate share a
+// line; the span is erased but the line still reds on the unrelated one — erasure beats first-match
+// — and the finding quotes the ORIGINAL line (the erased span is visible in the message), proving
+// clip(line), not clip(scanned).
+func TestSeedMixedExemptAndUnrelatedOnSameLineStillReds(t *testing.T) {
+	src := strings.Replace(seedFixture(t, "sporo.md"),
+		"Point sporo at a recipe and let it export the first artifact, so the reader sees a real result in their own repository rather than a promise.",
+		"Keep `.sporo/config.yaml` but never touch `internal/foo.go` on one line.", 1)
+	f := LintShape(SeedShape, "sporo.md", []byte(src), []string{"sporo"})
+	if !hasFinding(f, "names a FILE") {
+		t.Fatalf("an unrelated coordinate sharing a line with an exempt one must still red; got: %v", f)
+	}
+	if !hasFinding(f, "Keep `.sporo/config.yaml`") {
+		t.Fatalf("the finding must quote the ORIGINAL line including the erased span; got: %v", f)
+	}
+}
+
+// N-3 surviving-span non-flip: the same bytes linted under the seed policy and under a nil policy
+// must return the unrelated coordinate's finding BYTE-IDENTICAL (Line and Msg) — erasure suppresses
+// only the exempt token and never relocates or rewords a co-located survivor. The nil run, which
+// exempts nothing, additionally reds the sporo/.sporo tokens the seed policy erases, so it carries
+// strictly more findings: proof the exemption is real and one-directional.
+func TestSeedExemptionPreservesSurvivorFindingExactly(t *testing.T) {
+	src := strings.Replace(seedFixture(t, "sporo.md"),
+		"Point sporo at a recipe and let it export the first artifact, so the reader sees a real result in their own repository rather than a promise.",
+		"Point sporo at a recipe to export the first artifact.\nThe tool writes to `.sporo/config.yaml` in your tree.\nNever edit `internal/foo.go` by hand.", 1)
+	bytes := []byte(src)
+
+	noPolicy := SeedShape
+	noPolicy.Neutrality = nil
+
+	seedF := LintShape(SeedShape, "sporo.md", bytes, []string{"sporo"})
+	nilF := LintShape(noPolicy, "sporo.md", bytes, []string{"sporo"})
+
+	if len(seedF) != 1 {
+		t.Fatalf("the seed policy must leave exactly the one unrelated coordinate reding; got: %v", seedF)
+	}
+	survivor := seedF[0]
+	if !strings.Contains(survivor.Msg, "names a FILE") || !strings.Contains(survivor.Msg, "internal/foo.go") {
+		t.Fatalf("the survivor must be the internal/foo.go FILE finding quoting the ORIGINAL line; got: %v", survivor)
+	}
+	found := false
+	for _, f := range nilF {
+		if f == survivor {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("the survivor must be byte-identical under a nil policy; survivor=%v nil-run=%v", survivor, nilF)
+	}
+	if len(nilF) <= len(seedF) {
+		t.Fatalf("a nil policy must red the exempt tokens the seed policy erases; nil=%v seed=%v", nilF, seedF)
+	}
+}
+
+// N-2: a metacharacter-bearing target (`g++`) is regex-escaped, so the eraser compiles and exempts
+// the tool's own `g++/driver.go` artifact without a panic.
+func TestSeedMetacharTargetExemptsWithoutPanic(t *testing.T) {
+	src := seedFixture(t, "metachar.md")
+	if f := LintShape(SeedShape, "metachar.md", []byte(src), nil); len(f) != 0 {
+		t.Fatalf("a metacharacter-bearing target must exempt its own artifact without panicking; got: %v", f)
+	}
+}
+
+// A malformed (`@`-less) target yields no exemption: its own frontmatter check reds it, and the
+// sporo tokens that a valid target would exempt now red like any document's — no crash.
+func TestSeedMalformedTargetGivesNoExemption(t *testing.T) {
+	src := strings.Replace(seedFixture(t, "sporo.md"), "target: sporo@v1.0.0", "target: sporo", 1)
+	f := LintShape(SeedShape, "sporo.md", []byte(src), []string{"sporo"})
+	if !hasFinding(f, "must be `<tool>@<version>`") {
+		t.Fatalf("a malformed target must red the frontmatter check; got: %v", f)
+	}
+	if !hasFinding(f, "names a product") {
+		t.Fatalf("with no exemption, the sporo tokens must red; got: %v", f)
+	}
+}
+
+// The two nil-eraser branches directly: no target key, no `@`, and an empty tool left of the `@`
+// all yield a nil (no-exemption) eraser.
+func TestSeedNeutralityNilForMalformedTargets(t *testing.T) {
+	for _, fm := range [][]string{
+		{"name: x"},
+		{"target: sporo"},
+		{"target: @v1.0.0"},
+		{`target: "@1.0"`},
+	} {
+		if seedNeutrality(fm) != nil {
+			t.Fatalf("malformed target %v must yield a nil (no-exemption) eraser", fm)
+		}
+	}
+}
+
 // A `_`-prefixed name is the genre's own meta-document: it teaches the shape, it does not
 // instantiate it, so the engine holds it to the line-1 banner alone. A body that would red under
 // an instance name must lint green under a `_` name.

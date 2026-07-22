@@ -247,7 +247,14 @@ func Lint(name string, src []byte, products []string, extra ...func(name string,
 // provenance, not instruction) and the appendix is the one section where instances are
 // allowed and are explicitly marked as illustration. There is no other exempt zone — in
 // particular the stack sections get no licence, because a technology was never a coordinate.
-func neutrality(name string, lines []string, fmEnd int, products []string) []Finding {
+// The `erase` tail is the per-shape neutrality policy applied to the scanned copy of each line,
+// AFTER URL erasure and BEFORE the product and coordinate scans. It is variadic so the recipe
+// path (and the direct test callsite) pass zero erasers and stay byte-frozen; LintShape passes
+// exactly one, which may be nil. A nil eraser, or no eraser, is the identity — today's behavior
+// — so a genre with no policy scans exactly as it always did. An eraser removes only the
+// instance's own target-derived tokens from the scanned copy; findings still quote the ORIGINAL
+// line, so a suppressed token never relocates or reworders a co-located survivor's finding.
+func neutrality(name string, lines []string, fmEnd int, products []string, erase ...func(string) string) []Finding {
 	var out []Finding
 	var reProducts *regexp.Regexp
 	if len(products) > 0 {
@@ -280,6 +287,11 @@ func neutrality(name string, lines []string, fmEnd int, products []string) []Fin
 			continue
 		}
 		scanned := reURL.ReplaceAllString(line, "")
+		for _, e := range erase {
+			if e != nil {
+				scanned = e(scanned)
+			}
+		}
 		n := i + 1
 		switch {
 		case reProducts != nil && reProducts.MatchString(scanned):

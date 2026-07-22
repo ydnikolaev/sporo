@@ -19,6 +19,11 @@ var (
 	// declared source origin (authoring §2). Their spelling is pinned in seeds/_authoring.md.
 	reDetect    = regexp.MustCompile(`\*\*Detect:\*\*`)
 	reBlindPipe = regexp.MustCompile(`(?:curl|wget|fetch)\b.*\|\s*(?:sudo\s+)?(?:sh|bash|zsh|dash)\b`)
+	// reBacktickSpan matches one backticked span — the unit the seed neutrality eraser tests for
+	// target ownership. Declared HERE, not in lint.go, so the recipe file carries no seed
+	// vocabulary; the recipe's own coordinate regexps (reFilename/rePathSeg) are backtick-anchored
+	// against the same spans, so a span this eraser removes cannot red on them afterwards.
+	reBacktickSpan = regexp.MustCompile("`[^`]*`")
 )
 
 // seedReportRows are the five fixed Report rows, in order (authoring §4). The human reviews many
@@ -58,7 +63,94 @@ var SeedShape = RegisterShape(Shape{
 	Keys:              seedKeys,
 	FrontmatterChecks: seedFrontmatterChecks,
 	BodyChecks:        seedBodyChecks,
+	Neutrality:        seedNeutrality,
 })
+
+// seedNeutrality is the seed genre's neutrality policy, as data: it reads the instance's required
+// `target:` and returns a per-line eraser that removes the seed's OWN tool — and only that tool —
+// from the line the coordinate scan sees. This is the §3 stance made mechanical: a seed names its
+// one tool freely (the target, its `.tool/` convention, its own artifacts) while the reader's tree
+// stays role-only. It is not a per-instance opt-out (INV-2): `target` is required frontmatter, the
+// policy can only ever remove the instance's own declared tool, and there is no knob to disable it.
+//
+// The tool token T is the target value cut at the first `@`, quote/space-trimmed, lowercased. A
+// missing or `@`-less target is malformed — its own frontmatter finding already reds it — so the
+// eraser is nil (no exemption, no crash). Given a valid T the eraser erases, from the scanned copy,
+// in order: (1) whole backticked spans a segment of which is T's own artifact, (2) bare-path
+// coordinates by the same test, (3) the bare word T. Steps 1–2 close the coordinate axis; step 3
+// closes the product axis (`reProducts` matches the bare word) and any T left inside a survivor —
+// all before the switch, so a single token reds on neither axis while an unrelated coordinate on
+// the same line still reds untouched.
+func seedNeutrality(fm []string) func(string) string {
+	tool := strings.ToLower(strings.Trim(fmValue(fm, "target"), `"`))
+	if at := strings.Index(tool, "@"); at >= 0 {
+		tool = strings.TrimSpace(tool[:at])
+	} else {
+		return nil // malformed target — the frontmatter check owns the red; no exemption
+	}
+	tool = strings.Trim(tool, `"`)
+	if tool == "" {
+		return nil
+	}
+	// N-2: the token enters a regexp, so escape it — a metacharacter in a declared target must not
+	// mis-compile or panic, exactly as the product axis escapes its list (lint.go).
+	reWord := regexp.MustCompile(`(?i)\b` + regexp.QuoteMeta(tool) + `\b`)
+	return func(scanned string) string {
+		scanned = reBacktickSpan.ReplaceAllStringFunc(scanned, func(span string) string {
+			if toolOwnsCoordinate(strings.Trim(span, "`"), tool) {
+				return ""
+			}
+			return span
+		})
+		scanned = eraseOwnedBarePaths(scanned, tool)
+		return reWord.ReplaceAllString(scanned, "")
+	}
+}
+
+// toolOwnsCoordinate reports whether any `/`-segment of a coordinate is the tool's own artifact —
+// segment-STEM equality, not containment. The stem is the segment with a single leading `.` and a
+// trailing `.<ext>` stripped, so `.sporo` and `sporo.go` both match tool `sporo`, while
+// `sporo-helper` (a lookalike the reader owns) does not. Containment would wrongly exempt the
+// reader's `sporo-helper/…`, which REQ-4 requires to red.
+func toolOwnsCoordinate(inner, tool string) bool {
+	for _, seg := range strings.Split(inner, "/") {
+		if strings.EqualFold(segmentStem(seg), tool) {
+			return true
+		}
+	}
+	return false
+}
+
+// segmentStem strips a single leading `.` and a trailing `.<ext>` from a path segment.
+func segmentStem(seg string) string {
+	seg = strings.TrimPrefix(seg, ".")
+	if i := strings.LastIndex(seg, "."); i >= 0 {
+		seg = seg[:i]
+	}
+	return seg
+}
+
+// eraseOwnedBarePaths erases each bare (un-backticked) path coordinate whose segment stem is the
+// tool's own, matched by the recipe engine's own reBarePath so the two agree on what a bare path
+// is. Only the captured path (group 1) is erased; the boundary char reBarePath consumes before it
+// is preserved, so surrounding prose and any co-located unrelated path are left byte-intact.
+func eraseOwnedBarePaths(s, tool string) string {
+	spans := reBarePath.FindAllStringSubmatchIndex(s, -1)
+	if spans == nil {
+		return s
+	}
+	var b strings.Builder
+	last := 0
+	for _, m := range spans {
+		pathStart, pathEnd := m[2], m[3]
+		if toolOwnsCoordinate(s[pathStart:pathEnd], tool) {
+			b.WriteString(s[last:pathStart])
+			last = pathEnd
+		}
+	}
+	b.WriteString(s[last:])
+	return b.String()
+}
 
 // seedFrontmatterChecks is the seed genre's format layer over the required keys. Each check fires
 // only when the key is present — a missing key is the engine's required-key finding, not this

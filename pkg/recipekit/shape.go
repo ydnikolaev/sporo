@@ -11,17 +11,24 @@ import (
 type FailFunc func(line int, format string, a ...any)
 
 // Shape is an entity genre as data: the ordered required sections and frontmatter keys the
-// engine checks for every kind, plus the two genre-specific hooks it cannot know generically.
+// engine checks for every kind, plus the genre-specific hooks it cannot know generically.
 // FrontmatterChecks runs inside the frontmatter-exists branch, after the required-key scan;
 // BodyChecks runs after the section presence+order scan. Splitting the extras into a
 // frontmatter hook and a body hook is load-bearing: a single lumped hook would move a genre's
 // frontmatter-format findings from before the section scan to after it.
+//
+// Neutrality is the genre's per-instance neutrality policy, also as data: given the parsed
+// frontmatter it returns a per-line eraser the engine applies to each scanned line before the
+// coordinate scan (or nil for no policy). It mirrors FrontmatterChecks/BodyChecks — the engine
+// consults the field uniformly and never branches on Kind. A genre that leaves it nil (the
+// recipe) gets today's neutrality exactly: the eraser is the identity, no token is exempt.
 type Shape struct {
 	Kind              string
 	Sections          []string
 	Keys              []string
 	FrontmatterChecks func(fm []string, fail FailFunc)
 	BodyChecks        func(name string, lines []string, fail FailFunc)
+	Neutrality        func(fm []string) func(string) string
 }
 
 // The closed kind vocabulary — the single SSOT for what an entity can be. It lives in this
@@ -115,6 +122,11 @@ func LintShape(shape Shape, name string, src []byte, products []string, extra ..
 			}
 		}
 	}
+	// The neutrality eraser is computed once, here, from the frontmatter the engine already
+	// parses — no second parse — and threaded into neutrality below. It stays nil when the shape
+	// declares no policy or there is no frontmatter to derive from, and a nil eraser is the
+	// identity (see neutrality), so the recipe path is a structural no-op.
+	var erase func(string) string
 	if fmStart < 0 || fmEnd < 0 {
 		fail(0, "missing frontmatter (--- … ---) with %s", strings.Join(shape.Keys, "/"))
 	} else {
@@ -126,6 +138,9 @@ func LintShape(shape Shape, name string, src []byte, products []string, extra ..
 		}
 		if shape.FrontmatterChecks != nil {
 			shape.FrontmatterChecks(fm, fail)
+		}
+		if shape.Neutrality != nil {
+			erase = shape.Neutrality(fm)
 		}
 	}
 
@@ -159,6 +174,6 @@ func LintShape(shape Shape, name string, src []byte, products []string, extra ..
 		out = append(out, ex(name, src)...)
 	}
 
-	out = append(out, neutrality(name, lines, fmEnd, products)...)
+	out = append(out, neutrality(name, lines, fmEnd, products, erase)...)
 	return out
 }

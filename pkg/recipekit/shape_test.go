@@ -81,6 +81,27 @@ Body under alpha.
 	}
 }
 
+// AC-3 / REQ-5: a Shape that declares no neutrality policy (Neutrality nil) gets the identity
+// eraser — today's engine exactly. A backticked coordinate in its body reds the same way it does
+// for a recipe, proving nil = identity and that the exemption is the seed genre's, not the engine's.
+func TestAPolicylessShapeRedsACoordinateAsToday(t *testing.T) {
+	if syntheticShape().Neutrality != nil {
+		t.Fatal("the synthetic shape must declare no neutrality policy for this to prove anything")
+	}
+	const body = `<!-- SSOT SOURCE -->
+---
+handle: seed-widget
+---
+## Alpha
+Edit ` + "`internal/foo.go`" + ` to wire it in.
+## Beta
+Body under beta.
+`
+	if f := LintShape(syntheticShape(), "widget.md", []byte(body), nil); !hasFinding(f, "names a FILE") {
+		t.Fatalf("a policy-less shape must red a coordinate exactly as today; got: %v", f)
+	}
+}
+
 func TestShapeForRoundTrip(t *testing.T) {
 	// Both real shapes now register through their package-var initializers (RecipeShape,
 	// SeedShape), so the vocabulary is closed and re-registering KindSeed here would

@@ -25,6 +25,19 @@ var seedGenreShapes = map[string]string{
 		"-- frontmatter --",
 		strings.Join(seedKeys, "\n"),
 	}, "\n"),
+	// 1.0.1 is a PATCH clarification of §3's neutrality prose — the seven-section shape and nine
+	// keys are unchanged, so the snapshot is byte-identical to 1.0.0 (no MAJOR required).
+	"1.0.1": strings.Join([]string{
+		"## Summary",
+		"## What it is",
+		"## Install",
+		"## Verify",
+		"## Use",
+		"## Harness",
+		"## Report",
+		"-- frontmatter --",
+		strings.Join(seedKeys, "\n"),
+	}, "\n"),
 }
 
 func seedGenreShapeMatches(version string, sections, keys []string) bool {
@@ -80,6 +93,7 @@ var reSeedSpecVersion = regexp.MustCompile(`(?m)^version:\s*.+$`)
 // touching — a self-contained seed ledger must not couple to a private of the file it must not edit.
 var seedSpecHashes = map[string]string{
 	"1.0.0": "sha256:7538f88e3416fe22c8f7766fcc7abd3e962493e9059d8eaae664e923e07c4884",
+	"1.0.1": "sha256:9b3a64565e31f8fc2e32963ca78cdd0861defdd7f6afeee354278d46f35b4b4e",
 }
 
 func seedSpecPayloadHash(src []byte) string {

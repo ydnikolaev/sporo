@@ -2,7 +2,7 @@
 
 ---
 name: _authoring
-version: 1.0.0
+version: 1.0.1
 title: Authoring a seed — the canonical shape of a transferable install
 problem: A tool we depend on cannot be brought into a repository that has never heard of it — safely, idempotently, and in a way the human can audit.
 prerequisites: [read-files, edit-files, run-commands]
@@ -202,10 +202,15 @@ this in a repository whose layout you have never seen?*
   repository, and naming them assumes a tree you cannot see. Say them as **roles**: *the reader's
   executable path*, *wherever this repository keeps its agent rules*, *the project's own config* —
   never a literal path or filename lifted from your own machine.
-- A **backticked path or filename in the prose body still reds**, exactly as it does for a recipe,
-  because the neutrality engine does not know or care that your genre installs a real tool — it
-  matches coordinate syntax wherever it appears. So the discipline is: concrete about the **tool**,
-  role-only about the **tree**.
+- A **backticked path or filename in the prose body still reds** — with one carve-out the
+  engine now honors: a coordinate whose path segment or filename **stem is the target tool's own
+  name** (segment-stem equality against the declared `target`) is the seed's own subject and
+  passes; **every other coordinate — the reader's tree first of all — still reds**, exactly as it
+  does for a recipe. The engine exempts the one tool it was told to name and nothing more: it
+  erases the target's own artifacts from the line before the coordinate scan, so the tool's own
+  directory and files pass while an unrelated path, or a lookalike that merely starts with the
+  tool's name, still reds. So the discipline is: concrete about the **tool**, role-only about the
+  **tree**.
 
 This is why the target and source live in **frontmatter** — provenance, named once — while the
 body speaks in roles about everything that belongs to the reader.
@@ -329,6 +334,14 @@ can hold a seed about its **own** repository to this contract. The genre spec tr
 binary goes.
 
 ## 10. Version history
+
+### 1.0.1 — the neutrality carve-out for the target tool
+
+Narrowed §3 bullet 3: the neutrality engine now honors a per-seed carve-out, exempting a coordinate
+whose path segment or filename stem equals the declared `target` tool's own name (segment-stem
+equality) while every other coordinate — the reader's tree first of all — still reds. The genre's
+seven-section shape and nine frontmatter keys are unchanged; only the constitutional prose about how
+the engine treats the target's own artifacts is clarified to match the engine.
 
 ### 1.0.0 — the original sealed genre
 
