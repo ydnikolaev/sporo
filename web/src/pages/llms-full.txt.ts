@@ -77,7 +77,7 @@ ${SPORO_VERSION}. Source: https://github.com/ydnikolaev/sporo`,
     `# A complete recipe: derived-progress-report\n\n${rawRecipe('derived-progress-report')}`,
     // The seed genre and every seed body come from the corpus reader (seeds.ts), NOT surface.json,
     // so this stays complete with or without S3. Order: the genre spec, then each seed in full
-    // (frontmatter intact). The corpus holds zero seeds today, so only the genre spec lands until S5.
+    // (frontmatter intact) — the canonical `sporo` seed today, and any later seed with no edit here.
     `# The seed genre (authoring spec)\n\n${seedGenreSpec()}`,
     ...listSeeds().map((s) => `# A complete seed: ${s.slug}\n\n${rawSeed(s.slug)}`),
   ];

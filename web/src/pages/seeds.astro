@@ -11,8 +11,8 @@ import PageActionBar from '../components/PageActionBar.astro';
 // The seed storefront — the sibling of recipes.astro. Every seed in the corpus, as a card that
 // links to its nested detail page (/seeds/<slug>.html). The list is generated from the corpus at
 // build, so publishing a seed (a new `.md` under seeds/) adds a card and a page with no edit here.
-// The corpus holds zero real seeds today (the first lands in S5), so the page renders an explicit
-// empty-state that still teaches what a seed is and where the trust comes from.
+// The corpus ships the canonical `sporo` seed; the empty-state branch below is kept as a genuine
+// fallback (it teaches what a seed is and where trust comes from) for a build where none exist.
 const seeds = listSeeds()
   .map(({ slug, meta, summary, sealed }) => ({
     slug,

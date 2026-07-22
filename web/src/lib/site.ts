@@ -13,8 +13,11 @@ export const SPORO_VERSION: string = import.meta.env.PUBLIC_SPORO_VERSION || sur
 export const VERB_COUNT: number = surface.verbs.length;
 
 // One date for the whole site, so the sitemap's lastmod and the articles' datePublished can
-// never disagree the way the hand-written files did (07-15 vs 07-16).
-export const SITE_DATE = '2026-07-16';
+// never disagree the way the hand-written files did (07-15 vs 07-16). Injected at deploy as the
+// build date (PUBLIC_SITE_DATE, the Pages workflow), mirroring PUBLIC_SPORO_VERSION — so it tracks
+// the last deploy instead of a hand-typed constant that silently goes stale. The fallback is only
+// for a local preview, where a fixed date is honest.
+export const SITE_DATE = import.meta.env.PUBLIC_SITE_DATE || '2026-07-22';
 
 // The stable JSON-LD entity ids. BaseHead injects the Organization and WebSite nodes under these
 // @ids on EVERY page, so a page-level node's author/publisher/isPartOf can reference them by @id

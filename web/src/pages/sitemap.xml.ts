@@ -34,7 +34,7 @@ export const GET: APIRoute = ({ site }) => {
     lastmod: /^\d{4}-\d{2}-\d{2}$/.test(meta.date ?? '') ? meta.date : SITE_DATE,
   }));
   // Seed detail routes are NESTED (/seeds/<slug>.html); mirrors the recipe mapping against the seed
-  // corpus. Empty today (the first seed lands in S5), so this contributes nothing until then.
+  // corpus — the canonical `sporo` seed today, and any later seed with no edit here.
   const seeds = listSeeds().map(({ slug, meta }) => ({
     loc: `/seeds/${slug}.html`,
     lastmod: /^\d{4}-\d{2}-\d{2}$/.test(meta.date ?? '') ? meta.date : SITE_DATE,

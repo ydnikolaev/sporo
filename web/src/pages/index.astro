@@ -86,7 +86,17 @@ const head = {
                 <code class="byhand-code"><span class="byhand-dollar">$</span>curl -fsSL sporo.dev/install.sh | sh</code>
                 <button type="button" class="setup-curl-copy byhand-copy" data-copy="curl -fsSL sporo.dev/install.sh | sh" title="copy install command" aria-label="Copy the install command">copy</button>
               </div>
-              <div class="byhand-sub">one static binary · macOS / linux / windows · zero accounts, servers or runtimes · <a href="https://github.com/ydnikolaev/sporo/releases/latest" style="text-decoration:underline;text-underline-offset:3px">latest release</a>{downloads != null && downloads > 0 && ` · ${downloads.toLocaleString('en-US')} downloads`}</div>
+            </div>
+            <!-- Facts common to BOTH install paths — one static binary, the platforms, the latest
+                 release, the live download tally — so they live at card level, OUTSIDE the two
+                 role="tabpanel" divs the tab script toggles. Switching tabs never hides them. -->
+            <div class="setup-meta">
+              <span class="setup-meta-item">one static binary</span>
+              <span class="setup-meta-item">macOS · Linux · Windows</span>
+              <a class="setup-meta-item setup-meta-link" href="https://github.com/ydnikolaev/sporo/releases/latest">latest release <span aria-hidden="true">↗</span></a>
+              {downloads != null && downloads > 0 && (
+                <span class="setup-meta-item"><b>{downloads.toLocaleString('en-US')}</b> downloads</span>
+              )}
             </div>
           </div>
           <div style="margin-top:1.15rem"><TrustStrip compact={true} /></div>
@@ -103,7 +113,7 @@ const head = {
           <div style="background:var(--card);padding:1.4rem 1.4rem 1.3rem">
             <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;color:var(--accent);font-weight:600;margin-bottom:.6rem">02 — INIT</div>
             <div style="font-weight:600;letter-spacing:-.01em"><code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.92em;background:var(--accent-soft);padding:.1em .4em;border-radius:.35em">sporo init</code> in your repo.</div>
-            <p style="margin-top:.3rem;color:var(--muted);font-size:.92rem">It writes the <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.92em;color:var(--ink)">sporo-recipe</code> skill into your agent, plus the seeds and guardrails it works within.</p>
+            <p style="margin-top:.3rem;color:var(--muted);font-size:.92rem">It writes the <code style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.92em;color:var(--ink)">sporo-recipe</code> skill into your agent and a starter config — the authoring surface, ready in this repo.</p>
           </div>
           <div style="background:var(--card);padding:1.4rem 1.4rem 1.3rem">
             <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;color:var(--accent);font-weight:600;margin-bottom:.6rem">03 — AUTHOR</div>
@@ -149,7 +159,7 @@ const head = {
               <svg aria-hidden="true" viewBox="0 0 22 22" fill="none" width="46" height="46" style="animation:spin 44s linear infinite"><circle cx="11" cy="11" r="4.2" fill="#6cc98d"></circle><circle cx="11" cy="2.6" r="1.5" fill="#6cc98d" opacity=".75"></circle><circle cx="18.6" cy="7.4" r="1.5" fill="#6cc98d" opacity=".55"></circle><circle cx="16.9" cy="16.9" r="1.5" fill="#6cc98d" opacity=".75"></circle><circle cx="5.1" cy="16.9" r="1.5" fill="#6cc98d" opacity=".55"></circle><circle cx="3.4" cy="7.4" r="1.5" fill="#6cc98d" opacity=".75"></circle></svg>
               <div style="margin-top:.7rem;color:#e8ebe6;font-weight:650;letter-spacing:-.01em">one recipe</div>
               <div style="margin-top:.15rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:#8fd1a4">self-contained file</div>
-              <div style="margin-top:.8rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.62rem;color:#98a298"><span style="border:1px solid #ffffff1f;border-radius:99px;padding:.15rem .5rem">sealed 2.1.0</span><span style="border:1px solid #ffffff1f;border-radius:99px;padding:.15rem .5rem">content-hashed</span></div>
+              <div style="margin-top:.8rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.62rem;color:#98a298"><span style="border:1px solid #ffffff1f;border-radius:99px;padding:.15rem .5rem">sealed</span><span style="border:1px solid #ffffff1f;border-radius:99px;padding:.15rem .5rem">content-hashed</span></div>
             </div>
           </div>
 
@@ -448,11 +458,44 @@ const head = {
       padding: 0 1.3rem;
       cursor: pointer;
     }
-    .byhand-sub {
-      margin-top: 0.75rem;
+    /* The shared facts strip — a quiet card-level footer under whichever panel is showing, with a
+       hairline separator above it and dot-delimited items that wrap cleanly on a phone. */
+    .setup-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 0;
+      padding: 0.8rem 1.2rem;
+      border-top: 1px solid var(--line);
+      background: var(--band);
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       color: var(--muted);
+    }
+    .setup-meta-item {
+      /* Plain inline flow (NOT inline-flex): a flex container trims the whitespace between its
+         children, which would glue "22" to "downloads" and "release" to its "↗". */
+      white-space: nowrap;
+    }
+    /* Dot delimiters drawn between items (not after the last), so the markup stays clean and the
+       conditional "downloads" item needs no special-casing. The dot carries its own symmetric
+       margin; the container has no column-gap, so spacing never doubles. */
+    .setup-meta-item + .setup-meta-item::before {
+      content: '·';
+      margin: 0 0.85rem;
+      color: var(--line);
+    }
+    .setup-meta-item b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .setup-meta-link {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .setup-meta-link:hover {
+      color: var(--accent);
     }
     @media (prefers-reduced-motion: reduce) {
       .setup-tab {

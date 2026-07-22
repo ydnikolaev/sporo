@@ -62,7 +62,10 @@ jobs:
         run: |
           V=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName | sed 's/^v//')
           echo "PUBLIC_SPORO_VERSION=$V" > web/.env
-          echo "resolved release version: $V"
+          # The site-wide lastmod / datePublished date, injected as the deploy date so it tracks the
+          # last publish instead of a hand-typed constant (SITE_DATE) that silently goes stale.
+          echo "PUBLIC_SITE_DATE=$(date -u +%F)" >> web/.env
+          echo "resolved release version: $V (site date $(date -u +%F))"
         env:
           GH_TOKEN: ${{ github.token }}
 
