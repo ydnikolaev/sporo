@@ -72,8 +72,13 @@ const head = {
         <h1 style="font-size:clamp(2.9rem,8.2vw,6.4rem);line-height:.98;letter-spacing:-.05em;font-weight:760;max-width:15ch;text-wrap:balance">Code moves by copying. Capability moves by <em style="font-style:italic;color:var(--accent)">teaching</em>.</h1>
         <p style="margin-top:1.6rem;font-size:clamp(1.45rem,3.4vw,2.25rem);line-height:1.14;letter-spacing:-.03em;font-weight:640;color:var(--ink);max-width:19ch;text-wrap:balance">Transferable build recipes <span style="color:var(--accent)">for&nbsp;AI&nbsp;agents</span>.</p>
         <p style="margin-top:1.5rem;font-size:clamp(1.08rem,1.9vw,1.3rem);color:var(--muted);max-width:52ch;text-wrap:pretty"><span class="brand">sporo</span> turns a build you already did into a <strong style="color:var(--ink)">recipe</strong> — one self-contained file any AI agent can rebuild from, on its own stack, in a repository that has never seen yours. Your scars included, so nobody pays for them twice.</p>
-        <div style="margin-top:3rem;max-width:44rem">
+        <div style="margin-top:1.9rem"><AgentMarks /></div>
+        <div style="margin-top:2.4rem;max-width:44rem">
           <div class="setup-card">
+            <div class="setup-cardhead">
+              <span class="setup-cardhead-title">Set up sporo</span>
+              <span class="setup-cardhead-hint">one binary · then <code>sporo init</code></span>
+            </div>
             <div class="setup-tabs" role="tablist" aria-label="How to set up sporo">
               <button type="button" role="tab" id="tab-agent" aria-controls="panel-agent" aria-selected="true" class="setup-tab">for your agent</button>
               <button type="button" role="tab" id="tab-hand" aria-controls="panel-hand" aria-selected="false" tabindex="-1" class="setup-tab">by hand</button>
@@ -95,14 +100,11 @@ const head = {
               <span class="setup-meta-item">macOS · Linux · Windows</span>
               <a class="setup-meta-item setup-meta-link" href="https://github.com/ydnikolaev/sporo/releases/latest">latest release <span aria-hidden="true">↗</span></a>
               {downloads != null && downloads > 0 && (
-                <span class="setup-meta-item"><b>{downloads.toLocaleString('en-US')}</b> downloads</span>
+                <a class="setup-meta-item setup-meta-link" href="https://github.com/ydnikolaev/sporo/releases" title="GitHub's own tally of release-binary asset downloads across every release — the binary, not the seed; a ceiling on installs, counted by GitHub, not this site."><b>{downloads.toLocaleString('en-US')}</b> binary downloads <span aria-hidden="true">↗</span></a>
               )}
             </div>
           </div>
           <div style="margin-top:1.15rem"><TrustStrip compact={true} /></div>
-        </div>
-        <div style="margin-top:2.8rem">
-          <AgentMarks />
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;margin-top:3.5rem;border:1px solid var(--line);background:var(--line);border-radius:1rem;overflow:hidden">
           <div style="background:var(--card);padding:1.4rem 1.4rem 1.3rem">
@@ -392,6 +394,35 @@ const head = {
       overflow: hidden;
       background: var(--card);
       box-shadow: 0 24px 70px -40px rgba(0, 0, 0, 0.35);
+    }
+    /* A titled header so the card reads as "this is how you set sporo up", not an unlabelled
+       tab strip. Sits above the tabs; the hint names the shape of the install in one glance. */
+    .setup-cardhead {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem 1rem;
+      flex-wrap: wrap;
+      padding: 0.85rem 1.2rem 0.75rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .setup-cardhead-title {
+      font-weight: 680;
+      letter-spacing: -0.01em;
+      font-size: 1.02rem;
+      color: var(--ink);
+    }
+    .setup-cardhead-hint {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .setup-cardhead-hint code {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      background: var(--accent-soft);
+      color: var(--ink);
+      padding: 0.05em 0.35em;
+      border-radius: 0.3em;
     }
     .setup-tabs {
       display: flex;

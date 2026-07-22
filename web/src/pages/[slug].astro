@@ -125,15 +125,14 @@ const head = {
         <Publisher size={22} prefix="by" />
         <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>
         {recipe.sealed ? (
-          <button id="seal-toggle" type="button" aria-expanded="false" aria-controls="seal-proof" class="seal-toggle" title="How this seal is verified">
+          <button id="seal-toggle" type="button" aria-expanded="false" aria-controls="seal-proof" class="seal-toggle" title="How this is verified — recompute it yourself">
             <GateBadge sealed={true} />
+            {attested && <AttestBadge slug={slug as string} />}
             <svg class="seal-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
           </button>
         ) : (
           <GateBadge sealed={false} />
         )}
-        {attested && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
-        {attested && <AttestBadge slug={slug as string} />}
         {date && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
         {date && <span>verified {date}</span>}
         {project && <span aria-hidden="true" style="width:1px;height:1rem;background:var(--line)"></span>}
@@ -142,34 +141,35 @@ const head = {
 
       {recipe.sealed && (
         <div id="seal-proof" class="seal-proof" hidden data-slug={slug} data-recipe-url={seal.recipeRawUrl} data-registry-url={seal.registryRawUrl}>
-          <p class="seal-plain">This recipe is <strong>sealed</strong>: these exact bytes have not changed since it was published. A SHA-256 fingerprint of the source is committed to a public registry — change one character and it no longer matches, and this badge is gone. You don't have to take our word for it.</p>
-
-          {sealedDate && <div class="seal-k">Sealed {sealedDate}{project && <> · distilled from a real build in <span style="color:var(--ink)">{project}</span></>} — the date is stamped by <code class="seal-hash">sporo seal</code>, not typed by hand.</div>}
-
+          <div class="seal-sec"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg><span>Sealed</span><span class="seal-sec-sub">source integrity — these exact bytes</span></div>
+          <p class="seal-plain">These bytes have not changed since the recipe was published: a SHA-256 fingerprint of the source is committed to a public registry — change one character and it no longer matches, and the mark is gone.{sealedDate && <> Sealed <span class="seal-hl">{sealedDate}</span>{project && <> · from a real build in <span class="seal-hl">{project}</span></>}, stamped by <code class="seal-hash">sporo seal</code>.</>}</p>
           <div class="seal-block">
-            <div class="seal-k">Reproduce it yourself — the recipe and its fingerprint both live on GitHub, not here:</div>
+            <div class="seal-k">Recompute it yourself — the recipe and its fingerprint both live on GitHub, not here:</div>
             <div class="seal-cmd">
               <code>curl -s {seal.recipeRawUrl} | shasum -a 256</code>
               <button type="button" class="seal-copy" data-copy={`curl -s ${seal.recipeRawUrl} | shasum -a 256`}>copy</button>
             </div>
-            <p class="seal-muted">The result equals the hash committed in the <a href={seal.registryBlobUrl} target="_blank" rel="noopener">public registry ↗</a> — <code class="seal-hash">{seal.hash}</code>. Neither side is served by this site.</p>
-          </div>
-
-          <div class="seal-block">
-            <button id="seal-verify" type="button" class="seal-verify">Verify in your browser</button>
-            <span id="seal-result" class="seal-result" role="status" aria-live="polite"></span>
-            <p class="seal-muted">A convenience demo: your browser refetches the recipe <em>and</em> the registry from GitHub and recomputes the hash — it trusts nothing from this page. View source to confirm.</p>
+            <p class="seal-muted">It equals the hash committed in the <a href={seal.registryBlobUrl} target="_blank" rel="noopener">public registry ↗</a>, served by neither side:</p>
+            <code class="seal-hash-line">{seal.hash}</code>
+            <div class="seal-verify-row">
+              <button id="seal-verify" type="button" class="seal-verify">Verify in your browser</button>
+              <span id="seal-result" class="seal-result" role="status" aria-live="polite"></span>
+            </div>
+            <p class="seal-muted">The browser refetches the recipe <em>and</em> the registry from GitHub and recomputes the hash — it trusts nothing from this page.</p>
           </div>
 
           {attested && (
-            <div class="seal-block">
-              <div class="seal-k">Attested provenance — prove the export you hold (the <code class="seal-hash">.md</code> from the download button above, not the GitHub source) came through the official pipeline, offline, from the file alone:</div>
-              <div class="seal-cmd">
-                <code>gh attestation verify {slug}.md -R ydnikolaev/sporo</code>
-                <button type="button" class="seal-copy" data-copy={`gh attestation verify ${slug}.md -R ydnikolaev/sporo`}>copy</button>
+            <>
+              <div class="seal-sec"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6" /><path d="M9.4 9l1.8 1.8L15 7" /><path d="M8.6 14.3 7 20l5-2.6L17 20l-1.6-5.7" /></svg><span>Attested</span><span class="seal-sec-sub">pipeline provenance — where it came from</span></div>
+              <p class="seal-plain">Prove the export you hold (the <code class="seal-hash">.md</code> from the download button above, not the GitHub source) came through the official pipeline, offline, from the file alone:</p>
+              <div class="seal-block">
+                <div class="seal-cmd">
+                  <code>gh attestation verify {slug}.md -R ydnikolaev/sporo</code>
+                  <button type="button" class="seal-copy" data-copy={`gh attestation verify ${slug}.md -R ydnikolaev/sporo`}>copy</button>
+                </div>
+                <p class="seal-muted">Sigstore-signed to <code class="seal-hash">ydnikolaev/sporo · attest-corpus.yml</code> on merge — keyless OIDC, no key to leak. Change one byte and the digest no longer matches, so verify fails. Proves origin + integrity, not a safety scan.</p>
               </div>
-              <p class="seal-muted">Sigstore-signed to <code class="seal-hash">ydnikolaev/sporo · attest-corpus.yml</code> on merge — keyless OIDC, no key to leak. Change one byte and the digest no longer matches, so verify fails. Proves origin + integrity, not a safety scan.</p>
-            </div>
+            </>
           )}
 
           <div class="seal-links">
@@ -564,20 +564,65 @@ const head = {
     border-radius: 0.3em;
     word-break: break-all;
   }
+  /* Section header inside the panel — one per verification concern (Sealed / Attested), so the two
+     independent checks read apart instead of as one run-on wall. */
+  .seal-sec {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent);
+    flex-wrap: wrap;
+  }
+  .seal-sec-sub {
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: none;
+  }
+  .seal-hl {
+    color: var(--ink);
+  }
+  /* The registry hash on its own line — a 71-char sha256 wrapped mid-sentence was the panel's
+     worst visual break. */
+  .seal-hash-line {
+    display: block;
+    box-sizing: border-box;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: var(--ink);
+    background: var(--accent-soft);
+    border-radius: 0.4rem;
+    padding: 0.45rem 0.6rem;
+    word-break: break-all;
+    line-height: 1.5;
+  }
+  .seal-verify-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem 0.6rem;
+    flex-wrap: wrap;
+  }
+  /* Secondary (outline), not solid — the dark command block above is the primary path; the live
+     check is the optional convenience, so it no longer competes as a big green slab. */
   .seal-verify {
     font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    color: var(--bg);
-    background: var(--accent);
+    color: var(--accent);
+    background: transparent;
     border: 1px solid var(--accent);
     border-radius: 0.5rem;
-    padding: 0.45rem 0.9rem;
+    padding: 0.4rem 0.85rem;
     cursor: pointer;
-    transition: opacity 0.15s ease;
+    transition: background 0.15s ease;
   }
   .seal-verify:hover {
-    opacity: 0.88;
+    background: var(--accent-soft);
   }
   .seal-result {
     font-family: 'IBM Plex Mono', ui-monospace, monospace;
