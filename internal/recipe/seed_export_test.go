@@ -144,7 +144,7 @@ func TestSeedExportComposesPreambleFirstBannerFree(t *testing.T) {
 	if strings.Contains(got, "SSOT SOURCE") {
 		t.Fatalf("the provenance banner is house business about a repo the reader does not have — it must be stripped:\n%s", got)
 	}
-	if !strings.Contains(got, "> **Runner protocol:** v1.0.0") {
+	if !strings.Contains(got, "> **Runner protocol:** v1.1.0") {
 		t.Fatalf("the export must carry the version-stamped runner preamble (INV-2):\n%s", got)
 	}
 	// REQ-3: the preamble tells the agent to close by filling the seed's own Report.
@@ -217,7 +217,7 @@ func TestSeedExportOnAnUnknownSlugIsAnError(t *testing.T) {
 }
 
 func TestRunnerVersionComesFromItsFrontmatter(t *testing.T) {
-	if got, err := RunnerVersion(realCorpus(t)); err != nil || got != "1.0.0" {
+	if got, err := RunnerVersion(realCorpus(t)); err != nil || got != "1.1.0" {
 		t.Fatalf("runner version: got %q, err %v", got, err)
 	}
 	if _, err := RunnerVersion(fstest.MapFS{}); err == nil {

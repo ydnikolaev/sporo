@@ -1,4 +1,4 @@
-> **Runner protocol:** v1.0.0
+> **Runner protocol:** v1.1.0
 
 *This preamble is addressed to the agent about to execute the seed printed below it. The seed is
 the instruction; this only frames how you run it. You are acting on a repository whose layout you
@@ -26,20 +26,26 @@ tool running here.
 code, its origin must be the source the frontmatter vouches for. Code from anywhere else is an
 unaudited privilege you would be taking on the human's behalf — refuse it.
 
-**Take `## Harness` as advice, not a command.** Wire the tool into this repository's agent harness
-only as far as that section suggests, and prefer the tool's own guidance wherever it ships some.
+**Wire the tool into this repository's harness — that is part of standing it up, not optional.**
+`## Harness` says where the tool's surface belongs; plant it there per *this* repository's own
+conventions (where it keeps agent skills, which instruction file its agents read), in roles, and
+**ask the human before you change a file they own** — that permission may be the only thing you need
+from them. The *verdict* on authoring a new project rule is advice: prefer the tool's own guidance
+wherever it ships some, and do not add a second rule where the tool already has one.
 
 ## Account to the human
 
 Close by completing the seed's own `## Report` — the fixed audit written for the person who has to
 accept what you just did. Fill each row from what actually happened on this tree, above all the row
-recording what you changed, and leave the table's shape exactly as the seed sets it. That report,
-not this preamble, is where the run ends.
+recording what you changed. Its forward rows — *how to use it* and *suggest next* — are the human's
+**usage orientation**: name the surface they reach for (the skill), point them onward, and do not
+send them back to run the install you just ran. Leave the table's shape exactly as the seed sets it.
+That report, not this preamble, is where the run ends.
 
 ---
 id: 01KY3NRFFZTXNE3NC88F1T1GSE
 name: sporo
-version: 1.0.0
+version: 1.1.0
 title: sporo — the recipe & seed CLI, self-installed into this repository
 target: sporo@0.13.0
 source: https://sporo.dev
@@ -137,38 +143,38 @@ return to Install.
 
 ## Use
 
-The first move is to install the authoring surface into this repository, then scaffold and ship a
-build with it:
+You work sporo through your agent, not by memorising its verbs. The everyday surface is a **skill**
+the agent now has, `sporo-recipe`:
 
-- `sporo init` — install the authoring surface (a skill, an agent-instructions block, and the
-  embedded seeds) into this repository.
-- `sporo new` scaffolds a coached recipe draft; `sporo seed new` scaffolds a seed draft. A draft
-  cannot ship until it lints clean.
-- `sporo lint` — check a draft against the genre: shape, per-step acceptance, neutrality, and seals.
-- `sporo seal` — record a build's version and content hash in the registry, so a sealed build never
-  silently mutates.
-- `sporo export` — print one recipe (or, under `sporo seed`, one seed) as a single self-contained
-  file, ready to hand to an agent in another repository.
+- Tell the agent *"use sporo-recipe to author a recipe from a build already finished here"* — it
+  mines this repository's own record, drafts, lints against the genre, seals, and exports **one
+  self-contained file** for a person to review. *"…author a seed"* packages a named tool the same way.
+- The raw verbs are there when a person wants them directly — `sporo new`, `sporo lint`,
+  `sporo seal`, `sporo export`, and the `sporo seed` namespace for seeds — but the skill is the
+  surface a human and agent share, and `sporo --help` is the full reference.
 
-Point at `sporo --help` and the project's own docs for the full reference; this seed teaches only
-the setup surface, not every verb.
+This is an orientation, not the whole map: an agent working in this repository can point to more —
+the ways sporo fits how this repository already builds and ships.
 
 ## Harness
 
-sporo ships its own agent-facing guidance, so the right move is to point this repository's future
-agents at it rather than author a parallel description by hand. Running `sporo init` installs that
-surface: a skill the repo's agents can invoke and an agent-instructions block that records the tool
-is here and how to reach for it. Do **not** write a separate project rule restating what sporo is —
-that is a second source of truth, and it drifts from the tool's own the first time the tool updates
-(`sporo update` re-syncs the managed surface without clobbering your edits). Let the tool own its
-harness, and keep the repository's hand-written rules for what the tool does not cover.
+sporo ships its own agent-facing surface, so wiring it in is not "write a rule about sporo" — it is
+"let sporo plant that surface where this repository keeps such things." The agent does this as part
+of standing the tool up: `sporo init` reads this repository's own conventions and installs the
+`sporo-recipe` skill into the skills home it finds, plus an agent-instructions block into the file
+this repo's agents already read — no path is named by hand; it detects the layout and adapts.
+Because that writes into files the repository owns, the agent asks before it does — the human's one
+move may be nothing but granting it. Do **not** hand-author a separate rule restating what sporo is:
+that is a second source of truth, and it drifts the first time the tool updates (`sporo update`
+re-syncs the managed surface without clobbering local edits). Let the tool own its harness, and keep
+the repository's own rules for what sporo does not cover.
 
 ## Report
 
 | row | what happened |
 |---|---|
-| **what it is** | sporo — a single self-installing CLI that turns a finished build into a transferable recipe or seed. |
-| **how it works** | one static binary on the executable path, a per-repo home it owns, and a sealed corpus it authors and exports. |
-| **what was done** | installed the binary to the reader's executable path from the declared source (or built it from source) and verified it runs; nothing else in the tree changed unless `sporo init` was run. |
-| **how to use it** | run `sporo init` to install the authoring surface, then `sporo new` to scaffold a first recipe. |
-| **suggest next** | author and seal a first recipe, or hand this tool to another repository by exporting this seed with `sporo seed export`. |
+| **what it is** | sporo — a single self-installing CLI that turns a build already finished into a transferable recipe (or a seed like this one) an agent in another repository can rebuild from. |
+| **how it works** | one static binary on the executable path, a per-repo home it owns, and a sealed corpus it authors and exports; a person drives it through a skill in their agent, not by memorising verbs. |
+| **what was done** | detected and installed the binary from the declared source (or built it from source) and verified it runs; if the harness step was taken, it also planted the `sporo-recipe` skill and an agent-instructions block into this repository — with permission, and nothing else changed. |
+| **how to use it** | nothing to install by hand — it is set up. To use it, ask the agent to run the `sporo-recipe` skill: *"author a recipe"* (or *"author a seed"*), and it walks the whole build to one sealed file a person reviews. The agent can show more, fitted to this repository. |
+| **suggest next** | package a build worth keeping as a recipe and share the exported file with someone on a different stack — the agent does the authoring; a person only points it at the build. |

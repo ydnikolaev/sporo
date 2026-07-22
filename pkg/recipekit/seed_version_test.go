@@ -43,6 +43,20 @@ var seedGenreShapes = map[string]string{
 		"-- frontmatter --",
 		"id\nname\nversion\ntitle\ntarget\nsource\nstack\nverified\neffort",
 	}, "\n"),
+	// 1.1.0 is a MINOR: it sharpens the Use / Harness / Report prose contracts (usage orientation
+	// for the human, the agent plants the tool into the receiving harness) but leaves the
+	// seven-section shape and nine keys untouched, so the snapshot is byte-identical again.
+	"1.1.0": strings.Join([]string{
+		"## Summary",
+		"## What it is",
+		"## Install",
+		"## Verify",
+		"## Use",
+		"## Harness",
+		"## Report",
+		"-- frontmatter --",
+		"id\nname\nversion\ntitle\ntarget\nsource\nstack\nverified\neffort",
+	}, "\n"),
 }
 
 func seedGenreShapeMatches(version string, sections, keys []string) bool {
@@ -99,6 +113,7 @@ var reSeedSpecVersion = regexp.MustCompile(`(?m)^version:\s*.+$`)
 var seedSpecHashes = map[string]string{
 	"1.0.0": "sha256:7538f88e3416fe22c8f7766fcc7abd3e962493e9059d8eaae664e923e07c4884",
 	"1.0.1": "sha256:9b3a64565e31f8fc2e32963ca78cdd0861defdd7f6afeee354278d46f35b4b4e",
+	"1.1.0": "sha256:41d10aa05326bd1448a08054137e366020f2b044eb53fcb630384a2f001c1efa",
 }
 
 func seedSpecPayloadHash(src []byte) string {
@@ -147,6 +162,7 @@ func mustReadSeedSpec(t *testing.T) []byte {
 // warranted; only the ledger and its reader are runner-specific.
 var runnerSpecHashes = map[string]string{
 	"1.0.0": "sha256:0015f0c664367ec75c3f4a15609de85aca8ec9f0efbd69b6fc63adc0e730cd24",
+	"1.1.0": "sha256:4e4e2822aad6a0d21bf406936c6e2e41fcf877d06e6216d81e52abfd77d87d9d",
 }
 
 func runnerSpecHashMatches(version string, src []byte) bool {

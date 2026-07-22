@@ -106,26 +106,34 @@ func SeedScaffold(root string, cfg Config, slug, title string) (string, error) {
 		"TODO — say what output proves the install took.\n\n")
 
 	b.WriteString("## Use\n\n" +
-		"<!-- coach: the first real thing the reader does with the now-installed tool, in their own\n" +
-		"     repository — the payoff the Summary promised, concrete enough to act on but still\n" +
-		"     neutral about the reader's tree. -->\n\nTODO\n\n")
+		"<!-- coach: the usage orientation for the human, read by both — NOT another install step (the\n" +
+		"     agent already stood the tool up above). Name the tool's real working surface: the SKILL a\n" +
+		"     human and agent invoke, a command they run, and show the first real move through it. Name\n" +
+		"     the skills — that shared surface is the point of standing the tool up; carry a command\n" +
+		"     only when the move is genuinely the human's, one the agent cannot or should not make for\n" +
+		"     them. It is an orientation the reading agent extends in place, not an exhaustive script,\n" +
+		"     and it never re-lists the install already run. -->\n\nTODO\n\n")
 
 	b.WriteString("## Harness\n\n" +
 		"<!-- coach: how the tool joins THIS repository's agent harness so future agents know it is\n" +
-		"     here. Advisory: recommend a thin project-local rule only when the tool ships none of its\n" +
-		"     own — point at the tool's own guidance wherever it has some, or you author a second\n" +
-		"     source of truth that drifts the first time the tool updates. -->\n\nTODO\n\n")
+		"     here. Planting it is the AGENT's move, part of standing the tool up: read this repo's own\n" +
+		"     conventions (where it keeps skills, which instruction file its agents read), wire the\n" +
+		"     surface THERE in roles, and ask before mutating a file the human owns. Advisory verdict:\n" +
+		"     recommend a thin project-local rule only when the tool ships none of its own — point at\n" +
+		"     the tool's own guidance wherever it has some, or you author a second source of truth that\n" +
+		"     drifts the first time the tool updates. -->\n\nTODO\n\n")
 
 	b.WriteString("## Report\n\n" +
 		"<!-- coach: the ONLY section for a person — a fixed five-row audit of what this run did to\n" +
 		"     the repository. Fill each cell; do not add, drop, or reorder a row — the human reads the\n" +
-		"     same five every time, and the fixed shape IS the product. -->\n\n" +
+		"     same five every time, and the fixed shape IS the product. The two forward rows carry\n" +
+		"     USAGE, not setup: name the skill the human reaches for, never a re-run of the install. -->\n\n" +
 		"| row | what happened |\n" +
 		"|---|---|\n" +
 		"| **what it is** | TODO — the tool, in one line the human can act on |\n" +
 		"| **how it works** | TODO — the mechanism, enough that the human can reason about it |\n" +
 		"| **what was done** | TODO — the actual mutations this run made to this repository |\n" +
-		"| **how to use it** | TODO — the human's own next move with the now-installed tool |\n" +
+		"| **how to use it** | TODO — how the human uses it from here: name the skill they reach for; a command only if it is genuinely theirs, never a re-run of the install |\n" +
 		"| **suggest next** | TODO — where to go from here, the forward pointer |\n")
 
 	dir := filepath.Join(root, home)

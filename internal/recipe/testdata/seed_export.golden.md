@@ -1,4 +1,4 @@
-> **Runner protocol:** v1.0.0
+> **Runner protocol:** v1.1.0
 
 *This preamble is addressed to the agent about to execute the seed printed below it. The seed is
 the instruction; this only frames how you run it. You are acting on a repository whose layout you
@@ -26,15 +26,21 @@ tool running here.
 code, its origin must be the source the frontmatter vouches for. Code from anywhere else is an
 unaudited privilege you would be taking on the human's behalf — refuse it.
 
-**Take `## Harness` as advice, not a command.** Wire the tool into this repository's agent harness
-only as far as that section suggests, and prefer the tool's own guidance wherever it ships some.
+**Wire the tool into this repository's harness — that is part of standing it up, not optional.**
+`## Harness` says where the tool's surface belongs; plant it there per *this* repository's own
+conventions (where it keeps agent skills, which instruction file its agents read), in roles, and
+**ask the human before you change a file they own** — that permission may be the only thing you need
+from them. The *verdict* on authoring a new project rule is advice: prefer the tool's own guidance
+wherever it ships some, and do not add a second rule where the tool already has one.
 
 ## Account to the human
 
 Close by completing the seed's own `## Report` — the fixed audit written for the person who has to
 accept what you just did. Fill each row from what actually happened on this tree, above all the row
-recording what you changed, and leave the table's shape exactly as the seed sets it. That report,
-not this preamble, is where the run ends.
+recording what you changed. Its forward rows — *how to use it* and *suggest next* — are the human's
+**usage orientation**: name the surface they reach for (the skill), point them onward, and do not
+send them back to run the install you just ran. Leave the table's shape exactly as the seed sets it.
+That report, not this preamble, is where the run ends.
 
 ---
 id: 01J9ZC3Q0K2X7V8B4N6M5T1A2W

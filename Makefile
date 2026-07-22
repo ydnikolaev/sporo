@@ -20,6 +20,9 @@ check: fmt-check tidy-check lint workflow-lint
 	go build ./...
 	$(MAKE) coverage
 	go run ./cmd/sporo lint
+	@# The seed corpus is a first-class genre too — gate its shape, neutrality, and seal coherence
+	@# in the ceiling, not just the recipe corpus, so a drifted or unsealed seed reds before "done".
+	go run ./cmd/sporo seed lint
 	go generate ./...
 	git diff --exit-code -- web/src/data/surface.json
 	@# The recipe .md mirror the site serves must equal a fresh `sporo export` for every recipe.

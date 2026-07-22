@@ -2,7 +2,7 @@
 
 ---
 name: _authoring
-version: 1.0.1
+version: 1.1.0
 title: Authoring a seed — the canonical shape of a transferable install
 problem: A tool we depend on cannot be brought into a repository that has never heard of it — safely, idempotently, and in a way the human can audit.
 prerequisites: [read-files, edit-files, run-commands]
@@ -87,12 +87,21 @@ and a seed that skips a rung leaves a gap an agent fills by improvising on the r
    success. Install can lie — a package half-lands, a PATH does not refresh, a binary arrives
    without the execute bit. Verify is the seed's acceptance at the whole-tool level; a Verify with
    no runnable proof in it verifies nothing.
-6. **`## Use`** — how the reader actually puts the now-installed tool to work: the first real thing
-   they do with it, in their own repository. This is the payoff the Summary promised, made
-   concrete enough to act on but still neutral about the reader's own tree (§3).
+6. **`## Use`** — how the tool is actually used going forward. The agent has just stood the tool
+   up, so this is not another install step: it is the **usage orientation**, written for the human
+   and read by both. It names the tool's real working surface — the **skill** a human and agent
+   invoke, a command they run — and shows the first real thing done through it. Two rules make it
+   serve the human: it **must name the skills** the human and agent share (that surface is the
+   whole point of standing the tool up), and it **may carry a concrete command when the move is
+   genuinely the human's** — one the agent cannot or should not make for them. It is an orientation
+   the reading agent **extends in place** — a repository has its own ways to reach a tool — not an
+   exhaustive script, and it never sends the human back to run the install the agent already ran.
+   Concrete about the tool's surface, neutral about the reader's tree (§3).
 7. **`## Harness`** — how the tool joins the repository's **agent harness** so that future agents
-   in this repo know it is here and how to reach for it. This section is **advisory**, not a
-   command to author a rule — see §5.
+   in this repo know it is here and how to reach for it. Integrating is the **agent's** move, part
+   of standing the tool up — it reads *this* repo's own conventions and plants the surface there,
+   asking before it mutates a file the human owns. The *verdict* (whether to author a project rule)
+   is **advisory**, not a command — see §5.
 8. **`## Report`** — the closing section, and **the only one written for a person**. It is a fixed
    five-row table (§4) that accounts for what the seed just did to this repository. A seed is an
    action taken on the human's behalf; the Report is where the human audits it.
@@ -233,23 +242,32 @@ order**:
 | **what it is** | the tool, in one line the human can act on |
 | **how it works** | the mechanism, enough that the human can reason about it |
 | **what was done** | the actual mutations this run made to **this** repository — the audit |
-| **how to use it** | the human's own next move with the now-installed tool |
+| **how to use it** | how the human uses it from here — the working surface **named** (the skill a human and agent share), as orientation; a command belongs here only when the move is the *human's own*, never the install the agent already ran |
 | **suggest next** | where to go from here — the forward pointer |
 
 The five walk the human from **understanding** (what it is, how it works) through the **audit** (what
 was done — the row that makes the seed accountable) to **action and future** (how to use it, suggest
-next). The gate holds the shape hard: an **extra** row, a **missing** row, and a **reordered**
-column all red, because a report that drifts from the five is one the human can no longer read at a
-glance — which is the one thing the fixed shape exists to guarantee. The format is not decoration
-around the seed; for the human, the format **is** the product.
+next). The stand-up is the agent's, so the two forward rows carry **usage, not setup**: *how to use
+it* names the skill the human reaches for (and only a command that is genuinely theirs), never a
+re-run of the install the Report is already accounting for. The gate holds the shape hard: an
+**extra** row, a **missing** row, and a **reordered** column all red, because a report that drifts
+from the five is one the human can no longer read at a glance — which is the one thing the fixed
+shape exists to guarantee. The format is not decoration around the seed; for the human, the format
+**is** the product.
 
 ## 5. The Harness section is advisory
 
-`## Harness` is where the seed considers how the installed tool joins the repository's **agent
+`## Harness` is where the seed says how the installed tool joins the repository's **agent
 harness** — the rules, skills, and config that tell this repo's future agents what exists and how
-to reach for it. The section is **required to be present** (so the author cannot silently skip the
-question of integration), but its content is **advisory**, and the gate deliberately checks only
-that it exists — never what verdict it reaches.
+to reach for it. Planting it is the **agent's** move, part of standing the tool up, not a chore
+handed back to the human: the agent reads *this* repository's own conventions — where it keeps
+agent skills, which instruction file its agents already read — and wires the tool's surface **there**,
+in roles, never a path lifted from another tree. A seed cannot sprout if it is planted where this
+repo does not look. And because that integration writes into files the human owns, the agent
+**asks before it mutates them** — the human's one action may be nothing more than granting that
+permission. The section is **required to be present** (so the author cannot silently skip the
+question of integration), but the **verdict** it reaches is **advisory**, and the gate deliberately
+checks only that it exists — never which branch it took.
 
 The rule the section follows: **recommend a project-local rule or skill only when the tool ships
 none of its own.** Many tools already carry their own agent-facing guidance — their own skill,
@@ -312,10 +330,15 @@ a named release, on a named date — not that it was assembled from recollection
 - [ ] `## Verify` contains at least one fenced command block — a proof the agent runs, not prose.
 - [ ] The body names the **target** concretely and the **reader's tree** only in roles — no
       backticked paths, filenames, or config locations lifted from your own machine.
-- [ ] `## Harness` is present and follows the advisory rule: recommend a project rule or skill only
-      when the tool ships none of its own.
+- [ ] `## Use` is a usage orientation: it **names the skills** a human and agent share, shows the
+      first real move through that surface, carries a command only when it is the human's own, and
+      never re-lists the install the agent already ran.
+- [ ] `## Harness` is present and says how the **agent** plants the tool into this repo's own harness
+      — per the repo's conventions, in roles, asking before it mutates a file the human owns — and
+      follows the advisory rule: recommend a project rule or skill only when the tool ships none.
 - [ ] `## Report` is a table of **exactly** the five rows, in order — no extra, no omission, no
-      reorder.
+      reorder; its `how to use it` and `suggest next` rows carry **usage**, not a re-run of the
+      install.
 - [ ] The install was **run**, not recalled, and `verified` is stamped with the machine, release,
       and date that proved it.
 
@@ -334,6 +357,21 @@ can hold a seed about its **own** repository to this contract. The genre spec tr
 binary goes.
 
 ## 10. Version history
+
+### 1.1.0 — the human's usage orientation, and the agent that plants the tool
+
+Sharpened three prose contracts; the seven-section shape and nine frontmatter keys are unchanged, so
+this is a **MINOR** and the shape-ledger row for 1.1.0 is byte-identical to 1.0.1. (1) `## Use` is
+now the **usage orientation** for the human: it must name the skills a human and agent share and show
+the first real move through that surface, may carry a command only when the move is genuinely the
+human's, is an orientation the reading agent extends in place, and never re-lists the install the
+agent already ran. (2) `## Harness` is reframed so **the agent** plants the tool into *this*
+repository's harness — per the repo's own conventions, in roles, asking before it mutates a file the
+human owns — while the verdict on authoring a project rule stays advisory. (3) The `## Report` `how
+to use it` and `suggest next` rows carry **usage, not setup**: the working surface named for the
+human, never a re-run of the install the audit already accounts for. No gate changed; the discipline
+is prose, so a seed that lists install verbs where usage belongs is caught in review, not by the
+linter.
 
 ### 1.0.1 — the neutrality carve-out for the target tool
 

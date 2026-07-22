@@ -18,7 +18,7 @@ recipes:
     sporo:
         id: 01KY3NRFFZTXNE3NC88F1T1GSE
         kind: seed
-        version: 1.0.0
-        hash: sha256:003754222d590daf749bd230dd17f34fc166e31ba074633d07f89be109f8d9eb
+        version: 1.1.0
+        hash: sha256:1a6a9b19eaae61daa5ac4afed6233302ae3786a1e0092ff60b94c7d73c696097
         provenance: local
-        sealed_at: "2026-07-22T01:12:59Z"
+        sealed_at: "2026-07-22T14:25:44Z"
