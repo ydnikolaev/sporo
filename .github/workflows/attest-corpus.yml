@@ -1,0 +1,74 @@
+# Attests the recipe corpus's EXPORT bytes to the official sporo pipeline, so an adopter who holds
+# only an exported `recipe.md` can prove offline — from the file alone — that those exact bytes came
+# through here unmodified: `gh attestation verify recipe.md -R ydnikolaev/sporo`.
+#
+# The trust chain this job closes (design: docs/design/attested-provenance.md):
+#   seal ── witnesses the recipe SOURCE (banner included)         [existing]
+#   gate ── the genre gate passes the source                      [existing, `sporo lint`]
+#   drift ─ web/src/data/exports/<slug>.md == Export(source)      [existing gate, re-run below]
+#   attest ─ binds the export-mirror bytes (what the site serves) [this workflow]
+# The seal covers the source; the export is a deterministic composition of it (banner stripped,
+# adoption protocol appended). So the job re-derives the mirror and refuses to attest unless it
+# still equals a fresh Export() of the sealed, gate-passed source — bridging source-seal to
+# export-attestation. An attestation over unverified bytes is exactly the decoration the site
+# disavows, so every claim is re-derived here and nothing the PR asserted is trusted.
+name: Attest corpus
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "recipes/**"
+      - ".sporo/registry.yaml"
+      - "web/src/data/exports/**"
+      - ".github/workflows/attest-corpus.yml"
+  # Manual trigger — the bootstrap for a deploy that changed no recipe bytes (so the path filter
+  # above would not fire), and the re-attest button after a corpus that was already on main. Its
+  # completion still drives the Pages redeploy that renders the `attested` mark (pages.yml).
+  workflow_dispatch:
+
+permissions:
+  contents: read # read the committed corpus
+  id-token: write # mint the OIDC token for keyless Sigstore signing
+  attestations: write # persist the attestation to GitHub
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      # Teeth 1 — re-seal-check + re-lint from the committed bytes. `sporo lint` (no dir) runs the
+      # genre gate AND the registry seal-coherence sweep over recipes/: a recipe that drifted from
+      # its seal, or fails the gate, fails the job here, before anything is attested.
+      - name: Re-verify the sealed corpus
+        run: go run ./cmd/sporo lint
+
+      # Teeth 2 — the export mirror MUST equal a fresh Export() of the sealed source, or the bytes
+      # we attest are not the bytes the seal+gate vouch for. Regenerate and refuse on any drift —
+      # the same porcelain gate `make check` runs (catches an edited OR a new-untracked form),
+      # re-run here so the attestation cannot bind a mirror that drifted from its source.
+      - name: Re-derive and pin the export mirror
+        run: |
+          go generate ./...
+          if [ -n "$(git status --porcelain -- web/src/data/exports web/src/data/seeds)" ]; then
+            echo "::error::export mirror drifted from the sealed source — refusing to attest"
+            git status --porcelain -- web/src/data/exports web/src/data/seeds
+            exit 1
+          fi
+
+      # The subject: one checksums file over every recipe export — the exact bytes the site's `.md`
+      # twin serves and an adopter holds. `gh attestation verify <recipe>.md -R ydnikolaev/sporo`
+      # computes that file's digest locally and matches it against a line here (by digest, not name).
+      # One call covers the corpus, mirroring the binary's single dist/checksums.txt.
+      - name: Checksum the export mirror
+        working-directory: web/src/data/exports
+        run: |
+          sha256sum ./*.md | tee "$RUNNER_TEMP/corpus-checksums.txt"
+
+      - uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-checksums: ${{ runner.temp }}/corpus-checksums.txt
