@@ -145,6 +145,26 @@ func GenreVersion(corpus fs.FS) (string, error) {
 	return specVersion(b, GenreDoc)
 }
 
+// SeedGenre is Genre's seed sibling: it prints the SEED authoring spec (seeds/_authoring.md) from
+// the compiled-in corpus, banner stripped. The sporo-seed skill says "read the genre before you
+// write a line", and in a consumer repo that never checked out this source the binary is the only
+// place the seed genre lives — so it gets its own door, exactly as the recipe genre does.
+func SeedGenre(corpus fs.FS) (string, error) {
+	b, err := fs.ReadFile(corpus, path.Join("seeds", GenreDoc))
+	if err != nil {
+		return "", fmt.Errorf("the seed genre spec is missing from the corpus — the binary is broken, not your repository: %w", err)
+	}
+	return strip(string(b)), nil
+}
+
+func SeedGenreVersion(corpus fs.FS) (string, error) {
+	b, err := fs.ReadFile(corpus, path.Join("seeds", GenreDoc))
+	if err != nil {
+		return "", fmt.Errorf("the seed genre spec is missing from the corpus — the binary is broken, not your repository: %w", err)
+	}
+	return specVersion(b, GenreDoc)
+}
+
 func AdoptionVersion(corpus fs.FS) (string, error) {
 	b, err := fs.ReadFile(corpus, path.Join("recipes", AdoptionDoc))
 	if err != nil {

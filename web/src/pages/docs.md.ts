@@ -22,8 +22,9 @@ export const GET: APIRoute = () => {
   let md = `# sporo — command reference\n\n`;
   md += `> Generated from the sporo binary (\`sporo docs --json\`). Every verb the CLI carries, `;
   md += `grouped. Read the authoring rules with \`sporo genre\`.\n\n`;
-  md += `The \`sporo-recipe\` skill (installed by \`sporo init\`) drives an agent through the cycle: `;
-  md += `harvest → draft → lint → seal → export.\n\n`;
+  md += `\`sporo init\` installs two authoring skills: \`sporo-recipe\` drives an agent through the recipe `;
+  md += `cycle (harvest → draft → lint → seal → export), and \`sporo-seed\` through the seed cycle `;
+  md += `(new → lint → seal → export). Read the authoring rules with \`sporo genre\` / \`sporo genre --seed\`.\n\n`;
 
   for (const g of groups) {
     const vs = byGroup(g.key);

@@ -33,8 +33,19 @@ import (
 	"sporo.dev/sporo/internal/recipe"
 )
 
-//go:embed assets/SKILL.md assets/agents-block.md
+//go:embed assets/SKILL.md assets/SKILL-seed.md assets/agents-block.md
 var assets embed.FS
+
+// skills is the authoring surface `init`/`update` write into a `.claude/` home — one per genre.
+// Both are managed the same way (the no-clobber state machine below); a genre is added by adding a
+// row here and its embedded asset, not by touching the sync logic.
+var skills = []struct {
+	rel   string // where it lands in the consumer repo
+	asset string // the embedded source in this binary
+}{
+	{".claude/skills/sporo-recipe/SKILL.md", "assets/SKILL.md"},
+	{".claude/skills/sporo-seed/SKILL.md", "assets/SKILL-seed.md"},
+}
 
 // Action is one file's outcome, reported to the user. Update prints these; nothing here is a
 // silent side effect.
@@ -45,10 +56,9 @@ type Action struct {
 }
 
 const (
-	skillRelPath = ".claude/skills/sporo-recipe/SKILL.md"
-	agentsFile   = "AGENTS.md"
-	blockBegin   = "<!-- sporo:begin — managed by `sporo update`; edits inside this block are reported, never clobbered -->"
-	blockEnd     = "<!-- sporo:end -->"
+	agentsFile = "AGENTS.md"
+	blockBegin = "<!-- sporo:begin — managed by `sporo update`; edits inside this block are reported, never clobbered -->"
+	blockEnd   = "<!-- sporo:end -->"
 )
 
 // Init seeds the project (config, recipes home) and installs the authoring surface. The
@@ -96,13 +106,16 @@ func sync(root, version string) ([]Action, error) {
 
 	var out []Action
 
-	// The claude adapter: only where the provider home already exists.
+	// The claude adapter: only where the provider home already exists. Every genre's skill is
+	// written the same way, in listed order.
 	if _, err := os.Stat(filepath.Join(root, ".claude")); err == nil {
-		a, err := syncFile(root, skillRelPath, skillContent(version), version, managed)
-		if err != nil {
-			return out, err
+		for _, sk := range skills {
+			a, err := syncFile(root, sk.rel, skillContent(sk.asset, version), version, managed)
+			if err != nil {
+				return out, err
+			}
+			out = append(out, a)
 		}
-		out = append(out, a)
 	}
 
 	// The AGENTS.md block: universal, so always managed. The unit is the BLOCK, not the
@@ -239,11 +252,11 @@ func seed(root, rel, content string) Action {
 	return Action{rel, "seeded", ""}
 }
 
-// skillContent is the embedded skill with the provenance stamp spliced in AFTER the
+// skillContent is one embedded skill with the provenance stamp spliced in AFTER the
 // frontmatter — a comment above it would break the provider's frontmatter parsing, which
 // expects the document to open with `---`.
-func skillContent(version string) string {
-	b, err := assets.ReadFile("assets/SKILL.md")
+func skillContent(asset, version string) string {
+	b, err := assets.ReadFile(asset)
 	if err != nil {
 		panic("the embedded skill is missing from the binary: " + err.Error()) // a build defect, not a runtime state
 	}

@@ -44,12 +44,16 @@ func TestInitInstallsTheSurfaceAndRecordsIt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	skill := read(t, root, skillRelPath)
-	if !strings.Contains(skill, "SYNCED FROM sporo@v0.1.0") {
-		t.Fatal("the installed skill must carry the provenance stamp naming the binary that wrote it")
-	}
-	if !strings.HasPrefix(skill, "---\n") {
-		t.Fatal("the stamp must not displace the frontmatter — the provider parses it from line 1")
+	// Both genres' skills land and each carries the stamp, opening with frontmatter the provider
+	// parses from line 1.
+	for _, sk := range skills {
+		skill := read(t, root, sk.rel)
+		if !strings.Contains(skill, "SYNCED FROM sporo@v0.1.0") {
+			t.Fatalf("%s must carry the provenance stamp naming the binary that wrote it", sk.rel)
+		}
+		if !strings.HasPrefix(skill, "---\n") {
+			t.Fatalf("%s: the stamp must not displace the frontmatter — the provider parses it from line 1", sk.rel)
+		}
 	}
 	agents := read(t, root, agentsFile)
 	if !strings.Contains(agents, blockBegin) || !strings.Contains(agents, blockEnd) {
@@ -62,8 +66,8 @@ func TestInitInstallsTheSurfaceAndRecordsIt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(reg.Managed) != 2 {
-		t.Fatalf("the registry must record exactly the managed files (skill + AGENTS.md block); got %+v", reg.Managed)
+	if want := len(skills) + 1; len(reg.Managed) != want {
+		t.Fatalf("the registry must record exactly the managed files (%d skills + AGENTS.md block = %d); got %+v", len(skills), want, reg.Managed)
 	}
 }
 
@@ -84,7 +88,11 @@ func TestInitTwiceIsByteForByteIdempotent(t *testing.T) {
 		t.Fatal(err)
 	}
 	before := map[string]string{}
-	for _, rel := range []string{skillRelPath, agentsFile, ".sporo/config.yaml", ".sporo/registry.yaml"} {
+	rels := []string{agentsFile, ".sporo/config.yaml", ".sporo/registry.yaml"}
+	for _, sk := range skills {
+		rels = append(rels, sk.rel)
+	}
+	for _, rel := range rels {
 		before[rel] = read(t, root, rel)
 	}
 	actions, err := Init(root, "v0.1.0")
@@ -108,18 +116,18 @@ func TestUpdateNeverClobbersAnEditedSkill(t *testing.T) {
 	if _, err := Init(root, "v0.1.0"); err != nil {
 		t.Fatal(err)
 	}
-	edited := read(t, root, skillRelPath) + "\nMy local amendment.\n"
-	if err := os.WriteFile(filepath.Join(root, skillRelPath), []byte(edited), 0o644); err != nil {
+	edited := read(t, root, skills[0].rel) + "\nMy local amendment.\n"
+	if err := os.WriteFile(filepath.Join(root, skills[0].rel), []byte(edited), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	actions, err := Update(root, "v0.2.0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := read(t, root, skillRelPath); got != edited {
+	if got := read(t, root, skills[0].rel); got != edited {
 		t.Fatal("an edited managed file was overwritten — the one thing update may never do")
 	}
-	assertStatus(t, actions, skillRelPath, "skipped")
+	assertStatus(t, actions, skills[0].rel, "skipped")
 }
 
 func TestUpdateRefreshesAnUntouchedSurfaceFromANewerBinary(t *testing.T) {
@@ -131,10 +139,10 @@ func TestUpdateRefreshesAnUntouchedSurfaceFromANewerBinary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(read(t, root, skillRelPath), "sporo@v0.2.0") {
+	if !strings.Contains(read(t, root, skills[0].rel), "sporo@v0.2.0") {
 		t.Fatal("an untouched managed file must follow the binary forward")
 	}
-	assertStatus(t, actions, skillRelPath, "updated")
+	assertStatus(t, actions, skills[0].rel, "updated")
 }
 
 func TestTheBlockJoinsAnExistingAgentsFileWithoutTouchingIt(t *testing.T) {
@@ -208,10 +216,13 @@ func TestTheInstalledSkillNamesOnlyVerbsTheBinaryHas(t *testing.T) {
 		"harvest": true, "lint": true, "export": true, "list": true, "new": true,
 		"seal": true, "init": true, "update": true, "genre": true, "feedback": true, "review": true,
 		"conform": true, "adopt": true, "pull": true, "projects": true, "upgrade": true, "docs": true,
+		"seed": true, // `sporo seed <new|lint|seal|export>` — the seed-authoring subcommand group
 	}
-	for _, m := range regexpVerbs.FindAllStringSubmatch(skillContent("test"), -1) {
-		if !known[m[1]] {
-			t.Errorf("the skill instructs `sporo %s`, which this binary does not carry", m[1])
+	for _, sk := range skills {
+		for _, m := range regexpVerbs.FindAllStringSubmatch(skillContent(sk.asset, "test"), -1) {
+			if !known[m[1]] {
+				t.Errorf("%s instructs `sporo %s`, which this binary does not carry", sk.rel, m[1])
+			}
 		}
 	}
 }

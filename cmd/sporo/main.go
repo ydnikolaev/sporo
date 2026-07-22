@@ -328,19 +328,27 @@ func registerBestEffort(cmd *cobra.Command, root string) {
 // binary is the only place the genre lives, and the skill's first instruction is to read it.
 func genreCmd() *cobra.Command {
 	var onlyVersion bool
+	var seed bool
 	cmd := &cobra.Command{
 		Use:   "genre",
-		Short: "Print the recipe genre spec — the authoring rules this binary enforces",
+		Short: "Print the recipe genre spec — the authoring rules this binary enforces (`--seed` for seeds)",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// The genre verb serves both kinds now: `--seed` prints the seed authoring spec (from the
+			// seed corpus), the recipe spec otherwise. The sporo-recipe and sporo-seed skills each
+			// point here.
+			version, spec, corpus := recipe.GenreVersion, recipe.Genre, sporo.Recipes
+			if seed {
+				version, spec, corpus = recipe.SeedGenreVersion, recipe.SeedGenre, sporo.Seeds
+			}
 			if onlyVersion {
-				v, err := recipe.GenreVersion(sporo.Recipes)
+				v, err := version(corpus)
 				if err != nil {
 					return err
 				}
 				fmt.Fprintln(cmd.OutOrStdout(), v)
 				return nil
 			}
-			s, err := recipe.Genre(sporo.Recipes)
+			s, err := spec(corpus)
 			if err != nil {
 				return err
 			}
@@ -349,6 +357,7 @@ func genreCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVar(&onlyVersion, "version", false, "print only the embedded genre spec version")
+	cmd.Flags().BoolVar(&seed, "seed", false, "print the SEED genre spec instead of the recipe genre")
 	return cmd
 }
 

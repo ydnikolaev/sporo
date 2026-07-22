@@ -113,9 +113,14 @@
     {
       "use": "genre",
       "name": "genre",
-      "short": "Print the recipe genre spec — the authoring rules this binary enforces",
+      "short": "Print the recipe genre spec — the authoring rules this binary enforces (`--seed` for seeds)",
       "group": "surface",
       "flags": [
+        {
+          "name": "seed",
+          "default": "false",
+          "usage": "print the SEED genre spec instead of the recipe genre"
+        },
         {
           "name": "version",
           "default": "false",
