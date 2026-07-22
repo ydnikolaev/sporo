@@ -29,6 +29,13 @@ check: fmt-check tidy-check lint workflow-lint
 		git status --porcelain -- web/src/data/exports; \
 		exit 1; \
 	fi
+	@# The seed .md mirror the site serves must equal a fresh `sporo seed export` for every seed.
+	@# --porcelain (not `git diff`) so a NEW seed's untracked form reds too, not just an edit.
+	@if [ -n "$$(git status --porcelain -- web/src/data/seeds)" ]; then \
+		echo "seed export mirror drifted from the binary — run: go generate ./... && git add web/src/data/seeds"; \
+		git status --porcelain -- web/src/data/seeds; \
+		exit 1; \
+	fi
 	$(MAKE) vulncheck
 	$(MAKE) classify
 	$(MAKE) classify-teeth
