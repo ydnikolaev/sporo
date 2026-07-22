@@ -41,13 +41,28 @@ func main() {
 }
 
 func root() *cobra.Command {
+	var showVersion bool
 	cmd := &cobra.Command{
 		Use:           "sporo",
 		Short:         "Author, check and export transferable build recipes — in any repository",
-		Version:       version,
 		SilenceUsage:  true,
 		SilenceErrors: false,
+		// --version is handled here, not through cobra's built-in Version field, so the invocation
+		// runs the normal Run→PersistentPostRun path — which is what lets the freshness hint (below)
+		// fire on `sporo --version` too, the command a user most often runs to check what they have.
+		// Cobra's Version field short-circuits before PostRun, so the auto-flag would print the
+		// version and never nudge. Bare `sporo` still falls through to help.
+		RunE: func(c *cobra.Command, args []string) error {
+			if showVersion {
+				fmt.Fprintf(c.OutOrStdout(), "sporo version %s\n", version)
+				return nil
+			}
+			return c.Help()
+		},
 	}
+	// Local (not persistent): --version answers on the root only, exactly as the built-in did, so a
+	// subcommand with its own Version (e.g. `sporo genre --version`) keeps printing its own.
+	cmd.Flags().BoolVar(&showVersion, "version", false, "print the sporo version")
 	cmd.AddCommand(harvestCmd(), lintCmd(), exportCmd(), listCmd(), sealCmd(),
 		initCmd(), updateCmd(), genreCmd(), feedbackCmd(), reviewCmd(), projectsCmd(), newCmd(),
 		conformCmd(), upgradeCmd(), adoptCmd(), pullCmd(), docsCmd(), recipesCmd(),
