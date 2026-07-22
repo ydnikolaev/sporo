@@ -69,7 +69,7 @@ var docGroups = []struct {
 	Verbs []string
 }{
 	{"authoring", "Authoring", []string{"harvest", "new", "lint", "seal", "export", "list", "feedback", "review", "seed"}},
-	{"handover", "Handover", []string{"adopt", "pull", "conform"}},
+	{"handover", "Handover", []string{"publish", "adopt", "pull", "conform"}},
 	{"surface", "Install surface", []string{"init", "update", "genre", "projects", "recipes", "docs"}},
 	{"binary", "Binary", []string{"upgrade"}},
 }

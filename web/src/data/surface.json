@@ -216,6 +216,24 @@
       "group": "surface"
     },
     {
+      "use": "publish <slug>",
+      "name": "publish",
+      "short": "Verify a recipe is sealed and gate-passed, ready to publish to the corpus",
+      "group": "handover",
+      "flags": [
+        {
+          "name": "check",
+          "default": "false",
+          "usage": "verify only (the CI/server semantic): print the one-line result and exit"
+        },
+        {
+          "name": "root",
+          "default": ".",
+          "usage": "project root"
+        }
+      ]
+    },
+    {
       "use": "pull [slug]",
       "name": "pull",
       "short": "Check adopted recipes against their sources — loud when an exact contract moved",
